@@ -1456,7 +1456,7 @@ var PERSONA_VOICES={
 
 function getElevenLabsKey(){return localStorage.getItem('dc_elevenlabs_key')||''}
 function setElevenLabsKey(k){localStorage.setItem('dc_elevenlabs_key',k)}
-function isVoiceMode(){return localStorage.getItem('dc_voice_mode')==='true'&&getElevenLabsKey()}
+function isVoiceMode(){return localStorage.getItem('dc_voice_mode')==='true'&&!!getElevenLabsKey()}
 function setVoiceMode(on){localStorage.setItem('dc_voice_mode',on?'true':'false')}
 
 // ── Session Audio Recording ──
@@ -1540,10 +1540,20 @@ function stopSessionRecording(){
 
 // Play audio from ElevenLabs TTS
 var currentAudio=null;
+// Unlock audio on first user tap (mobile autoplay policy)
+var audioUnlocked=false;
+document.addEventListener('touchstart',unlockAudio,{once:true});
+document.addEventListener('click',unlockAudio,{once:true});
+function unlockAudio(){
+ var a=new Audio();
+ a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+ a.play().then(function(){audioUnlocked=true}).catch(function(){});
+}
+
 function speakText(text,personaId){
  var key=getElevenLabsKey();
  if(!key) return Promise.resolve();
- var voiceId=PERSONA_VOICES[personaId]||'EXAVITQu4vr4xnSDxMaL'; // fallback to Sarah
+ var voiceId=PERSONA_VOICES[personaId]||'EXAVITQu4vr4xnSDxMaL';
 
  return fetch(ELEVENLABS_URL+voiceId,{
   method:'POST',
@@ -1563,9 +1573,12 @@ function speakText(text,personaId){
   var url=URL.createObjectURL(blob);
   if(currentAudio){try{currentAudio.pause()}catch(e){}}
   currentAudio=new Audio(url);
-  // Just play directly — don't route through AudioContext
-  // Recording will capture via mic feedback if needed
-  return currentAudio.play();
+  currentAudio.volume=1.0;
+  return currentAudio.play().catch(function(e){
+   // Mobile autoplay blocked — show a toast so user knows
+   console.error('Audio play blocked:',e);
+   showToast('Tap screen to enable voice',2000);
+  });
  }).catch(function(e){
   console.error('Voice error:',e);
  });
