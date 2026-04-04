@@ -530,7 +530,19 @@ var sessions=loadJSON('db_coach_sessions',[]);
 var settings=loadJSON('db_coach_settings',{difficulty:'all',dailyGoal:1,categories:['annuity','life','iul','banking'],mode:'scripted'});
 var streak=loadJSON('db_coach_streak',{current:0,longest:0,lastDate:null,practiceDates:[]});
 
-function saveSessions(){saveJSON('db_coach_sessions',sessions);if(currentAgent)fbCoachSave('sessions',sessions)}
+function saveSessions(){
+ // Strip recordings from older sessions to save storage (keep last 10)
+ var toSave=sessions.map(function(s,i){
+  if(i>=10&&s.recording){var c=Object.assign({},s);delete c.recording;return c}
+  return s;
+ });
+ saveJSON('db_coach_sessions',toSave);
+ // Don't sync recordings to Firebase (too large) — save sessions without recordings
+ if(currentAgent){
+  var fbSessions=sessions.map(function(s){var c=Object.assign({},s);delete c.recording;return c});
+  fbCoachSave('sessions',fbSessions);
+ }
+}
 function saveSettings(){saveJSON('db_coach_settings',settings);if(currentAgent)fbCoachSave('settings',settings)}
 function saveStreak(){saveJSON('db_coach_streak',streak);if(currentAgent)fbCoachSave('streak',streak)}
 function getApiKey(){return localStorage.getItem('db_coach_apikey')||''}
@@ -1412,6 +1424,85 @@ function setElevenLabsKey(k){localStorage.setItem('dc_elevenlabs_key',k)}
 function isVoiceMode(){return localStorage.getItem('dc_voice_mode')==='true'&&getElevenLabsKey()}
 function setVoiceMode(on){localStorage.setItem('dc_voice_mode',on?'true':'false')}
 
+// ── Session Audio Recording ──
+var audioContext=null;
+var mediaRecorder=null;
+var recordedChunks=[];
+var mixedDest=null;
+var micStream=null;
+var isRecording=false;
+
+function startSessionRecording(){
+ if(!isVoiceMode()) return;
+ try{
+  audioContext=new (window.AudioContext||window.webkitAudioContext)();
+  mixedDest=audioContext.createMediaStreamDestination();
+  recordedChunks=[];
+
+  // Get mic stream for recording (separate from speech recognition)
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+   micStream=stream;
+   var micSource=audioContext.createMediaStreamSource(stream);
+   micSource.connect(mixedDest);
+
+   // Start recorder on mixed destination
+   var mimeType='audio/webm;codecs=opus';
+   if(!MediaRecorder.isTypeSupported(mimeType)) mimeType='audio/webm';
+   if(!MediaRecorder.isTypeSupported(mimeType)) mimeType='audio/mp4';
+
+   mediaRecorder=new MediaRecorder(mixedDest.stream,{mimeType:mimeType});
+   mediaRecorder.ondataavailable=function(e){
+    if(e.data.size>0) recordedChunks.push(e.data);
+   };
+   mediaRecorder.start(1000); // collect chunks every second
+   isRecording=true;
+  }).catch(function(e){
+   console.error('Mic access for recording failed:',e);
+  });
+ }catch(e){
+  console.error('Recording setup failed:',e);
+ }
+}
+
+function routeAudioToRecorder(audioElement){
+ // Route ElevenLabs audio through the mixer so it gets recorded
+ if(!audioContext||!mixedDest||!isRecording) return;
+ try{
+  var source=audioContext.createMediaElementSource(audioElement);
+  source.connect(mixedDest);
+  source.connect(audioContext.destination); // also play through speakers
+ }catch(e){
+  // If element already connected, just play normally
+  console.error('Audio routing error:',e);
+ }
+}
+
+function stopSessionRecording(){
+ isRecording=false;
+ return new Promise(function(resolve){
+  if(!mediaRecorder||mediaRecorder.state==='inactive'){
+   if(micStream) micStream.getTracks().forEach(function(t){t.stop()});
+   resolve(null);
+   return;
+  }
+
+  mediaRecorder.onstop=function(){
+   if(micStream) micStream.getTracks().forEach(function(t){t.stop()});
+   if(recordedChunks.length===0){resolve(null);return}
+
+   var blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||'audio/webm'});
+   // Convert to base64 for storage
+   var reader=new FileReader();
+   reader.onloadend=function(){
+    resolve({data:reader.result,type:blob.type,size:blob.size});
+   };
+   reader.readAsDataURL(blob);
+  };
+
+  mediaRecorder.stop();
+ });
+}
+
 // Play audio from ElevenLabs TTS
 var currentAudio=null;
 function speakText(text,personaId){
@@ -1437,6 +1528,15 @@ function speakText(text,personaId){
   var url=URL.createObjectURL(blob);
   if(currentAudio){currentAudio.pause();currentAudio=null}
   currentAudio=new Audio(url);
+  currentAudio.crossOrigin='anonymous';
+  // Route through recorder if recording
+  if(isRecording&&audioContext&&mixedDest){
+   try{
+    var source=audioContext.createMediaElementSource(currentAudio);
+    source.connect(mixedDest);
+    source.connect(audioContext.destination);
+   }catch(e){/* already connected, play normally */}
+  }
   return currentAudio.play();
  }).catch(function(e){
   console.error('Voice error:',e);
@@ -1599,12 +1699,28 @@ function startSession(personaId){
  }
  renderPractice();
  setTimeout(scrollChatBottom,100);
- if(isVoiceMode()) speakText(firstMsg,persona.id);
+ if(isVoiceMode()){
+  startSessionRecording();
+  speakText(firstMsg,persona.id);
+ }
 }
 
 function endSession(){
  if(!activeSession) return;
  clearInterval(sessionTimer);
+ // Stop recording and save audio
+ if(isRecording){
+  stopSessionRecording().then(function(audioData){
+   if(audioData) activeSession.recordingData=audioData;
+   runScoring();
+  });
+ } else {
+  runScoring();
+ }
+}
+
+function runScoring(){
+ if(!activeSession) return;
  if(activeSession.mode==='script'){
   scoreScriptSession();
  } else if(activeSession.mode==='api'){
@@ -2055,7 +2171,8 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
   total:total,
   transcript:activeSession.transcript,
   feedback:'Script Training: '+checkpointsDone+'/'+totalCheckpoints+' checkpoints hit. '+activeSession.curveBallsThrown+' curveballs thrown, '+activeSession.curveBallsRecovered+' recovered.',
-  scriptData:{checkpoints:activeSession.scriptCheckpoints,stageResults:stageResults,curveballs:activeSession.curveBallsThrown,recovered:activeSession.curveBallsRecovered,recoveries:activeSession.scriptRecoveries}
+  scriptData:{checkpoints:activeSession.scriptCheckpoints,stageResults:stageResults,curveballs:activeSession.curveBallsThrown,recovered:activeSession.curveBallsRecovered,recoveries:activeSession.scriptRecoveries},
+  recording:activeSession.recordingData||null
  };
  sessions.unshift(record);
  saveSessions();
@@ -2216,7 +2333,8 @@ function showScoreModal(scores,feedback){
   scores:scores,
   total:total,
   transcript:activeSession.transcript,
-  feedback:feedback
+  feedback:feedback,
+  recording:activeSession.recordingData||null
  };
  sessions.unshift(record);
  saveSessions();
@@ -2523,6 +2641,7 @@ function renderChatView(){
  h+='<div style="display:flex;align-items:center;gap:10px">';
  if(getElevenLabsKey()){
   h+='<label class="voice-toggle"><input type="checkbox" '+(isVoiceMode()?'checked':'')+' onchange="setVoiceMode(this.checked);renderChat()"> &#x1F50A; Voice</label>';
+  if(isRecording) h+='<span style="font-size:9px;color:var(--red);font-weight:700;animation:pulse 1.5s infinite">&#x1F534; REC</span>';
  }
  h+='<div class="timer" id="sessionTimer">'+fmtTime(sessionSeconds)+'</div>';
  h+='</div></div>';
@@ -2644,6 +2763,18 @@ function renderHistory(){
    h+='<div class="score-bar"><div class="score-fill" style="width:'+(v/20*100)+'%;background:'+bc+'"></div></div></div>';
   });
   if(s.feedback) h+='<div class="coaching-tip" style="margin-top:8px"><b>Coach:</b> '+s.feedback+'</div>';
+  // Audio playback
+  if(s.recording){
+   h+='<div style="margin-top:8px;padding:8px;background:var(--ptint);border-radius:var(--radius)">';
+   h+='<div style="font-size:9px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#x1F3A7; Session Recording</div>';
+   h+='<div style="display:flex;gap:6px;align-items:center">';
+   h+='<audio id="audio_'+idx+'" src="'+s.recording.data+'" style="flex:1;height:32px" controls></audio>';
+   h+='<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();downloadRecording('+idx+')" title="Download">&#x2B07;</button>';
+   h+='</div>';
+   h+='<div style="font-size:9px;color:var(--muted);margin-top:3px">'+(s.recording.size/1024).toFixed(0)+' KB</div>';
+   h+='</div>';
+  }
+
   // Personal notes
   h+='<div style="margin-top:8px;padding:8px;background:var(--atint);border-radius:var(--radius)">';
   h+='<div style="font-size:9px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Your Notes</div>';
@@ -2691,6 +2822,17 @@ function editSessionNote(idx){
    +'<textarea id="note_'+idx+'" style="width:100%;min-height:50px;border:1px solid var(--border);border-radius:6px;padding:6px;font-size:11px;font-family:inherit;resize:vertical;box-sizing:border-box" onclick="event.stopPropagation()">'+(s.notes||'')+'</textarea>'
    +'<button class="btn btn-sm btn-pri" style="margin-top:4px" onclick="event.stopPropagation();saveHistoryNote('+idx+')">Save Note</button>';
  }
+}
+
+function downloadRecording(idx){
+ var s=sessions[idx];
+ if(!s||!s.recording) return;
+ var a=document.createElement('a');
+ a.href=s.recording.data;
+ var ext=s.recording.type.indexOf('mp4')>=0?'mp4':'webm';
+ a.download='DuetCoach_'+s.personaName.replace(/\s/g,'_')+'_'+s.date.substring(0,10)+'.'+ext;
+ a.click();
+ showToast('Recording downloaded!');
 }
 
 function deleteSession(idx){
