@@ -1061,6 +1061,56 @@ function getCommitmentResponse(p){
  return resps[p.id]||'OK, let\'s move forward. What do I need to do?';
 }
 
+// ── Progressive Unlock System (Script Training only) ──
+var UNLOCK_THRESHOLDS={medium:75, hard:80};
+
+function getUnlockStatus(category){
+ // Returns {easy:true, medium:true/false, hard:true/false, bestEasy:N, bestMedium:N}
+ var bestEasy=0, bestMedium=0;
+ sessions.forEach(function(s){
+  if(s.category!==category) return;
+  if(s.mode!=='script') return;
+  if(s.difficulty==='easy'&&s.total>bestEasy) bestEasy=s.total;
+  if(s.difficulty==='medium'&&s.total>bestMedium) bestMedium=s.total;
+ });
+ return {
+  easy:true,
+  medium:bestEasy>=UNLOCK_THRESHOLDS.medium,
+  hard:bestMedium>=UNLOCK_THRESHOLDS.hard,
+  bestEasy:bestEasy,
+  bestMedium:bestMedium
+ };
+}
+
+function checkForUnlockCelebration(record){
+ if(record.mode!=='script') return;
+ var cat=record.category;
+ var diff=record.difficulty;
+ var score=record.total;
+
+ if(diff==='easy'&&score>=UNLOCK_THRESHOLDS.medium){
+  // Check if this is the FIRST time crossing the threshold
+  var previousBest=0;
+  sessions.forEach(function(s){
+   if(s.id===record.id) return;
+   if(s.category===cat&&s.mode==='script'&&s.difficulty==='easy'&&s.total>previousBest) previousBest=s.total;
+  });
+  if(previousBest<UNLOCK_THRESHOLDS.medium){
+   setTimeout(function(){showToast('Medium difficulty unlocked! You\'re ready for tougher clients.',5000)},1500);
+  }
+ }
+ if(diff==='medium'&&score>=UNLOCK_THRESHOLDS.hard){
+  var previousBest2=0;
+  sessions.forEach(function(s){
+   if(s.id===record.id) return;
+   if(s.category===cat&&s.mode==='script'&&s.difficulty==='medium'&&s.total>previousBest2) previousBest2=s.total;
+  });
+  if(previousBest2<UNLOCK_THRESHOLDS.hard){
+   setTimeout(function(){showToast('Hard difficulty unlocked! Time to face the toughest objections.',5000)},1500);
+  }
+ }
+}
+
 // ── Active Session State ──
 var activeSession=null;
 var sessionTimer=null;
@@ -1539,6 +1589,7 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
  sessions.unshift(record);
  saveSessions();
  updateStreak();
+ checkForUnlockCelebration(record);
 
  // Build modal
  var h='<h2>Script Training Results</h2>';
@@ -1695,6 +1746,7 @@ function showScoreModal(scores,feedback){
  sessions.unshift(record);
  saveSessions();
  updateStreak();
+ checkForUnlockCelebration(record);
 
  // Build score modal
  var cats=[
@@ -1861,7 +1913,7 @@ function renderScenarioPicker(){
 
  // In Script Training mode, only show categories with scripts available
  if(settings.mode==='script'){
-  h+='<div style="font-size:11px;color:var(--grn);margin-bottom:12px;font-weight:600">Script Training shows categories with scripts loaded. Provide scripts for Life and IUL to unlock those.</div>';
+  h+='<div style="font-size:11px;color:var(--grn);margin-bottom:12px;font-weight:600">Script Training: Master Easy (75+) to unlock Medium. Master Medium (80+) to unlock Hard.</div>';
  }
 
  // Persona cards
@@ -1877,18 +1929,42 @@ function renderScenarioPicker(){
  filtered.forEach(function(p){
   var catColors={annuity:'grn',life:'red',conversion:'pri',iul:'amb',banking:'pri'};
   var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',iul:'IUL',banking:'Banking/CD'};
-  // Find best score for this persona
   var bestScore=0;
   sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
 
-  h+='<div class="persona-card" onclick="startSession(\''+p.id+'\')">';
+  // Check lock status in Script Training mode
+  var isLocked=false;
+  var lockMsg='';
+  var unlockProgress='';
+  if(isScript){
+   var unlock=getUnlockStatus(p.category);
+   if(p.difficulty==='medium'&&!unlock.medium){
+    isLocked=true;
+    lockMsg='Score '+UNLOCK_THRESHOLDS.medium+'+ on Easy to unlock';
+    unlockProgress=unlock.bestEasy>0?'Best Easy: '+unlock.bestEasy+'/'+UNLOCK_THRESHOLDS.medium:'No Easy sessions yet';
+   } else if(p.difficulty==='hard'&&!unlock.hard){
+    isLocked=true;
+    lockMsg='Score '+UNLOCK_THRESHOLDS.hard+'+ on Medium to unlock';
+    unlockProgress=unlock.bestMedium>0?'Best Medium: '+unlock.bestMedium+'/'+UNLOCK_THRESHOLDS.hard:(unlock.medium?'No Medium sessions yet':'Unlock Medium first');
+   }
+  }
+
+  h+='<div class="persona-card" style="'+(isLocked?'opacity:.5;cursor:default':'')+ '" onclick="'+(isLocked?'showToast(\''+lockMsg+'\')':'startSession(\''+p.id+'\')')+'">';
+  if(isLocked) h+='<div style="position:relative"><span style="position:absolute;right:0;top:-4px;font-size:20px">&#x1F512;</span></div>';
   h+='<div class="avatar">'+p.avatar+'</div>';
   h+='<div class="pname">'+p.name+', '+p.age+'</div>';
-  h+='<div class="psit">'+p.situation.substring(0,100)+'...</div>';
+  h+='<div class="psit">'+(isLocked?lockMsg:p.situation.substring(0,100)+'...')+'</div>';
+  if(isLocked&&unlockProgress){
+   var progPct=0;
+   if(p.difficulty==='medium'&&getUnlockStatus(p.category).bestEasy>0) progPct=Math.min(100,Math.round(getUnlockStatus(p.category).bestEasy/UNLOCK_THRESHOLDS.medium*100));
+   if(p.difficulty==='hard'&&getUnlockStatus(p.category).bestMedium>0) progPct=Math.min(100,Math.round(getUnlockStatus(p.category).bestMedium/UNLOCK_THRESHOLDS.hard*100));
+   h+='<div style="margin:6px 0 4px"><div class="score-bar"><div class="score-fill" style="width:'+progPct+'%;background:var(--amb)"></div></div>';
+   h+='<div style="font-size:9px;color:var(--muted);margin-top:2px">'+unlockProgress+'</div></div>';
+  }
   h+='<div class="pmeta">';
   h+='<span class="badge badge-'+catColors[p.category]+'">'+catLabels[p.category]+'</span>';
   h+='<span class="badge badge-'+(p.difficulty==='easy'?'grn':p.difficulty==='medium'?'amb':'red')+'">'+p.difficulty.charAt(0).toUpperCase()+p.difficulty.slice(1)+'</span>';
-  if(bestScore>0) h+='<span class="badge badge-pri">Best: '+bestScore+'</span>';
+  if(bestScore>0&&!isLocked) h+='<span class="badge badge-pri">Best: '+bestScore+'</span>';
   h+='</div></div>';
  });
  h+='</div>';
