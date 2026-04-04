@@ -2123,9 +2123,13 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
  };
  h+='<div class="coaching-tip"><b>Focus Area — '+weakest.label.split('(')[0].trim()+':</b> '+tips[weakest.label]+'</div>';
 
- h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">';
- h+='<button class="btn btn-pri" onclick="closeScoreModal();startSession(\''+p.id+'\')">Practice Again</button>';
- h+='<button class="btn btn-outline" onclick="closeScoreModal()">New Scenario</button>';
+ // Personal notes
+ h+='<div style="margin-top:16px"><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">YOUR NOTES — What did you learn? What felt off?</div>';
+ h+='<textarea id="sessionNotes" placeholder="How did that feel? Where did you struggle? What will you do differently next time?" style="width:100%;min-height:70px;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>';
+
+ h+='<div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">';
+ h+='<button class="btn btn-pri" onclick="saveSessionNotes();closeScoreModal();startSession(\''+p.id+'\')">Save & Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal()">Save & New Scenario</button>';
  h+='</div>';
 
  $1('#scoreModalContent').innerHTML=h;
@@ -2266,16 +2270,30 @@ function showScoreModal(scores,feedback){
  }
  h+='</div>';
 
- h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">';
- h+='<button class="btn btn-pri" onclick="closeScoreModal();startSession(\''+p.id+'\')">Practice Again</button>';
- h+='<button class="btn btn-outline" onclick="closeScoreModal()">New Scenario</button>';
- h+='<button class="btn btn-outline" onclick="closeScoreModal();showTab(1)">View History</button>';
+ // Personal notes
+ h+='<div style="margin-top:16px"><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">YOUR NOTES — What did you learn? What felt off?</div>';
+ h+='<textarea id="sessionNotes" placeholder="How did that feel? Where did you struggle? What will you do differently next time?" style="width:100%;min-height:70px;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>';
+
+ h+='<div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">';
+ h+='<button class="btn btn-pri" onclick="saveSessionNotes();closeScoreModal();startSession(\''+p.id+'\')">Save & Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal()">Save & New Scenario</button>';
+ h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal();showTab(1)">Save & View History</button>';
  h+='</div>';
 
  $1('#scoreModalContent').innerHTML=h;
  $1('#scoreModal').classList.add('show');
  document.body.classList.remove('in-session');
  activeSession=null;
+}
+
+function saveSessionNotes(){
+ var ta=$1('#sessionNotes');
+ var notes=(ta?ta.value:'').trim();
+ if(notes&&sessions.length>0){
+  sessions[0].notes=notes;
+  saveSessions();
+  showToast('Notes saved!');
+ }
 }
 
 function closeScoreModal(){
@@ -2626,6 +2644,17 @@ function renderHistory(){
    h+='<div class="score-bar"><div class="score-fill" style="width:'+(v/20*100)+'%;background:'+bc+'"></div></div></div>';
   });
   if(s.feedback) h+='<div class="coaching-tip" style="margin-top:8px"><b>Coach:</b> '+s.feedback+'</div>';
+  // Personal notes
+  h+='<div style="margin-top:8px;padding:8px;background:var(--atint);border-radius:var(--radius)">';
+  h+='<div style="font-size:9px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Your Notes</div>';
+  if(s.notes){
+   h+='<div style="font-size:11px;color:var(--txt);line-height:1.5;white-space:pre-wrap">'+s.notes+'</div>';
+   h+='<div style="margin-top:4px"><a style="font-size:10px;color:var(--pri);cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();editSessionNote('+idx+')">Edit note</a></div>';
+  } else {
+   h+='<textarea id="note_'+idx+'" placeholder="Add a note about this session..." style="width:100%;min-height:40px;border:1px solid var(--border);border-radius:6px;padding:6px;font-size:11px;font-family:inherit;resize:vertical;box-sizing:border-box" onclick="event.stopPropagation()"></textarea>';
+   h+='<button class="btn btn-sm btn-pri" style="margin-top:4px" onclick="event.stopPropagation();saveHistoryNote('+idx+')">Save Note</button>';
+  }
+  h+='</div>';
   h+='<button class="btn btn-sm btn-red" style="margin-top:8px" onclick="event.stopPropagation();deleteSession('+idx+')">Delete Session</button>';
   h+='</div></div>';
  });
@@ -2637,6 +2666,31 @@ var histFilter='all';
 function toggleSessionDetail(idx){
  var el=$1('#sd_'+idx);
  if(el) el.classList.toggle('show');
+}
+
+function saveHistoryNote(idx){
+ var ta=$1('#note_'+idx);
+ var notes=(ta?ta.value:'').trim();
+ if(notes&&sessions[idx]){
+  sessions[idx].notes=notes;
+  saveSessions();
+  showToast('Note saved!');
+  renderHistory();
+ }
+}
+
+function editSessionNote(idx){
+ var s=sessions[idx];
+ if(!s) return;
+ var el=$1('#sd_'+idx);
+ if(!el) return;
+ // Find the notes container and replace with textarea
+ var noteDiv=el.querySelector('[style*="atint"]');
+ if(noteDiv){
+  noteDiv.innerHTML='<div style="font-size:9px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Your Notes</div>'
+   +'<textarea id="note_'+idx+'" style="width:100%;min-height:50px;border:1px solid var(--border);border-radius:6px;padding:6px;font-size:11px;font-family:inherit;resize:vertical;box-sizing:border-box" onclick="event.stopPropagation()">'+(s.notes||'')+'</textarea>'
+   +'<button class="btn btn-sm btn-pri" style="margin-top:4px" onclick="event.stopPropagation();saveHistoryNote('+idx+')">Save Note</button>';
+ }
 }
 
 function deleteSession(idx){
