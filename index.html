@@ -558,6 +558,69 @@ var OPEN_QUESTION_WORDS=['how','what','tell me','walk me through','describe','ex
 var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate','absolutely','of course','great point','good question','completely','fair enough','no pressure','take your time'];
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
+// ── CD-to-Annuity Script Framework (27 Checkpoints) ──
+var SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'Acknowledge why they came in (CD rates)',keywords:['cd','rates','came in','looking at','open']},
+  {id:2,desc:'Ask: short-term park or longer-term strategy?',keywords:['park','short','longer','strategy','protect','grow']},
+  {id:3,desc:'Introduce hidden gaps (taxes/inflation)',keywords:['hidden','gaps','taxes','inflation','losing','shield']},
+  {id:4,desc:'Ask permission to ask questions',keywords:['appropriate','opposed','mind if','few questions','would it be']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:5,desc:'Walk me through current retirement strategy',keywords:['walk me through','current','retirement','strategy','in place']},
+  {id:6,desc:'What caused you to want a CD?',keywords:['caused','what made','why','chose','decided','cd']},
+  {id:7,desc:'Anything you would change about the CD?',keywords:['change','wish','anything','different','improve']},
+  {id:8,desc:'Clarify the tax pain',keywords:['how do you mean','tell me more','what do you mean','explain','clarify']},
+  {id:9,desc:'Probe impact on timeline',keywords:['impact','timeline','retirement','affect','slow','delay']},
+  {id:10,desc:'Challenge: returns after inflation?',keywords:['inflation','keep up','real return','purchasing power','factor in']},
+  {id:11,desc:'Why another CD vs. tax-protected vehicle?',keywords:['rationale','reason','why not','instead','other','vehicle','protect']},
+  {id:12,desc:'Have you looked at other strategies?',keywords:['looking','other strategies','explored','considered','alternatives']},
+  {id:13,desc:'What prevented you from looking?',keywords:['prevented','stopped','held back','why not','kept you','leery']},
+  {id:14,desc:'Paint the picture: 100% protected + tax-deferred',keywords:['100%','protected','tax-deferred','compound','market losses','position']},
+  {id:15,desc:'What happens if you keep rolling CDs 5-10 years?',keywords:['what happens','5','10','years','keep rolling','don\'t do anything','outpace']},
+  {id:16,desc:'Are you willing to settle for that?',keywords:['willing','settle','accept','okay with','have to']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:17,desc:'Summarize back what they told you',keywords:['based on what you','you said','you mentioned','you told me','so it sounds like']},
+  {id:18,desc:'Confirm it\'s important to act',keywords:['important','something','do something','act','change']},
+  {id:19,desc:'I have an option that fits',keywords:['option','fit','solution','work for you','exactly what']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:20,desc:'Name the product',keywords:['annuity','fixed annuity','indexed annuity']},
+  {id:21,desc:'Connect to #1 need: principal protection',keywords:['principal','protected','locked in','safe','100%','can\'t lose']},
+  {id:22,desc:'Differentiate: tax-deferred growth',keywords:['tax-deferred','no taxes','not paying taxes','compound','faster']},
+  {id:23,desc:'Translate to their life',keywords:['retire','on time','means to you','what that means','your','lifestyle']},
+  {id:24,desc:'Check for agreement',keywords:['does that make sense','do you see','how does that sound','follow']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:25,desc:'Do you feel this could be the answer?',keywords:['feel','answer','right','work','solution','could be']},
+  {id:26,desc:'Why do you feel it is though? (they defend it)',keywords:['why do you','why is that','what makes you','tell me why']},
+  {id:27,desc:'Next steps: allocate + paperwork',keywords:['allocate','paperwork','started','next step','proceed','how much','get going','appropriate']}
+ ]}
+];
+
+// Curveball triggers — injected randomly during script mode
+var CURVEBALLS=[
+ // Tangents
+ {type:'tangent',trigger:'You know, my grandson just graduated from college last week...',recovery:['congratulations','that\'s wonderful','great','back to']},
+ {type:'tangent',trigger:'Speaking of money, have you seen what Bitcoin is doing lately?',recovery:['interesting','different','crypto','back to your','what we were']},
+ {type:'tangent',trigger:'My neighbor told me I should just put everything in the stock market.',recovery:['neighbor','interesting','market','risk','what you said','let me ask']},
+ {type:'tangent',trigger:'Do other banks around here have better CD rates than you?',recovery:['rates','competitive','but what we','the bigger question','what matters more']},
+ {type:'tangent',trigger:'I was thinking about maybe just buying some gold instead.',recovery:['gold','interesting','but let me ask','what about','going back to']},
+ // Emotional
+ {type:'emotional',trigger:'Wait a minute... are you just trying to sell me something here?',recovery:['not at all','your decision','no pressure','up to you','just want to make sure','information']},
+ {type:'emotional',trigger:'This is getting overwhelming. There\'s too much to think about.',recovery:['understand','slow down','take our time','no rush','simple','let me simplify']},
+ {type:'emotional',trigger:'What do YOU get out of this if I do the annuity instead of the CD?',recovery:['fair question','transparent','my job','help you','same either way','best option']},
+ {type:'emotional',trigger:'I had a bad experience with an insurance product years ago. I lost money.',recovery:['sorry to hear','understand','different','fixed','can\'t lose','principal protected','not the same']},
+ {type:'emotional',trigger:'My wife would kill me if I moved this money without talking to her first.',recovery:['absolutely','smart','together','both','bring her','no rush','important decision']},
+ // Off-topic objections
+ {type:'objection',trigger:'My son is a financial advisor and he says annuities are terrible.',recovery:['respect','son','variable','different','fixed','this is','not the same','let me explain']},
+ {type:'objection',trigger:'Can\'t I just do a money market account instead? Same thing basically.',recovery:['money market','different','rates change','not guaranteed','locked in','annuity gives you']},
+ {type:'objection',trigger:'What about those I-Bonds? I heard those are really good right now.',recovery:['i-bonds','limit','$10,000','cap','compare','but with','annuity allows']},
+ {type:'objection',trigger:'I need to run this by my accountant before I do anything.',recovery:['absolutely','accountant','smart','together','information','take this','review','no rush']},
+ {type:'objection',trigger:'I read online that annuity fees eat up all your returns.',recovery:['online','variable','different','fixed annuity','no fees','built in','net return','what you actually get']}
+];
+
 // ── 12 Client Personas ──
 var PERSONAS=[
  // CD-to-Annuity
@@ -851,25 +914,43 @@ function startSession(personaId){
  var persona=PERSONAS.find(function(p){return p.id===personaId});
  if(!persona) return;
  var tree=buildTree(persona);
+ var mode=settings.mode;
+ if((mode==='api'||mode==='script')&&!getApiKey()) mode='scripted';
+
  activeSession={
   persona:persona,
-  mode:settings.mode==='api'&&getApiKey()?'api':'scripted',
+  mode:mode,
   tree:tree,
   currentNode:0,
   transcript:[],
   phaseVisited:[false,false,false,false,false],
   scores:{phase:0,question:0,objection:0,empathy:0,close:0},
   startTime:new Date().toISOString(),
-  apiMessages:[]
+  apiMessages:[],
+  // Script training mode extras
+  scriptCheckpoints:SCRIPT_STAGES.reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
+  scriptRecoveries:[],
+  curveBallsThrown:0,
+  curveBallsRecovered:0,
+  exchangesSinceLastCheckpoint:0,
+  lastCurveball:0,
+  inCurveball:false
  };
  sessionSeconds=0;
  sessionTimer=setInterval(function(){sessionSeconds++;renderTimer()},1000);
 
  // Add initial client message
- var firstMsg=tree[0].clientMsg;
+ var firstMsg;
+ if(mode==='script'&&persona.category==='annuity'){
+  firstMsg='Hi, I\'m '+persona.name.split(' ')[0]+'. I saw your CD rates advertised and I want to open one. I have about '+
+   (persona.id==='margaret'?'$150,000':persona.id==='torres'?'$250,000':'$200,000')+
+   ' that I want to put somewhere safe.';
+ } else {
+  firstMsg=tree[0].clientMsg;
+ }
  document.body.classList.add('in-session');
  activeSession.transcript.push({role:'client',text:firstMsg,phase:0});
- if(activeSession.mode==='api'){
+ if(mode==='api'||mode==='script'){
   activeSession.apiMessages=[{role:'assistant',content:firstMsg}];
  }
  renderPractice();
@@ -879,7 +960,9 @@ function startSession(personaId){
 function endSession(){
  if(!activeSession) return;
  clearInterval(sessionTimer);
- if(activeSession.mode==='api'){
+ if(activeSession.mode==='script'){
+  scoreScriptSession();
+ } else if(activeSession.mode==='api'){
   scoreSessionAPI();
  } else {
   scoreSessionScripted();
@@ -906,6 +989,11 @@ function handleAgentMessage(text){
 
  if(activeSession.mode==='api'){
   handleAPIResponse(text.trim());
+  return;
+ }
+
+ if(activeSession.mode==='script'){
+  handleScriptResponse(text.trim());
   return;
  }
 
@@ -1030,6 +1118,308 @@ function handleAPIResponse(agentText){
   renderChat();
   endSession();
  });
+}
+
+// ── Script Training Mode Handler ──
+function handleScriptResponse(agentText){
+ activeSession.apiMessages.push({role:'user',content:agentText});
+ activeSession.typing=true;
+ renderChat();
+ scrollChatBottom();
+
+ // Check which script checkpoints this message hits
+ var lower=agentText.toLowerCase();
+ var hitsThisMsg=0;
+ SCRIPT_STAGES.forEach(function(stage){
+  stage.checkpoints.forEach(function(cp){
+   if(activeSession.scriptCheckpoints[cp.id]) return; // already hit
+   var matched=cp.keywords.filter(function(kw){return lower.indexOf(kw)>=0}).length;
+   if(matched>=2||(matched>=1&&cp.keywords.length<=3)){
+    activeSession.scriptCheckpoints[cp.id]=true;
+    hitsThisMsg++;
+   }
+  });
+ });
+
+ // Track recovery from curveball
+ if(activeSession.inCurveball){
+  activeSession.exchangesSinceLastCheckpoint++;
+  if(hitsThisMsg>0){
+   // Recovered — got back to script
+   activeSession.curveBallsRecovered++;
+   activeSession.scriptRecoveries.push(activeSession.exchangesSinceLastCheckpoint);
+   activeSession.inCurveball=false;
+   activeSession.exchangesSinceLastCheckpoint=0;
+  }
+ }
+
+ // Also detect NEPQ phases for the phase tracker display
+ PHASE_KEYWORDS.forEach(function(kws,i){
+  kws.forEach(function(kw){
+   if(lower.indexOf(kw)>=0) activeSession.phaseVisited[i]=true;
+  });
+ });
+
+ // Build system prompt for script training mode
+ var p=activeSession.persona;
+ var checkpointsDone=Object.keys(activeSession.scriptCheckpoints).filter(function(k){return activeSession.scriptCheckpoints[k]}).length;
+ var totalCheckpoints=Object.keys(activeSession.scriptCheckpoints).length;
+ var turnCount=activeSession.transcript.filter(function(m){return m.role==='agent'}).length;
+
+ // Decide if we throw a curveball
+ var throwCurveball=false;
+ if(turnCount>2&&turnCount-activeSession.lastCurveball>=3&&!activeSession.inCurveball&&Math.random()<0.3){
+  throwCurveball=true;
+ }
+
+ var curveBallInstruction='';
+ if(throwCurveball){
+  var available=CURVEBALLS.filter(function(c,i){return true}); // all available
+  var cb=available[Math.floor(Math.random()*available.length)];
+  curveBallInstruction='\n\nIMPORTANT FOR THIS RESPONSE: You must go OFF TOPIC. Instead of responding naturally to the agent, say something like: "'+cb.trigger+'" — This is a tangent/distraction. Stay in character but pull the conversation away from the sales script. The agent needs to practice getting back on track. After the agent responds, return to being a normal client responding to their guidance.';
+  activeSession.lastCurveball=turnCount;
+  activeSession.inCurveball=true;
+  activeSession.curveBallsThrown++;
+ }
+
+ var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client who came into an AAA branch to open a CD.\n\n'
+  +'BACKGROUND: '+p.situation+'\n\n'
+  +'SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n'
+  +'YOUR PERSONALITY: '+p.personality+'. '+(p.personality==='skeptical'?'You push back on claims and want proof.':p.personality==='analytical'?'You want specific numbers and logic.':p.personality==='emotional'?'You respond to stories and feelings about family/security.':'You are generally receptive but need to be convinced.')+'\n\n'
+  +'PRIMARY OBJECTION (raise naturally when relevant): '+p.primaryObjection+'\n'
+  +'HIDDEN CONCERN: '+p.hiddenObjection+'\n\n'
+  +'RULES:\n'
+  +'- Stay in character. You are the CLIENT sitting in the branch.\n'
+  +'- Respond in 2-4 sentences. Be conversational and natural.\n'
+  +'- If the agent follows a good consultative process (asks questions, listens, builds on your answers), become more receptive.\n'
+  +'- If the agent jumps to pitching too early or sounds scripted/robotic, become more guarded.\n'
+  +'- When genuinely convinced, agree to: '+p.successClose+'\n'
+  +'- If you agree to move forward, end with [SESSION_COMPLETE]\n'
+  +'- Never break character or mention this is practice.'
+  +curveBallInstruction;
+
+ fetch('https://api.anthropic.com/v1/messages',{
+  method:'POST',
+  headers:{
+   'Content-Type':'application/json',
+   'x-api-key':getApiKey(),
+   'anthropic-version':'2023-06-01',
+   'anthropic-dangerous-direct-browser-access':'true'
+  },
+  body:JSON.stringify({
+   model:'claude-sonnet-4-20250514',
+   max_tokens:300,
+   system:systemPrompt,
+   messages:activeSession.apiMessages
+  })
+ }).then(function(r){return r.json()}).then(function(data){
+  activeSession.typing=false;
+  var reply=(data.content&&data.content[0]&&data.content[0].text)||'...';
+  var isComplete=reply.indexOf('[SESSION_COMPLETE]')>=0;
+  reply=reply.replace('[SESSION_COMPLETE]','').trim();
+  activeSession.apiMessages.push({role:'assistant',content:reply});
+  activeSession.transcript.push({role:'client',text:reply});
+  renderChat();
+  scrollChatBottom();
+  if(isComplete) setTimeout(endSession,1500);
+ }).catch(function(err){
+  activeSession.typing=false;
+  activeSession.transcript.push({role:'client',text:'[API Error: '+err.message+']'});
+  renderChat();
+  endSession();
+ });
+}
+
+// ── Script Mode Scoring ──
+function scoreScriptSession(){
+ var checkpointsDone=0;
+ var totalCheckpoints=Object.keys(activeSession.scriptCheckpoints).length;
+ Object.keys(activeSession.scriptCheckpoints).forEach(function(k){
+  if(activeSession.scriptCheckpoints[k]) checkpointsDone++;
+ });
+
+ // Build stage-by-stage breakdown
+ var stageResults=SCRIPT_STAGES.map(function(stage){
+  var hit=0;
+  stage.checkpoints.forEach(function(cp){
+   if(activeSession.scriptCheckpoints[cp.id]) hit++;
+  });
+  return {name:stage.name,color:stage.color,hit:hit,total:stage.checkpoints.length};
+ });
+
+ var pctCheckpoints=checkpointsDone/totalCheckpoints;
+ var recoveryAvg=activeSession.scriptRecoveries.length>0?
+  activeSession.scriptRecoveries.reduce(function(a,b){return a+b},0)/activeSession.scriptRecoveries.length:0;
+ var recoveryScore=activeSession.curveBallsThrown===0?20:
+  Math.min(20,Math.round((activeSession.curveBallsRecovered/activeSession.curveBallsThrown)*20*(recoveryAvg<=3?1:recoveryAvg<=5?0.7:0.4)));
+
+ // Score calculation
+ var scores={
+  checkpoints:Math.round(pctCheckpoints*30), // out of 30
+  sequence:Math.round(getSequenceScore()*20), // out of 20 — did they hit them in order?
+  keyPhrases:Math.round(getKeyPhraseScore()*20), // out of 20
+  recovery:recoveryScore, // out of 20
+  tone:Math.round(getToneScore()*10) // out of 10
+ };
+
+ var total=scores.checkpoints+scores.sequence+scores.keyPhrases+scores.recovery+scores.tone;
+
+ // Build the score modal
+ showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalCheckpoints);
+}
+
+function getSequenceScore(){
+ // Check if checkpoints were hit roughly in order
+ var agentMsgs=activeSession.transcript.filter(function(m){return m.role==='agent'});
+ var hitOrder=[];
+ agentMsgs.forEach(function(msg){
+  var lower=msg.text.toLowerCase();
+  SCRIPT_STAGES.forEach(function(stage){
+   stage.checkpoints.forEach(function(cp){
+    if(hitOrder.indexOf(cp.id)===-1){
+     var matched=cp.keywords.filter(function(kw){return lower.indexOf(kw)>=0}).length;
+     if(matched>=1) hitOrder.push(cp.id);
+    }
+   });
+  });
+ });
+ // Score: how sorted is the hitOrder array? (0-1)
+ if(hitOrder.length<=1) return 0.5;
+ var inversions=0;
+ for(var i=0;i<hitOrder.length;i++){
+  for(var j=i+1;j<hitOrder.length;j++){
+   if(hitOrder[i]>hitOrder[j]) inversions++;
+  }
+ }
+ var maxInversions=hitOrder.length*(hitOrder.length-1)/2;
+ return 1-(inversions/maxInversions);
+}
+
+function getKeyPhraseScore(){
+ // Check for specific high-value phrases from the script
+ var allText=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
+ var keyPhrases=[
+  'before we just set that up','hidden gaps','would it be appropriate',
+  'walk me through','what caused you','how do you mean exactly',
+  'has that had an impact','just so I can see the rationale',
+  'what\'s prevented you','100% protected','tax-deferred','compound',
+  'what happens if you don\'t','willing to settle',
+  'based on what you\'ve told me','exactly what you\'re looking for',
+  'does that make sense','do you see how that could help',
+  'do you feel','why do you feel','would that be appropriate'
+ ];
+ var hits=keyPhrases.filter(function(p){return allText.indexOf(p)>=0}).length;
+ return Math.min(1,hits/8); // 8 out of 21 = perfect score
+}
+
+function getToneScore(){
+ // Analyze word patterns for appropriate tone
+ var agentMsgs=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
+ var score=0.5; // start neutral
+ // Good tone indicators
+ ['i understand','that makes sense','i hear you','great question','fair enough','no pressure','take your time','just to make sure','would you be opposed','i should probably ask'].forEach(function(p){
+  if(agentMsgs.indexOf(p)>=0) score+=0.07;
+ });
+ // Bad tone indicators
+ ['you should','you need to','you have to','trust me','obviously','clearly','no-brainer','slam dunk','guaranteed returns'].forEach(function(p){
+  if(agentMsgs.indexOf(p)>=0) score-=0.1;
+ });
+ return Math.max(0,Math.min(1,score));
+}
+
+function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalCheckpoints){
+ var p=activeSession.persona;
+
+ // Save session with script-specific data
+ var record={
+  id:Date.now(),
+  date:activeSession.startTime,
+  persona:p.id,
+  personaName:p.name,
+  category:p.category,
+  difficulty:p.difficulty,
+  mode:'script',
+  duration:sessionSeconds,
+  scores:{phase:Math.round(scores.checkpoints/30*20),question:Math.round(scores.keyPhrases/20*20),objection:scores.recovery,empathy:Math.round(scores.tone/10*20),close:Math.round(scores.sequence/20*20)},
+  total:total,
+  transcript:activeSession.transcript,
+  feedback:'Script Training: '+checkpointsDone+'/'+totalCheckpoints+' checkpoints hit. '+activeSession.curveBallsThrown+' curveballs thrown, '+activeSession.curveBallsRecovered+' recovered.',
+  scriptData:{checkpoints:activeSession.scriptCheckpoints,stageResults:stageResults,curveballs:activeSession.curveBallsThrown,recovered:activeSession.curveBallsRecovered,recoveries:activeSession.scriptRecoveries}
+ };
+ sessions.unshift(record);
+ saveSessions();
+ updateStreak();
+
+ // Build modal
+ var h='<h2>Script Training Results</h2>';
+ h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">';
+ h+='<span class="badge badge-pri">'+p.name+'</span>';
+ h+='<span class="badge badge-grn">Script Mode</span>';
+ h+='<span class="badge badge-pri">'+fmtTime(sessionSeconds)+'</span>';
+ h+='</div>';
+
+ h+='<div class="score-total"><div class="big">'+total+'</div><div class="lbl">out of 100</div></div>';
+
+ // Stage-by-stage checkpoint breakdown
+ h+='<div class="card" style="margin:12px 0"><h3 style="margin-bottom:8px">Script Checkpoints</h3>';
+ stageResults.forEach(function(sr){
+  var pct=sr.total>0?(sr.hit/sr.total*100):0;
+  var color=pct>=80?'var(--grn)':pct>=50?'var(--amb)':'var(--red)';
+  h+='<div class="score-row"><div class="score-label"><span>'+sr.name+'</span><span style="color:'+color+'">'+sr.hit+'/'+sr.total+'</span></div>';
+  h+='<div class="score-bar"><div class="score-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+ });
+ h+='<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center"><b>'+checkpointsDone+'</b> of <b>'+totalCheckpoints+'</b> total checkpoints hit</div>';
+ h+='</div>';
+
+ // Scoring breakdown
+ var cats=[
+  {label:'Checkpoints Hit (30)',val:scores.checkpoints,max:30},
+  {label:'Script Sequence (20)',val:scores.sequence,max:20},
+  {label:'Key Phrases Used (20)',val:scores.keyPhrases,max:20},
+  {label:'Curveball Recovery (20)',val:scores.recovery,max:20},
+  {label:'Tone & Language (10)',val:scores.tone,max:10}
+ ];
+ cats.forEach(function(c){
+  var pct=(c.val/c.max)*100;
+  var color=pct>=75?'var(--grn)':pct>=50?'var(--amb)':'var(--red)';
+  h+='<div class="score-row"><div class="score-label"><span>'+c.label+'</span><span style="color:'+color+'">'+c.val+'/'+c.max+'</span></div>';
+  h+='<div class="score-bar"><div class="score-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+ });
+
+ // Curveball summary
+ if(activeSession.curveBallsThrown>0){
+  h+='<div class="coaching-tip" style="background:var(--atint)">';
+  h+='<b>Curveball Report:</b> '+activeSession.curveBallsThrown+' distraction'+(activeSession.curveBallsThrown>1?'s':'')+' thrown, '+activeSession.curveBallsRecovered+' recovered.';
+  if(activeSession.scriptRecoveries.length>0){
+   var avgR=Math.round(activeSession.scriptRecoveries.reduce(function(a,b){return a+b},0)/activeSession.scriptRecoveries.length*10)/10;
+   h+=' Average recovery: '+avgR+' exchange'+(avgR!==1?'s':'')+'.';
+   if(avgR<=2) h+=' <span style="color:var(--grn)">Excellent recovery speed!</span>';
+   else if(avgR<=4) h+=' <span style="color:var(--amb)">Good, but try to redirect faster.</span>';
+   else h+=' <span style="color:var(--red)">Work on acknowledging and bridging back quicker.</span>';
+  }
+  h+='</div>';
+ }
+
+ // Coaching
+ var weakest=cats.reduce(function(a,b){return(a.val/a.max)<(b.val/b.max)?a:b});
+ var tips={
+  'Checkpoints Hit (30)':'You missed some script stages. Review the Connection and Engagement checkpoints — those build the foundation.',
+  'Script Sequence (20)':'You jumped ahead in the script. Focus on completing each stage before moving to the next — don\'t skip from Connection to Presentation.',
+  'Key Phrases Used (20)':'Use more of the framework language: "walk me through", "hidden gaps", "what caused you to", "does that make sense". These phrases are tested and work.',
+  'Curveball Recovery (20)':'When the client goes off topic, acknowledge briefly then bridge back: "That\'s great — now going back to what you mentioned about..."',
+  'Tone & Language (10)':'Watch for pushy language ("you should", "you need to"). Replace with permission-based phrases: "would it be appropriate", "would you be opposed".'
+ };
+ h+='<div class="coaching-tip"><b>Focus Area — '+weakest.label.split('(')[0].trim()+':</b> '+tips[weakest.label]+'</div>';
+
+ h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">';
+ h+='<button class="btn btn-pri" onclick="closeScoreModal();startSession(\''+p.id+'\')">Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="closeScoreModal()">New Scenario</button>';
+ h+='</div>';
+
+ $1('#scoreModalContent').innerHTML=h;
+ $1('#scoreModal').classList.add('show');
+ document.body.classList.remove('in-session');
+ activeSession=null;
 }
 
 // ── Scoring ──
@@ -1255,6 +1645,7 @@ function renderScenarioPicker(){
  h+='<div class="pill-row" style="justify-content:center">';
  h+='<span class="pill'+(settings.mode==='scripted'?' active':'')+'" onclick="settings.mode=\'scripted\';saveSettings();renderPractice()">Scripted</span>';
  h+='<span class="pill'+(settings.mode==='api'?' active':'')+'" onclick="'+(getApiKey()?'settings.mode=\'api\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'">'+(getApiKey()?'Claude API':'Claude API (no key)')+'</span>';
+ h+='<span class="pill'+(settings.mode==='script'?' active':'')+'" style="border-color:var(--grn);'+(settings.mode==='script'?'color:var(--grn);background:var(--gtint)':'')+'" onclick="'+(getApiKey()?'settings.mode=\'script\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'">Script Training'+(getApiKey()?'':' (no key)')+'</span>';
  h+='</div></div>';
 
  // Category filter
@@ -1307,17 +1698,29 @@ function renderChatView(){
  var p=activeSession.persona;
  var h='';
 
- // Phase tracker
+ // Phase tracker — use script stages in script mode, else NEPQ phases
  h+='<div class="phase-tracker">';
- PHASES.forEach(function(ph,i){
-  if(i>0) h+='<div class="phase-line'+(activeSession.phaseVisited[i-1]?' done':'')+'"></div>';
-  var cls=activeSession.phaseVisited[i]?'done':(i>0&&activeSession.phaseVisited[i-1]?'current':'');
-  if(i===0&&!activeSession.phaseVisited[0]) cls='current';
-  h+='<div class="phase-step">';
-  h+='<div class="phase-dot '+cls+'" style="'+(cls==='done'?'background:'+ph.color:'')+'">'+(i+1)+'</div>';
-  h+='<div class="phase-lbl">'+ph.short+'</div>';
-  h+='</div>';
- });
+ if(activeSession.mode==='script'){
+  SCRIPT_STAGES.forEach(function(stage,i){
+   if(i>0) h+='<div class="phase-line'+(i>0&&stageComplete(i-1)?' done':'')+'"></div>';
+   var done=stageComplete(i);
+   var cls=done?'done':(i>0&&stageComplete(i-1)?'current':(i===0?'current':''));
+   h+='<div class="phase-step">';
+   h+='<div class="phase-dot '+cls+'" style="'+(done?'background:'+stage.color:'')+'">'+(i+1)+'</div>';
+   h+='<div class="phase-lbl">'+stage.name.substring(0,4).toUpperCase()+'</div>';
+   h+='</div>';
+  });
+ } else {
+  PHASES.forEach(function(ph,i){
+   if(i>0) h+='<div class="phase-line'+(activeSession.phaseVisited[i-1]?' done':'')+'"></div>';
+   var cls=activeSession.phaseVisited[i]?'done':(i>0&&activeSession.phaseVisited[i-1]?'current':'');
+   if(i===0&&!activeSession.phaseVisited[0]) cls='current';
+   h+='<div class="phase-step">';
+   h+='<div class="phase-dot '+cls+'" style="'+(cls==='done'?'background:'+ph.color:'')+'">'+(i+1)+'</div>';
+   h+='<div class="phase-lbl">'+ph.short+'</div>';
+   h+='</div>';
+  });
+ }
  h+='</div>';
 
  // Session bar
@@ -1353,6 +1756,13 @@ function renderChatView(){
  h+='</div></div>';
 
  return h;
+}
+
+function stageComplete(stageIdx){
+ if(!activeSession||!activeSession.scriptCheckpoints) return false;
+ var stage=SCRIPT_STAGES[stageIdx];
+ if(!stage) return false;
+ return stage.checkpoints.every(function(cp){return activeSession.scriptCheckpoints[cp.id]});
 }
 
 function renderChat(){
