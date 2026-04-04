@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>DuetCoach — NEPQ Sales Roleplay Practice</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--pri:#534AB7;--grn:#1D9E75;--amb:#EF9F27;--red:#D94545;--dgrn:#0F6E56;
+--bg:#f5f5f3;--card:#fff;--txt:#222;--muted:#666;--border:#ddd;
+--ptint:#EEEDFE;--gtint:#F0FBF7;--atint:#FFFCF5;--rtint:#FEF2F2;
+--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08)
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;-webkit-tap-highlight-color:transparent}
+
+/* Top Bar */
+.topbar{background:var(--pri);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar .brand{font-weight:700;font-size:17px;letter-spacing:-.3px}
+.topbar .sub{font-size:11px;opacity:.75;margin-left:8px}
+.topbar-right{font-size:11px;opacity:.8}
+
+/* Tabs */
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:42px;z-index:99;overflow-x:auto}
+.tab{flex:1;text-align:center;padding:10px 6px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab.active{color:var(--pri);border-bottom-color:var(--pri)}
+.tab-short{display:none}
+
+/* Panels */
+.panel{display:none;padding:16px;padding-bottom:80px;min-height:calc(100vh - 100px)}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card h3{font-size:14px;margin-bottom:10px;color:var(--pri)}
+
+/* Stat Grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;text-align:center;border-top:3px solid var(--pri)}
+.stat-card.grn{border-top-color:var(--grn)}
+.stat-card.amb{border-top-color:var(--amb)}
+.stat-card.red{border-top-color:var(--red)}
+.stat-card .num{font-size:24px;font-weight:700;color:var(--txt)}
+.stat-card .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat-card .sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600}
+.badge-pri{background:var(--ptint);color:var(--pri)}
+.badge-grn{background:var(--gtint);color:var(--grn)}
+.badge-amb{background:var(--atint);color:var(--amb)}
+.badge-red{background:var(--rtint);color:var(--red)}
+
+/* Buttons */
+.btn{display:inline-block;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-pri{background:var(--pri);color:#fff}
+.btn-grn{background:var(--grn);color:#fff}
+.btn-amb{background:var(--amb);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--pri);color:var(--pri)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* Pills / Filters */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pill{padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);color:var(--muted);background:var(--card);transition:all .15s}
+.pill.active{border-color:var(--pri);color:var(--pri);background:var(--ptint)}
+.pill.cat-annuity.active{border-color:var(--grn);color:var(--grn);background:var(--gtint)}
+.pill.cat-life.active{border-color:var(--red);color:var(--red);background:var(--rtint)}
+.pill.cat-iul.active{border-color:var(--amb);color:var(--amb);background:var(--atint)}
+.pill.cat-banking.active{border-color:var(--pri);color:var(--pri);background:var(--ptint)}
+
+/* Persona Cards */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.persona-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.persona-card:hover{border-color:var(--pri)}
+.persona-card .avatar{font-size:32px;margin-bottom:6px}
+.persona-card .pname{font-weight:700;font-size:14px}
+.persona-card .psit{font-size:11px;color:var(--muted);margin:4px 0 8px;line-height:1.4}
+.persona-card .pmeta{display:flex;gap:6px;align-items:center}
+
+/* Chat Interface */
+.chat-wrapper{display:flex;flex-direction:column;height:calc(100vh - 160px);max-height:700px}
+.phase-tracker{display:flex;gap:4px;align-items:center;padding:10px 0;justify-content:center}
+.phase-step{display:flex;flex-direction:column;align-items:center;flex:1;max-width:120px}
+.phase-dot{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;transition:background .3s}
+.phase-dot.done{background:var(--grn)}
+.phase-dot.current{background:var(--amb);animation:pulse 1.5s infinite}
+.phase-lbl{font-size:8px;color:var(--muted);margin-top:3px;text-align:center;text-transform:uppercase;letter-spacing:.3px}
+.phase-line{width:100%;height:2px;background:var(--border);flex:0 0 auto;margin:0 -2px}
+.phase-line.done{background:var(--grn)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.session-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);margin-bottom:8px}
+.timer{font-weight:700;font-size:13px;color:var(--pri);font-variant-numeric:tabular-nums}
+
+.chat-container{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:8px}
+.chat-row{display:flex;align-items:flex-end;gap:8px}
+.chat-row.client{justify-content:flex-start}
+.chat-row.agent{justify-content:flex-end}
+.chat-bubble{max-width:78%;padding:10px 14px;font-size:13px;line-height:1.5;border-radius:16px;word-wrap:break-word}
+.chat-bubble.client-msg{background:var(--ptint);color:var(--txt);border-bottom-left-radius:4px}
+.chat-bubble.agent-msg{background:var(--gtint);color:var(--txt);border-bottom-right-radius:4px}
+.chat-persona-tag{font-size:9px;color:var(--muted);margin-bottom:2px;font-weight:600}
+.typing-dots{display:flex;gap:4px;padding:10px 14px}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+.chat-input-bar{display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border);align-items:flex-end}
+.chat-input-bar textarea{flex:1;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:13px;font-family:inherit;resize:none;min-height:42px;max-height:120px;line-height:1.4}
+.chat-input-bar textarea:focus{outline:none;border-color:var(--pri)}
+.chat-input-bar .send-btn{background:var(--pri);color:#fff;border:none;border-radius:var(--radius);padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.chat-input-bar .send-btn:disabled{opacity:.4;cursor:default}
+.end-btn{background:var(--red);color:#fff;border:none;border-radius:var(--radius);padding:10px 14px;font-weight:600;font-size:11px;cursor:pointer;white-space:nowrap}
+
+/* Score Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:12px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h2{font-size:18px;margin-bottom:16px;color:var(--pri)}
+.score-row{margin-bottom:12px}
+.score-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px}
+.score-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.score-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.score-total{text-align:center;margin:20px 0;padding:16px;background:var(--ptint);border-radius:var(--radius)}
+.score-total .big{font-size:36px;font-weight:700;color:var(--pri)}
+.score-total .lbl{font-size:11px;color:var(--muted)}
+.coaching-tip{background:var(--gtint);border-radius:var(--radius);padding:12px;margin-top:12px;font-size:12px;line-height:1.5}
+.coaching-tip b{color:var(--grn)}
+
+/* History */
+.session-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:background .15s}
+.session-row:hover{background:var(--ptint)}
+.session-row .sr-top{display:flex;justify-content:space-between;align-items:center}
+.session-row .sr-name{font-weight:700;font-size:13px}
+.session-row .sr-date{font-size:10px;color:var(--muted)}
+.session-row .sr-meta{display:flex;gap:8px;margin-top:6px;font-size:11px;color:var(--muted)}
+.session-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.session-detail.show{display:block}
+.mini-transcript{max-height:200px;overflow-y:auto;font-size:11px;line-height:1.6;padding:8px;background:var(--bg);border-radius:var(--radius);margin-bottom:10px}
+.mini-transcript .mt-client{color:var(--pri);font-weight:600}
+.mini-transcript .mt-agent{color:var(--grn);font-weight:600}
+
+/* Stats */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar-fill{width:100%;max-width:28px;border-radius:4px 4px 0 0;transition:height .3s;min-height:2px}
+.bar-date{font-size:8px;color:var(--muted);margin-top:4px;transform:rotate(-45deg);white-space:nowrap}
+.bar-score{font-size:8px;font-weight:700;margin-bottom:2px}
+
+.streak-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.streak-day{width:100%;aspect-ratio:1;border-radius:3px;background:var(--bg)}
+.streak-day.active{background:var(--grn)}
+.streak-day.today{border:2px solid var(--pri)}
+.day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:2px}
+.day-labels span{font-size:8px;color:var(--muted);text-align:center}
+
+/* Settings */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.form-group input,.form-group select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--pri)}
+.api-status{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px}
+.api-status.ok{background:var(--grn)}
+.api-status.err{background:var(--red)}
+.api-status.unk{background:var(--border)}
+
+/* Toast */
+.toast-container{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:6px;align-items:center}
+.toast{background:var(--txt);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:500;animation:fadeInUp .3s ease;white-space:nowrap}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Mobile Nav */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.mobile-nav-inner{display:flex}
+.mnav{flex:1;text-align:center;padding:8px 4px 6px;font-size:9px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none}
+.mnav.active{color:var(--pri)}
+.mnav-icon{font-size:18px;display:block;margin-bottom:1px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--border)}
+td{padding:8px;border-bottom:1px solid var(--border)}
+
+/* Responsive */
+@media(max-width:768px){
+ .tabs{display:none}
+ .mobile-nav{display:block}
+ .panel{padding:12px;padding-bottom:90px}
+ .stat-grid{grid-template-columns:repeat(2,1fr)}
+ .persona-grid{grid-template-columns:1fr}
+ .chat-bubble{max-width:88%}
+ .chat-wrapper{height:calc(100vh - 130px)}
+ .topbar .sub{display:none}
+}
+@media(max-width:480px){
+ .stat-grid{grid-template-columns:1fr 1fr}
+ .chat-bubble{max-width:92%}
+ .modal{padding:16px;margin:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+ <div><span class="brand">DuetCoach</span><span class="sub">NEPQ Sales Practice</span></div>
+ <div class="topbar-right" id="streakDisplay"></div>
+</div>
+
+<div class="tabs">
+ <div class="tab active" onclick="showTab(0)">Practice</div>
+ <div class="tab" onclick="showTab(1)">History</div>
+ <div class="tab" onclick="showTab(2)">Stats</div>
+ <div class="tab" onclick="showTab(3)">Settings</div>
+</div>
+
+<div class="panel active" id="p0"></div>
+<div class="panel" id="p1"></div>
+<div class="panel" id="p2"></div>
+<div class="panel" id="p3"></div>
+
+<div class="mobile-nav">
+ <div class="mobile-nav-inner">
+  <button class="mnav active" onclick="showTab(0)"><span class="mnav-icon">&#x1F3AF;</span>Practice</button>
+  <button class="mnav" onclick="showTab(1)"><span class="mnav-icon">&#x1F4CB;</span>History</button>
+  <button class="mnav" onclick="showTab(2)"><span class="mnav-icon">&#x1F4CA;</span>Stats</button>
+  <button class="mnav" onclick="showTab(3)"><span class="mnav-icon">&#x2699;&#xFE0F;</span>Settings</button>
+ </div>
+</div>
+
+<div class="modal-overlay" id="scoreModal"><div class="modal" id="scoreModalContent"></div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── Utilities ──
+function $1(s){return document.querySelector(s)}
+function $$(s){return document.querySelectorAll(s)}
+function showToast(msg,ms){var t=document.createElement('div');t.className='toast';t.textContent=msg;$1('#toastContainer').appendChild(t);setTimeout(function(){t.remove()},ms||3000)}
+function fmt(n){return '$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}
+function pad2(n){return n<10?'0'+n:''+n}
+function fmtTime(secs){return pad2(Math.floor(secs/60))+':'+pad2(secs%60)}
+function fmtDate(d){var dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getDate()+'/'+dt.getFullYear()}
+function fmtDateShort(d){var dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getDate()}
+
+// ── Tab System ──
+var currentTab=0;
+function showTab(n){
+ currentTab=n;
+ $$('.panel').forEach(function(p,i){p.classList.toggle('active',i===n)});
+ $$('.tab').forEach(function(t,i){t.classList.toggle('active',i===n)});
+ $$('.mnav').forEach(function(m,i){m.classList.toggle('active',i===n)});
+ if(n===0) renderPractice();
+ if(n===1) renderHistory();
+ if(n===2) renderStats();
+ if(n===3) renderSettings();
+}
+
+// ── localStorage ──
+function loadJSON(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def}catch(e){return def}}
+function saveJSON(key,val){localStorage.setItem(key,JSON.stringify(val))}
+var sessions=loadJSON('db_coach_sessions',[]);
+var settings=loadJSON('db_coach_settings',{difficulty:'all',dailyGoal:1,categories:['annuity','life','iul','banking'],mode:'scripted'});
+var streak=loadJSON('db_coach_streak',{current:0,longest:0,lastDate:null,practiceDates:[]});
+
+function saveSessions(){saveJSON('db_coach_sessions',sessions)}
+function saveSettings(){saveJSON('db_coach_settings',settings)}
+function saveStreak(){saveJSON('db_coach_streak',streak)}
+function getApiKey(){return localStorage.getItem('db_coach_apikey')||''}
+function setApiKey(k){localStorage.setItem('db_coach_apikey',k)}
+
+// ── NEPQ Phases ──
+var PHASES=[
+ {name:'Situation',short:'SIT',color:'#3498db',desc:'Understand their current position'},
+ {name:'Problem',short:'PROB',color:'#e67e22',desc:'Surface pain points'},
+ {name:'Solution',short:'SOL',color:'#1abc9c',desc:'Introduce alternatives naturally'},
+ {name:'Consequence',short:'CON',color:'#c0392b',desc:'Cost of inaction'},
+ {name:'Commitment',short:'CMT',color:'var(--grn)',desc:'Close with assumptive choice'}
+];
+
+// Phase keyword detection
+var PHASE_KEYWORDS=[
+ // Situation
+ ['how long','currently','what rate','what do you typically','how much','tell me about','walk me through','what made you','right now','at the moment','your current','do you have'],
+ // Problem Awareness
+ ['happy with','feel like','getting ahead','did you know','taxes','taxed','inflation','1099','paying','losing','costing','concerned','worried','frustrat'],
+ // Solution Awareness
+ ['what if','would it be helpful','would you be interested','tax-deferred','tax deferred','guaranteed','protected','option','alternative','imagine','consider'],
+ // Consequence
+ ['if you keep','what happens','5 years','10 years','drop back','rates drop','lose','miss','probate','family','without','risk of'],
+ // Commitment
+ ['does that make sense','would it make sense','would you like','move forward','get started','next step','application','transition','portion','full amount','set up','schedule']
+];
+
+// ── Scoring Keywords ──
+var OPEN_QUESTION_WORDS=['how','what','tell me','walk me through','describe','explain','can you share','in what way','why do you'];
+var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate','absolutely','of course','great point','good question','completely','fair enough','no pressure','take your time'];
+var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
+
+// ── 12 Client Personas ──
+var PERSONAS=[
+ // CD-to-Annuity
+ {id:'margaret',name:'Margaret Chen',age:68,avatar:'&#x1F475;',category:'annuity',difficulty:'easy',
+  personality:'agreeable',situation:'Retired teacher with $150K in CDs at 4.5%. Widowed 3 years ago. Lives comfortably but worries about outliving her savings. CD matures in 6 weeks.',
+  primaryObjection:'think-about-it',hiddenObjection:'Worried about leaving money to her daughter',
+  openTriggers:'When you mention beneficiary protection or probate avoidance',
+  resistTriggers:'Feeling pressured or rushed',
+  successClose:'Agrees to move $100K to annuity, keep $50K in CD for liquidity'},
+
+ {id:'torres',name:'Robert & Linda Torres',age:72,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'annuity',difficulty:'medium',
+  personality:'analytical',situation:'Married couple, $250K across 3 CDs at different banks. Robert is detail-oriented, wants numbers. Linda\'s mother is in assisted living — Medicaid is a hidden concern.',
+  primaryObjection:'cd-rates-good',hiddenObjection:'Worried about Medicaid spend-down for Linda\'s mother\'s care',
+  openTriggers:'When you mention FL Medicaid asset protection',
+  resistTriggers:'Vague claims without specific numbers',
+  successClose:'Moves $150K to annuity for Medicaid protection, keeps $100K liquid'},
+
+ {id:'frank',name:'Frank Kowalski',age:61,avatar:'&#x1F468;',category:'annuity',difficulty:'hard',
+  personality:'skeptical',situation:'Self-employed contractor, $200K in CDs. Had a bad experience with a variable annuity 10 years ago — lost money. Very distrustful of insurance products. CD matures in 2 months.',
+  primaryObjection:'ties-up-money',hiddenObjection:'Burned by variable annuity before — conflates fixed with variable',
+  openTriggers:'When you clearly distinguish fixed from variable annuities',
+  resistTriggers:'Any whiff of sales pressure or glossing over risks',
+  successClose:'Agrees to start with $50K in a fixed annuity to test it'},
+
+ // Life Insurance
+ {id:'sarah',name:'Sarah Mitchell',age:34,avatar:'&#x1F469;',category:'life',difficulty:'easy',
+  personality:'emotional',situation:'New mother, 6-month-old baby. Husband is sole income earner ($85K). No life insurance on either of them. Mortgage is $280K. Knows she needs coverage but keeps putting it off.',
+  primaryObjection:'afford',hiddenObjection:'Scared of facing mortality — avoids the topic',
+  openTriggers:'When you frame it around protecting her baby, not death',
+  resistTriggers:'Talking too much about death or worst-case scenarios',
+  successClose:'20-year term for both her and husband'},
+
+ {id:'hoffman',name:'James & Diane Hoffman',age:55,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'life',difficulty:'medium',
+  personality:'analytical',situation:'Empty nesters. James has $100K group life through work, retiring in 5 years — coverage ends. Diane has nothing. James had a health scare last year (high blood pressure, managed with meds).',
+  primaryObjection:'have-work-coverage',hiddenObjection:'James\'s health scare makes him worry about qualifying',
+  openTriggers:'When you explain guaranteed issue options or how managed conditions can still qualify',
+  resistTriggers:'Dismissing his work coverage as worthless',
+  successClose:'Whole life for James (before health worsens), 20-year term for Diane'},
+
+ {id:'carlos',name:'Carlos Rivera',age:45,avatar:'&#x1F468;',category:'life',difficulty:'hard',
+  personality:'skeptical',situation:'Owns a landscaping business, 3 employees. Wife and 2 kids (12, 15). No life insurance, no will. Makes good money ($120K) but thinks insurance is a scam. "I\'m healthy, I don\'t need it."',
+  primaryObjection:'dont-need-it',hiddenObjection:'His father died at 52 — he doesn\'t talk about it',
+  openTriggers:'When you ask about his kids\' future or business continuation',
+  resistTriggers:'Statistics about death or scare tactics',
+  successClose:'30-year term to cover kids through college + business loan protection'},
+
+ // IUL
+ {id:'patel',name:'Dr. Priya Patel',age:42,avatar:'&#x1F469;',category:'iul',difficulty:'easy',
+  personality:'agreeable',situation:'Physician earning $350K. Maxes out 401K and backdoor Roth. Looking for additional tax-advantaged growth. Financially literate but unfamiliar with IUL.',
+  primaryObjection:'fees',hiddenObjection:'Concerned about opportunity cost vs index funds',
+  openTriggers:'When you show the tax-free income potential and downside protection',
+  resistTriggers:'Oversimplifying — she wants real numbers',
+  successClose:'Accumulator IUL with target premium, funded over 10 years'},
+
+ {id:'nguyen',name:'Kevin & Maria Nguyen',age:38,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'iul',difficulty:'medium',
+  personality:'analytical',situation:'Dual income ($180K combined). Two young kids. Already have term life. Kevin reads a lot of personal finance blogs that are anti-IUL. Maria is more open.',
+  primaryObjection:'why-not-index-funds',hiddenObjection:'Kevin\'s blog sources are biased but he trusts them',
+  openTriggers:'When you acknowledge the index fund argument and show where IUL fills a gap BTID doesn\'t cover',
+  resistTriggers:'Dismissing his research or being condescending',
+  successClose:'Modest IUL policy alongside existing term, positioned as tax diversification'},
+
+ {id:'wright',name:'Thomas Wright',age:58,avatar:'&#x1F474;',category:'iul',difficulty:'hard',
+  personality:'skeptical',situation:'Nearing retirement, $800K in 401K. Read bad press about IUL surrender charges and caps. Financial advisor told him IUL is "never a good idea." Wants to be convinced he\'s wrong.',
+  primaryObjection:'bad-press',hiddenObjection:'Actually worried about market crash wiping out retirement savings',
+  openTriggers:'When you show the 0% floor protecting against crashes',
+  resistTriggers:'Contradicting his financial advisor directly',
+  successClose:'LifeTime UL with conservative allocation, positioned as crash protection layer'},
+
+ // Banking/CD
+ {id:'ellen',name:'Ellen Park',age:75,avatar:'&#x1F475;',category:'banking',difficulty:'easy',
+  personality:'agreeable',situation:'Widow, $80K in savings account earning 0.5%. Doesn\'t know about CDs. Very loyal to her local bank branch. Fixed income from Social Security + small pension.',
+  primaryObjection:'lock-up-money',hiddenObjection:'Lonely — enjoys going to the bank branch to talk to people',
+  openTriggers:'When you respect her relationship with her bank and position this as adding to it',
+  resistTriggers:'Criticizing her bank or implying she\'s been foolish',
+  successClose:'$50K into 12-month CD, keeps $30K liquid in savings'},
+
+ {id:'ross',name:'David & Janet Ross',age:62,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'banking',difficulty:'medium',
+  personality:'analytical',situation:'$400K across 3 banks in CDs and savings. Retiring in 3 years. Very rate-sensitive — moves money wherever rate is highest. Secretly interested in annuities but came in asking about CDs.',
+  primaryObjection:'higher-rate',hiddenObjection:'Want guaranteed retirement income but don\'t want to admit they\'re worried',
+  openTriggers:'When you naturally bridge from CD rates to annuity rates and income guarantees',
+  resistTriggers:'Pushing annuity before earning trust on the CD question',
+  successClose:'$200K in CD ladder + $200K in fixed annuity for income stream'},
+
+ {id:'michael',name:'Michael Okafor',age:50,avatar:'&#x1F468;',category:'banking',difficulty:'hard',
+  personality:'skeptical',situation:'Business owner, $300K to park. Compares everything online. "Online banks pay 5.2%, why should I come here?" Impatient, wants the best deal, doesn\'t care about relationships.',
+  primaryObjection:'online-rates',hiddenObjection:'Actually nervous about FDIC limits across multiple accounts',
+  openTriggers:'When you discuss FDIC coverage strategies for amounts over $250K',
+  resistTriggers:'Wasting his time with small talk or features he doesn\'t care about',
+  successClose:'Splits across CD + money market to maximize FDIC coverage'}
+];
+
+// ── Objection Response Library ──
+var OBJECTIONS={
+ 'ties-up-money':{label:'Ties up my money',idealResponse:'Reframe: you\'ve been tied up in CDs already, rolling over. Annuity does the same but with tax-deferred growth and a guaranteed floor rate. Plus 10% annual access penalty-free.',keywords:['rolling over','already tied','10%','penalty-free','access','same thing','reframe']},
+ 'need-money':{label:'Need the money',idealResponse:'10% free withdrawal annually. Many annuities have nursing home/terminal illness waivers for full access. And your CD has early withdrawal penalties too.',keywords:['10%','free withdrawal','waiver','nursing','terminal','penalty','access']},
+ 'cd-rates-good':{label:'CD rates are good right now',idealResponse:'They are — which is why now is the time to lock in. Rates were 0.5% just 3 years ago. Annuity locks in a guaranteed minimum, so even if market rates drop, your floor is protected.',keywords:['lock in','were 0.5','three years','guaranteed minimum','floor','protected','drop']},
+ 'surrender':{label:'Don\'t want surrender charges',idealResponse:'CDs have early withdrawal penalties too. The annuity\'s surrender charge decreases every year and disappears after 3-5 years. During that time your money grows tax-deferred — the net benefit outweighs the surrender period.',keywords:['cd','penalty too','decreases','disappears','3-5','tax-deferred','net benefit']},
+ 'think-about-it':{label:'Need to think about it',idealResponse:'Absolutely. What specifically would you want to think through? That way I can get you the exact information you need. Also — when does your CD mature? I\'d hate for it to auto-renew at whatever rate the bank decides.',keywords:['specifically','what exactly','information','maturity','auto-renew','bank decides','think through']},
+ 'afford':{label:'Can\'t afford it',idealResponse:'What if it was less than your phone bill? A 20-year term for someone your age can be $25-40/month. That\'s the cost of protecting everything you\'re building for your family.',keywords:['phone bill','$25','$30','$40','per month','cost of','protecting','family','affordable']},
+ 'dont-need-it':{label:'I\'m healthy, don\'t need it',idealResponse:'That\'s actually the best time to get it — rates are lowest when you\'re healthy. If something changes, you may not qualify or it becomes much more expensive. What would happen to your business and family if you couldn\'t work for 6 months?',keywords:['best time','healthy','rates lowest','qualify','changes','business','family','couldn\'t work']},
+ 'have-work-coverage':{label:'Have coverage through work',idealResponse:'Group coverage is a great start. But what happens when you retire or change jobs? That coverage doesn\'t follow you. And at 55+, getting new coverage individually will be much more expensive — if you qualify at all.',keywords:['retire','change jobs','doesn\'t follow','individually','expensive','qualify','portable']},
+ 'fees':{label:'What are the fees?',idealResponse:'Great question. The cost of insurance is built into the policy — there\'s no separate fee statement like a brokerage account. But here\'s what matters: the net returns. After all costs, the tax-free income projections show... And unlike a 401K, you\'re not paying taxes on withdrawals.',keywords:['built in','no separate','net returns','tax-free','income','projections','after all costs']},
+ 'why-not-index-funds':{label:'Why not just index funds?',idealResponse:'Index funds are great for growth. IUL fills a different gap: tax-free retirement income with downside protection. If the market drops 30%, your IUL floor is 0% — you don\'t lose. It\'s not either/or — it\'s diversification across tax buckets.',keywords:['different gap','tax-free','floor','0%','don\'t lose','diversification','tax bucket','not either','both']},
+ 'bad-press':{label:'Read bad things about IUL',idealResponse:'There\'s a lot of noise online, and some of it is valid — poorly designed IULs with unrealistic illustrations have hurt people. That\'s why we use conservative assumptions. Let me show you the guaranteed column, not the projected one.',keywords:['valid','poorly designed','conservative','guaranteed column','realistic','honest','not projected','actual']},
+ 'online-rates':{label:'Online banks pay more',idealResponse:'Some do — and if rate is the only factor, that makes sense. But with $300K, you\'re over the FDIC limit at any single bank. Here we can structure across products to keep everything fully insured. Also, try getting someone on the phone at an online bank when you need something.',keywords:['fdic','limit','$250','over','structure','insured','phone','someone','service']},
+ 'lock-up-money':{label:'Don\'t want to lock up money',idealResponse:'I hear that. A 12-month CD means your money is only committed for one year, and the rate is significantly better than savings. If something comes up, the early withdrawal penalty is just a few months of interest — not the principal.',keywords:['12 month','one year','committed','better than savings','penalty','few months','interest','principal safe']},
+ 'higher-rate':{label:'Want the highest rate',idealResponse:'I respect that — rate matters. Let me show you our current CD rates by term. But I also want to mention: if you\'re looking 3-5 years out, a fixed annuity may actually net you more after taxes, since CD interest is taxed annually while annuity growth is deferred.',keywords:['rates','current','term','3-5 years','annuity','net more','after taxes','deferred','taxed annually']}
+};
+
+// ── Conversation Trees (Scripted Mode) ──
+// Each tree is an array of nodes. Node format:
+// {id, phase (0-4), clientMsg, branches:[{trigger:'good'|'okay'|'weak', keywords:[], nextNode, scoreHints:{}}]}
+// 'end' as nextNode triggers session end.
+
+function buildTree(persona){
+ // Generate a conversation tree based on the persona
+ var cat=persona.category;
+ var diff=persona.difficulty;
+ var obj=OBJECTIONS[persona.primaryObjection]||{};
+
+ // Build a standardized tree structure
+ var tree=[];
+ var nodeId=0;
+
+ // Opening (Phase 0 - Situation)
+ tree.push({id:nodeId++,phase:0,clientMsg:getOpening(persona),branches:[
+  {trigger:'good',keywords:['how long','tell me','walk me','what made','currently','how much','what rate'],nextNode:1,scoreHints:{phase:3,question:3,empathy:2}},
+  {trigger:'okay',keywords:['cd','annuity','money','savings','interest'],nextNode:1,scoreHints:{phase:2,question:1,empathy:1}},
+  {trigger:'weak',keywords:[],nextNode:1,scoreHints:{phase:1,question:0,empathy:0}}
+ ]});
+
+ // Situation Response (Phase 0)
+ tree.push({id:nodeId++,phase:0,clientMsg:getSituationResponse(persona),branches:[
+  {trigger:'good',keywords:['how does that feel','happy with','enough','worried','concerned','getting ahead','inflation','taxes','1099'],nextNode:2,scoreHints:{phase:3,question:3,empathy:2}},
+  {trigger:'okay',keywords:['what if','have you considered','there\'s a way','let me tell','better option'],nextNode:2,scoreHints:{phase:1,question:1,empathy:1}},
+  {trigger:'weak',keywords:[],nextNode:2,scoreHints:{phase:0,question:0,empathy:0}}
+ ]});
+
+ // Problem Awareness (Phase 1)
+ tree.push({id:nodeId++,phase:1,clientMsg:getProblemResponse(persona),branches:[
+  {trigger:'good',keywords:['what if','imagine','would it help','would you be interested','tax-deferred','guaranteed','protected','alternative'],nextNode:3,scoreHints:{phase:3,question:3,empathy:3}},
+  {trigger:'okay',keywords:['annuity','product','option','fixed','rate'],nextNode:3,scoreHints:{phase:2,question:1,empathy:1}},
+  {trigger:'weak',keywords:[],nextNode:3,scoreHints:{phase:1,question:0,empathy:0}}
+ ]});
+
+ // Solution Awareness (Phase 2)
+ tree.push({id:nodeId++,phase:2,clientMsg:getSolutionResponse(persona),branches:[
+  {trigger:'good',keywords:['if you keep','what happens','5 years','10 years','drop','rates go down','probate','family','without','risk','lose'],nextNode:4,scoreHints:{phase:4,question:3,empathy:3}},
+  {trigger:'okay',keywords:['benefit','advantage','better','compare'],nextNode:4,scoreHints:{phase:2,question:2,empathy:1}},
+  {trigger:'weak',keywords:[],nextNode:4,scoreHints:{phase:1,question:0,empathy:0}}
+ ]});
+
+ // Objection (Phase 2-3)
+ tree.push({id:nodeId++,phase:2,clientMsg:obj.label?'"'+obj.label+'"':'I\'m not sure about this.',branches:[
+  {trigger:'good',keywords:obj.keywords||[],nextNode:5,scoreHints:{phase:2,question:2,objection:4,empathy:3}},
+  {trigger:'okay',keywords:['understand','hear you','good point','fair'],nextNode:5,scoreHints:{phase:1,question:1,objection:2,empathy:2}},
+  {trigger:'weak',keywords:[],nextNode:5,scoreHints:{phase:0,question:0,objection:0,empathy:0}}
+ ]});
+
+ // Post-Objection / Consequence (Phase 3)
+ tree.push({id:nodeId++,phase:3,clientMsg:getPostObjectionResponse(persona),branches:[
+  {trigger:'good',keywords:['does that make sense','would it make sense','would you like','next step','move forward','get started','application','set up','transition','portion','full amount','schedule'],nextNode:6,scoreHints:{phase:3,question:2,empathy:2,close:4}},
+  {trigger:'okay',keywords:['think about','consider','look at','option','worth'],nextNode:6,scoreHints:{phase:2,question:1,empathy:1,close:2}},
+  {trigger:'weak',keywords:[],nextNode:6,scoreHints:{phase:1,question:0,empathy:0,close:0}}
+ ]});
+
+ // Commitment (Phase 4)
+ tree.push({id:nodeId++,phase:4,clientMsg:getCommitmentResponse(persona),branches:[
+  {trigger:'good',keywords:['great','wonderful','perfect','excellent','set up','schedule','paperwork','next','timeline','maturity','when','ready'],nextNode:'end',scoreHints:{phase:2,question:1,empathy:2,close:4}},
+  {trigger:'okay',keywords:['ok','sure','sounds','yes','let\'s'],nextNode:'end',scoreHints:{phase:1,question:0,empathy:1,close:2}},
+  {trigger:'weak',keywords:[],nextNode:'end',scoreHints:{phase:0,question:0,empathy:0,close:1}}
+ ]});
+
+ return tree;
+}
+
+function getOpening(p){
+ var openers={
+  margaret:'Hi there. I got a letter from my bank saying my CD is maturing next month. I\'m not really sure what to do with it. My neighbor mentioned I should talk to someone at AAA about my options.',
+  torres:'We have some CDs coming up for renewal and we wanted to understand our options. We\'ve been doing CDs for years — the rates have been decent lately. What can you tell us?',
+  frank:'Look, I\'ll be straight with you — I had an annuity years ago and lost money on it. I\'m only here because my accountant told me to look into it for tax reasons. So convince me.',
+  sarah:'Hi, I... I know I should probably have some kind of insurance. We just had a baby and I keep thinking, what if something happened to one of us? I just don\'t know where to start.',
+  hoffman:'We want to look into life insurance. I have some through work but I\'m retiring in a few years and Diane has nothing. We figured it\'s time to get serious about this.',
+  carlos:'My wife made me come in. She keeps saying we need life insurance but honestly, I\'m 45, I\'m healthy, I work out every day. I think it\'s a waste of money but I told her I\'d hear you out.',
+  patel:'I\'ve been looking into additional tax-advantaged strategies beyond my 401K and Roth. A colleague mentioned IUL — I\'ve done some preliminary research but I\'d like to understand the mechanics better.',
+  nguyen:'We\'ve been reading about IUL policies and honestly, the information is all over the place. Some sites say it\'s great, others say it\'s basically a scam. We want an honest conversation about whether it makes sense for us.',
+  wright:'My financial advisor says IUL is never a good idea. But I keep seeing articles about it for retirement planning. I\'m 58, most of my money is in a 401K, and frankly, a 30% market drop right now would wreck my plans.',
+  ellen:'Hello dear. I\'ve been keeping my savings at First National for years. My friend Betty told me I should look into one of those CD things — she said she\'s getting more interest than me.',
+  ross:'We have CDs at three different banks — we always chase the best rate. What are your current CD rates? We have about $400K to place.',
+  michael:'I\'m going to be direct — I have $300K and I can get 5.2% at an online bank right now. What can you do for me?'
+ };
+ return openers[p.id]||'Hi, I\'m here to discuss my financial options.';
+}
+
+function getSituationResponse(p){
+ var resps={
+  margaret:'Well, I\'ve had CDs for about 15 years now. After my husband passed, I just kept rolling them over. I have about $150,000 in there right now at 4.5%. I don\'t really need the money day-to-day — my pension covers my bills. I just want it to be safe.',
+  torres:'We have about $250,000 spread across three banks. Rates are between 4.2% and 4.8%. We\'ve been doing this for maybe 10 years. Robert likes to compare rates every time they mature. It works, but the taxes every year are getting annoying.',
+  frank:'I\'ve got about $200K in CDs. I run my own contracting business so it\'s money I might need. The last time I listened to someone about an annuity, it was a variable one and I lost $30,000. So forgive me if I\'m not jumping for joy here.',
+  sarah:'We don\'t have any insurance at all. My husband Mike makes about $85,000 and we just bought a house — the mortgage is $280,000. I went back to work part-time but I\'m only making about $30,000. The baby is 6 months old.',
+  hoffman:'I have $100,000 through my employer — it\'s been free so I never thought much about it. I\'m retiring in about 5 years, so that goes away. Diane has zero coverage. We own our home outright, no mortgage, but we want to make sure we\'re taken care of.',
+  carlos:'I make good money — about $120K a year from the business. I have a wife and two kids, 12 and 15. No insurance, no will, nothing like that. I figure I\'ll worry about it when I\'m older. My dad always said insurance companies just take your money.',
+  patel:'I earn about $350K annually. I max my 401K, do a backdoor Roth each year, and have a taxable brokerage account. I\'m looking for something with tax-advantaged growth that I can access before 59 and a half without penalties.',
+  nguyen:'Combined we make about $180K. We have 20-year term policies on both of us from when the kids were born. Kevin has been reading a lot about BTID — buy term invest the difference — and most of what he\'s read says IUL fees eat up the returns.',
+  wright:'I have about $800K in my 401K, mostly in a target date fund. I\'m 58, planning to retire at 63. My advisor has me 60/40 stocks and bonds. But 2022 scared me — I was down almost $200K at one point. I can\'t go through that again close to retirement.',
+  ellen:'I have about $80,000 in my savings account at First National. I\'ve been going there for 30 years — they know me by name. I think the savings rate is maybe half a percent? Betty said she\'s getting over 4% on her CD.',
+  ross:'Right now we have $150K at Chase at 4.3%, $125K at Ally at 4.8%, and $125K at Marcus at 4.6%. They mature at different times throughout the year. We\'re retiring in 3 years and want to make sure we\'re maximizing every dollar.',
+  michael:'I run an import business. I have $300K that I need to park somewhere safe for 1-2 years. I don\'t care about relationships or perks — I want the highest rate with FDIC insurance. Period.'
+ };
+ return resps[p.id]||'I have some savings I\'m looking to do something with.';
+}
+
+function getProblemResponse(p){
+ var resps={
+  margaret:'I mean, I never really thought about it that way. I guess the taxes are annoying — I do get that 1099 every year and my accountant always grumbles about it. And you\'re right, when my husband had his CDs, the rate was much higher. What if rates go back down?',
+  torres:'The taxes are the worst part, honestly. We paid almost $6,000 in taxes on CD interest last year. Robert was furious. And yes, we worry about rates — remember when they were basically zero? We had CDs paying 0.3%.',
+  frank:'Sure, I\'m not thrilled about the taxes. And yeah, rates could go down. But at least with a CD I know what I\'m getting and I can get my money out when it matures. I\'m not interested in being locked into something again.',
+  sarah:'Oh gosh, I hadn\'t thought about it like that. If something happened to Mike, I\'d have to cover the mortgage and daycare on my own. That\'s... that\'s terrifying actually. How much would insurance even cost?',
+  hoffman:'That\'s a good point about the work coverage ending. I hadn\'t really connected those dots. And Diane is completely uncovered if something happened to her. What would the options look like for both of us?',
+  carlos:'Look, I hear what you\'re saying, but I exercise, I eat right. My business is doing great. Why would I pay for something I\'m probably never going to use?',
+  patel:'That\'s interesting about the tax-free access. My accountant has been talking about Roth conversion ladders, but the income limits make it complicated. How does the IUL compare in terms of actual net returns after all costs?',
+  nguyen:'Kevin says the fees in IUL are like 2-3% per year, which would drag returns way below a simple index fund. Is that accurate? Because if so, why wouldn\'t we just buy term and invest the rest?',
+  wright:'So you\'re saying there\'s a floor? If the market drops, I don\'t lose anything? That sounds too good to be true. What\'s the catch — there must be caps or something?',
+  ellen:'Oh my, 4%? That\'s much better than what I\'m getting! But I don\'t want to lock up all my money. What if I need it for something? I\'m on a fixed income, you know.',
+  ross:'Those are competitive rates. But honestly, what we\'re really worried about is income in retirement. $400K sounds like a lot but with inflation... how long will it really last? Is a CD even the right vehicle for retirement income?',
+  michael:'OK, so your rates are close to online. But why should I open an account here when I can do everything on my phone? What\'s the value-add?'
+ };
+ return resps[p.id]||'Hmm, I hadn\'t really thought about it that way.';
+}
+
+function getSolutionResponse(p){
+ var resps={
+  margaret:'Tax-deferred? So I wouldn\'t get that 1099 every year? That does sound nice. And it goes directly to my daughter without probate? Tell me more about that part. But what if I need the money — I\'m 68, things happen.',
+  torres:'So the growth is tax-deferred AND it could protect assets for Medicaid? Linda, did you hear that? That\'s exactly what we\'ve been worried about with your mother. But what about the rates — are we giving up return for these benefits?',
+  frank:'OK, so this is a FIXED annuity, not variable. I didn\'t realize there was a difference. So my money can\'t go down? But what about if I need the cash — I\'m self-employed, sometimes I need to cover payroll.',
+  sarah:'$30 a month? That\'s... that\'s less than our Netflix and streaming combined. And it would cover the mortgage and give us income? OK, but what happens if we miss a payment? And do we both need separate policies?',
+  hoffman:'So James could get a whole life policy even with his blood pressure medication? And the rate wouldn\'t go up later? What about Diane — since she\'s healthy, what would make the most sense for her?',
+  carlos:'My dad died at 52, you know. Heart attack, no warning. So yeah... I know it can happen. But $120 a month for a 30-year term? That covers through my kids\' college and pays off the business loan?',
+  patel:'The guaranteed column is what interests me. I don\'t want to look at optimistic projections — show me the worst case. And what about liquidity? Can I access the cash value before retirement without penalties?',
+  nguyen:'OK, so you\'re not saying replace our term or stop investing. You\'re saying this fills a specific gap — tax-free income in retirement that\'s protected from market downturns. That\'s... actually a different argument than what I\'ve been reading.',
+  wright:'A 0% floor with a 7.5% cap on the S&P option. So in a year like 2022, I\'d lose nothing, and in a good year I\'d get up to 7.5%? And the income is tax-free? Show me how that would work with $200K over the next 5 years.',
+  ellen:'Oh, so I could put some in a CD and keep the rest in savings? I don\'t have to move everything? That makes me feel better. What\'s the minimum for a CD? And can I still go to my branch?',
+  ross:'So if we put $200K in CDs for short-term access and $200K in a fixed annuity for retirement income... what would the annuity actually pay us monthly? Can you run those numbers?',
+  michael:'OK, the FDIC point is valid — I am over the limit at one bank. I didn\'t think about that. How would you structure $300K to be fully insured? And what are your actual rates?'
+ };
+ return resps[p.id]||'That\'s interesting. Tell me more about how that would work.';
+}
+
+function getPostObjectionResponse(p){
+ var resps={
+  margaret:'You know what, that all makes sense. I think my daughter would want me to do something smart with this money. I just want to make sure I\'m not making a mistake. What would you recommend for someone in my situation?',
+  torres:'Robert, what do you think? The Medicaid angle alone makes it worth considering. And the tax savings... OK, what would this actually look like for us? How much should we move vs. keep liquid?',
+  frank:'Alright, I\'ll admit — the fixed annuity is not what I had before. And the 10% access is more than I expected. But I\'m not putting all $200K in. What\'s the minimum to make this worthwhile?',
+  sarah:'You\'re right, it\'s really about the kids\' future. OK, I want to do this. What do I need to do to get started? Should we do both of us at the same time?',
+  hoffman:'That makes a lot of sense for both of us. Especially with James\'s health — better to lock in rates now while he\'s manageable, right? What\'s the process?',
+  carlos:'Look, you got me. My kids need to be protected whether I\'m around or not. And $120 a month is nothing compared to what I\'d leave them stuck with. What do I need to do?',
+  patel:'I appreciate the transparency on the guaranteed numbers. This does fill a gap in my strategy — particularly the tax-free income piece. What premium level would you recommend to make this meaningful?',
+  nguyen:'Maria, I think this actually makes sense as a piece of our overall plan — not a replacement, an addition. The tax diversification argument is solid. What would a starter policy look like for us?',
+  wright:'The crash protection is really what sells me. If I can protect $200K from another 2022 scenario and still get reasonable returns... that lets me sleep at night. What are the next steps?',
+  ellen:'Oh that sounds just fine! $50K in the CD and I keep the rest in savings in case I need it. Will I still get my statement at the branch? I like talking to my banker about things.',
+  ross:'The combination approach makes a lot of sense. Liquid money in CDs for the next 3 years, and the annuity kicks in for retirement income after that. Can you show us the projected monthly income from the annuity portion?',
+  michael:'Fine — structure it for maximum FDIC coverage across your products. What\'s the split? And I want the paperwork done today, I don\'t have time to come back.'
+ };
+ return resps[p.id]||'OK, I\'m listening. What would you recommend?';
+}
+
+function getCommitmentResponse(p){
+ var resps={
+  margaret:'Let\'s do it. I\'ll move $100K to the annuity and keep $50K in a new CD for safety. Can we start the paperwork? My CD matures on the 15th.',
+  torres:'We\'re in. Let\'s move $150K to the annuity for the Medicaid protection and tax benefits, and keep $100K in CDs for liquidity. When can we sign?',
+  frank:'OK, let\'s start with $50K. If it does what you say, I\'ll consider moving more next year. But I want to see the contract in writing before I sign anything.',
+  sarah:'Yes, let\'s do both policies. Can we start the applications today? I don\'t want to put this off any longer — I\'ve already waited too long.',
+  hoffman:'Let\'s move forward with both. Whole life for James and a 20-year term for Diane. What do you need from us to get the applications going?',
+  carlos:'Alright, let\'s do the 30-year term. And... maybe I should think about a will too. Do you know anyone? Let\'s get the insurance started at least.',
+  patel:'Let\'s start with the target premium on the Accumulator. I\'d like to fund it over 10 years. Can you run an illustration with conservative assumptions so I can review with my accountant?',
+  nguyen:'Let\'s do a modest policy — enough for tax diversification without over-committing. Can you run illustrations at two different premium levels so we can discuss?',
+  wright:'I want to allocate $200K when I roll over my 401K next year. Can we set up the LifeTime UL now with a smaller initial premium and increase it at rollover?',
+  ellen:'$50K in the 12-month CD sounds perfect. Can I do that at my branch? I want to talk to Kathy about it — she\'s been my banker for 15 years.',
+  ross:'Let\'s do the full plan — $200K CD ladder and $200K annuity. Can you draft up both proposals so we can review the numbers at home tonight?',
+  michael:'Get the paperwork ready. Split it however maximizes coverage and rates. I\'ll sign today if the numbers work. And send everything to my email — I don\'t want paper.'
+ };
+ return resps[p.id]||'OK, let\'s move forward. What do I need to do?';
+}
+
+// ── Active Session State ──
+var activeSession=null;
+var sessionTimer=null;
+var sessionSeconds=0;
+
+function startSession(personaId){
+ var persona=PERSONAS.find(function(p){return p.id===personaId});
+ if(!persona) return;
+ var tree=buildTree(persona);
+ activeSession={
+  persona:persona,
+  mode:settings.mode==='api'&&getApiKey()?'api':'scripted',
+  tree:tree,
+  currentNode:0,
+  transcript:[],
+  phaseVisited:[false,false,false,false,false],
+  scores:{phase:0,question:0,objection:0,empathy:0,close:0},
+  startTime:new Date().toISOString(),
+  apiMessages:[]
+ };
+ sessionSeconds=0;
+ sessionTimer=setInterval(function(){sessionSeconds++;renderTimer()},1000);
+
+ // Add initial client message
+ var firstMsg=tree[0].clientMsg;
+ activeSession.transcript.push({role:'client',text:firstMsg,phase:0});
+ if(activeSession.mode==='api'){
+  activeSession.apiMessages=[{role:'assistant',content:firstMsg}];
+ }
+ renderPractice();
+ setTimeout(scrollChatBottom,100);
+}
+
+function endSession(){
+ if(!activeSession) return;
+ clearInterval(sessionTimer);
+ if(activeSession.mode==='api'){
+  scoreSessionAPI();
+ } else {
+  scoreSessionScripted();
+ }
+}
+
+function renderTimer(){
+ var el=$1('#sessionTimer');
+ if(el) el.textContent=fmtTime(sessionSeconds);
+}
+
+// ── Scripted Mode Engine ──
+function handleAgentMessage(text){
+ if(!activeSession||!text.trim()) return;
+ activeSession.transcript.push({role:'agent',text:text.trim()});
+
+ // Detect NEPQ phases from agent's message
+ var lower=text.toLowerCase();
+ PHASE_KEYWORDS.forEach(function(kws,i){
+  kws.forEach(function(kw){
+   if(lower.indexOf(kw)>=0) activeSession.phaseVisited[i]=true;
+  });
+ });
+
+ if(activeSession.mode==='api'){
+  handleAPIResponse(text.trim());
+  return;
+ }
+
+ // Scripted mode: evaluate against current tree node
+ var node=activeSession.tree[activeSession.currentNode];
+ if(!node){endSession();return}
+
+ var bestBranch=null;
+ var bestScore=-1;
+ node.branches.forEach(function(b){
+  var matches=0;
+  b.keywords.forEach(function(kw){
+   if(lower.indexOf(kw)>=0) matches++;
+  });
+  if(matches>bestScore){bestScore=matches;bestBranch=b}
+ });
+
+ // Fall back to weakest if no keywords matched
+ if(bestScore<=0){
+  bestBranch=node.branches[node.branches.length-1];
+ }
+
+ // Accumulate scores
+ if(bestBranch.scoreHints){
+  Object.keys(bestBranch.scoreHints).forEach(function(k){
+   activeSession.scores[k]=(activeSession.scores[k]||0)+bestBranch.scoreHints[k];
+  });
+ }
+
+ // Check for open-ended questions bonus
+ OPEN_QUESTION_WORDS.forEach(function(w){
+  if(lower.indexOf(w)>=0) activeSession.scores.question=(activeSession.scores.question||0)+0.5;
+ });
+ // Check empathy bonus
+ EMPATHY_WORDS.forEach(function(w){
+  if(lower.indexOf(w)>=0) activeSession.scores.empathy=(activeSession.scores.empathy||0)+0.5;
+ });
+ // Check close language
+ CLOSE_WORDS.forEach(function(w){
+  if(lower.indexOf(w)>=0) activeSession.scores.close=(activeSession.scores.close||0)+0.5;
+ });
+
+ // Show typing indicator then client response
+ activeSession.typing=true;
+ renderChat();
+ var delay=800+Math.random()*1200;
+ setTimeout(function(){
+  activeSession.typing=false;
+  if(bestBranch.nextNode==='end'){
+   // Add final client message from commitment
+   var commitMsg=getCommitmentResponse(activeSession.persona);
+   activeSession.transcript.push({role:'client',text:commitMsg,phase:4});
+   activeSession.phaseVisited[4]=true;
+   renderChat();
+   scrollChatBottom();
+   setTimeout(endSession,1000);
+  } else {
+   var nextNode=activeSession.tree[bestBranch.nextNode];
+   if(nextNode){
+    activeSession.currentNode=bestBranch.nextNode;
+    activeSession.transcript.push({role:'client',text:nextNode.clientMsg,phase:nextNode.phase});
+   }
+   renderChat();
+   scrollChatBottom();
+  }
+ },delay);
+
+ renderChat();
+ scrollChatBottom();
+}
+
+// ── Claude API Mode ──
+function handleAPIResponse(agentText){
+ activeSession.apiMessages.push({role:'user',content:agentText});
+ activeSession.typing=true;
+ renderChat();
+ scrollChatBottom();
+
+ var p=activeSession.persona;
+ var systemPrompt='You are playing the role of '+p.name+', a '+p.age+'-year-old '+p.personality+' client in a sales roleplay.\n\n'
+  +'BACKGROUND: '+p.situation+'\n\n'
+  +'PRIMARY OBJECTION (raise naturally when the topic comes up): '+p.primaryObjection+'\n'
+  +'HIDDEN CONCERN: '+p.hiddenObjection+'\n'
+  +'YOU OPEN UP WHEN: '+p.openTriggers+'\n'
+  +'YOU RESIST WHEN: '+p.resistTriggers+'\n\n'
+  +'RULES:\n'
+  +'- Stay in character at all times. You are the CLIENT, not the agent.\n'
+  +'- Respond naturally in 2-4 sentences. Be conversational, not robotic.\n'
+  +'- If the agent follows NEPQ well (asks good questions, shows empathy, addresses your concerns), gradually become more receptive.\n'
+  +'- If the agent is pushy or skips steps, become more resistant.\n'
+  +'- When you feel genuinely convinced, agree to: '+p.successClose+'\n'
+  +'- If the agent asks for the close and you\'re convinced, agree and end with [SESSION_COMPLETE]\n'
+  +'- Never break character or mention NEPQ, scoring, or that this is practice.';
+
+ fetch('https://api.anthropic.com/v1/messages',{
+  method:'POST',
+  headers:{
+   'Content-Type':'application/json',
+   'x-api-key':getApiKey(),
+   'anthropic-version':'2023-06-01',
+   'anthropic-dangerous-direct-browser-access':'true'
+  },
+  body:JSON.stringify({
+   model:'claude-sonnet-4-20250514',
+   max_tokens:300,
+   system:systemPrompt,
+   messages:activeSession.apiMessages
+  })
+ }).then(function(r){return r.json()}).then(function(data){
+  activeSession.typing=false;
+  var reply=(data.content&&data.content[0]&&data.content[0].text)||'...';
+  var isComplete=reply.indexOf('[SESSION_COMPLETE]')>=0;
+  reply=reply.replace('[SESSION_COMPLETE]','').trim();
+  activeSession.apiMessages.push({role:'assistant',content:reply});
+  activeSession.transcript.push({role:'client',text:reply});
+  renderChat();
+  scrollChatBottom();
+  if(isComplete) setTimeout(endSession,1500);
+ }).catch(function(err){
+  activeSession.typing=false;
+  activeSession.transcript.push({role:'client',text:'[API Error: '+err.message+'. Ending session.]'});
+  renderChat();
+  endSession();
+ });
+}
+
+// ── Scoring ──
+function scoreSessionScripted(){
+ var s=activeSession.scores;
+ // Normalize to 0-20 per category
+ var maxPossible={phase:20,question:16,objection:6,empathy:14,close:10};
+ var normalized={
+  phase:Math.min(20,Math.round((s.phase||0)/maxPossible.phase*20)),
+  question:Math.min(20,Math.round((s.question||0)/maxPossible.question*20)),
+  objection:Math.min(20,Math.round((s.objection||0)/maxPossible.objection*20)),
+  empathy:Math.min(20,Math.round((s.empathy||0)/maxPossible.empathy*20)),
+  close:Math.min(20,Math.round((s.close||0)/maxPossible.close*20))
+ };
+ showScoreModal(normalized,null);
+}
+
+function scoreSessionAPI(){
+ var transcript=activeSession.transcript.map(function(m){return (m.role==='client'?'CLIENT':'AGENT')+': '+m.text}).join('\n');
+
+ activeSession.typing=true;
+ renderChat();
+
+ fetch('https://api.anthropic.com/v1/messages',{
+  method:'POST',
+  headers:{
+   'Content-Type':'application/json',
+   'x-api-key':getApiKey(),
+   'anthropic-version':'2023-06-01',
+   'anthropic-dangerous-direct-browser-access':'true'
+  },
+  body:JSON.stringify({
+   model:'claude-sonnet-4-20250514',
+   max_tokens:800,
+   messages:[{role:'user',content:'You are an expert NEPQ sales coach evaluating a practice roleplay transcript.\n\nThe NEPQ framework has 5 phases:\n1. Situation — understand current position\n2. Problem Awareness — surface pain points\n3. Solution Awareness — introduce alternatives\n4. Consequence — cost of inaction\n5. Commitment — close with assumptive choice\n\nScore the AGENT\'s performance in these 5 categories (0-20 each):\n1. NEPQ Phase Completion — Did they progress through all 5 phases in order?\n2. Question Quality — Open-ended, client-focused, not leading?\n3. Objection Handling — Addressed concerns effectively?\n4. Empathy & Rapport — Active listening, reflective statements?\n5. Close Technique — Assumptive close, tied to timeline?\n\nReturn ONLY valid JSON in this exact format:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of coaching advice"}\n\nTRANSCRIPT:\n'+transcript}]
+  })
+ }).then(function(r){return r.json()}).then(function(data){
+  activeSession.typing=false;
+  var txt=(data.content&&data.content[0]&&data.content[0].text)||'{}';
+  // Extract JSON from response
+  var jsonMatch=txt.match(/\{[\s\S]*\}/);
+  if(jsonMatch){
+   try{
+    var result=JSON.parse(jsonMatch[0]);
+    var scores={
+     phase:Math.min(20,Math.max(0,result.phase||0)),
+     question:Math.min(20,Math.max(0,result.question||0)),
+     objection:Math.min(20,Math.max(0,result.objection||0)),
+     empathy:Math.min(20,Math.max(0,result.empathy||0)),
+     close:Math.min(20,Math.max(0,result.close||0))
+    };
+    showScoreModal(scores,result.feedback||null);
+    return;
+   }catch(e){}
+  }
+  // Fallback to scripted scoring
+  scoreSessionScripted();
+ }).catch(function(){
+  activeSession.typing=false;
+  scoreSessionScripted();
+ });
+}
+
+function showScoreModal(scores,feedback){
+ var total=scores.phase+scores.question+scores.objection+scores.empathy+scores.close;
+ var p=activeSession.persona;
+
+ // Save session
+ var record={
+  id:Date.now(),
+  date:activeSession.startTime,
+  persona:p.id,
+  personaName:p.name,
+  category:p.category,
+  difficulty:p.difficulty,
+  mode:activeSession.mode,
+  duration:sessionSeconds,
+  scores:scores,
+  total:total,
+  transcript:activeSession.transcript,
+  feedback:feedback
+ };
+ sessions.unshift(record);
+ saveSessions();
+ updateStreak();
+
+ // Build score modal
+ var cats=[
+  {key:'phase',label:'NEPQ Phase Completion',color:'#3498db'},
+  {key:'question',label:'Question Quality',color:'var(--pri)'},
+  {key:'objection',label:'Objection Handling',color:'var(--amb)'},
+  {key:'empathy',label:'Empathy & Rapport',color:'var(--grn)'},
+  {key:'close',label:'Close Technique',color:'var(--red)'}
+ ];
+
+ var h='<h2>Session Complete</h2>';
+ h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">';
+ h+='<span class="badge badge-pri">'+p.name+'</span>';
+ h+='<span class="badge badge-'+(p.difficulty==='easy'?'grn':p.difficulty==='medium'?'amb':'red')+'">'+p.difficulty.charAt(0).toUpperCase()+p.difficulty.slice(1)+'</span>';
+ h+='<span class="badge badge-pri">'+fmtTime(sessionSeconds)+'</span>';
+ h+='<span class="badge badge-'+(activeSession.mode==='api'?'grn':'amb')+'">'+activeSession.mode.toUpperCase()+'</span>';
+ h+='</div>';
+
+ h+='<div class="score-total"><div class="big">'+total+'</div><div class="lbl">out of 100</div></div>';
+
+ cats.forEach(function(c){
+  var v=scores[c.key];
+  var pct=(v/20)*100;
+  var barColor=v>=15?'var(--grn)':v>=10?'var(--amb)':'var(--red)';
+  h+='<div class="score-row">';
+  h+='<div class="score-label"><span>'+c.label+'</span><span style="color:'+barColor+'">'+v+'/20</span></div>';
+  h+='<div class="score-bar"><div class="score-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>';
+  h+='</div>';
+ });
+
+ // Coaching tips
+ var weakest=cats.reduce(function(min,c){return scores[c.key]<scores[min.key]?c:min},cats[0]);
+ var tips={
+  phase:'Focus on asking situation questions before jumping to solutions. Follow the 5-phase order: understand their world first.',
+  question:'Use more open-ended questions: "How does that feel?", "What concerns you most?", "Tell me about..."',
+  objection:'When they object, acknowledge first ("I hear you"), then reframe. Don\'t dismiss their concern.',
+  empathy:'Add reflective statements: "It sounds like...", "I can see why that matters to you", "That makes complete sense."',
+  close:'Tie your close to their specific timeline and situation. "Your CD matures on the 15th — shall we have the paperwork ready?"'
+ };
+
+ h+='<div class="coaching-tip">';
+ if(feedback){
+  h+='<b>Coach\'s Notes:</b> '+feedback;
+ } else {
+  h+='<b>Focus Area — '+weakest.label+':</b> '+tips[weakest.key];
+ }
+ h+='</div>';
+
+ h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">';
+ h+='<button class="btn btn-pri" onclick="closeScoreModal();startSession(\''+p.id+'\')">Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="closeScoreModal()">New Scenario</button>';
+ h+='<button class="btn btn-outline" onclick="closeScoreModal();showTab(1)">View History</button>';
+ h+='</div>';
+
+ $1('#scoreModalContent').innerHTML=h;
+ $1('#scoreModal').classList.add('show');
+ activeSession=null;
+}
+
+function closeScoreModal(){
+ $1('#scoreModal').classList.remove('show');
+}
+
+function updateStreak(){
+ var today=new Date().toISOString().substring(0,10);
+ if(!streak.practiceDates) streak.practiceDates=[];
+ if(streak.practiceDates.indexOf(today)===-1){
+  streak.practiceDates.push(today);
+ }
+ // Calculate current streak
+ var d=new Date();
+ var count=0;
+ for(var i=0;i<365;i++){
+  var ds=d.toISOString().substring(0,10);
+  if(streak.practiceDates.indexOf(ds)>=0){
+   count++;
+   d.setDate(d.getDate()-1);
+  } else if(i===0){
+   // Today hasn't been practiced yet (but we just added it, so skip)
+   d.setDate(d.getDate()-1);
+  } else {
+   break;
+  }
+ }
+ streak.current=count;
+ if(count>streak.longest) streak.longest=count;
+ streak.lastDate=today;
+ saveStreak();
+ renderStreakDisplay();
+}
+
+function renderStreakDisplay(){
+ var el=$1('#streakDisplay');
+ if(el) el.innerHTML=streak.current>0?streak.current+' day'+(streak.current>1?'s':'')+' streak':'';
+}
+
+// ── Render Functions ──
+function scrollChatBottom(){
+ var c=$1('#chatContainer');
+ if(c) c.scrollTop=c.scrollHeight;
+}
+
+function renderPractice(){
+ var h='';
+ if(activeSession){
+  h+=renderChatView();
+ } else {
+  h+=renderScenarioPicker();
+ }
+ $1('#p0').innerHTML=h;
+ if(activeSession){
+  var ta=$1('#chatInput');
+  if(ta){
+   ta.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+   });
+   ta.focus();
+  }
+ }
+}
+
+var filterCat='all';
+var filterDiff='all';
+
+function setFilter(type,val){
+ if(type==='cat') filterCat=filterCat===val?'all':val;
+ if(type==='diff') filterDiff=filterDiff===val?'all':val;
+ renderPractice();
+}
+
+function renderScenarioPicker(){
+ var h='';
+
+ // Mode toggle
+ h+='<div class="card" style="text-align:center">';
+ h+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Mode</div>';
+ h+='<div class="pill-row" style="justify-content:center">';
+ h+='<span class="pill'+(settings.mode==='scripted'?' active':'')+'" onclick="settings.mode=\'scripted\';saveSettings();renderPractice()">Scripted</span>';
+ h+='<span class="pill'+(settings.mode==='api'?' active':'')+'" onclick="'+(getApiKey()?'settings.mode=\'api\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'">'+(getApiKey()?'Claude API':'Claude API (no key)')+'</span>';
+ h+='</div></div>';
+
+ // Category filter
+ h+='<div style="margin-bottom:6px;font-size:11px;color:var(--muted);font-weight:600">CATEGORY</div>';
+ h+='<div class="pill-row">';
+ h+='<span class="pill cat-annuity'+(filterCat==='annuity'?' active':'')+'" onclick="setFilter(\'cat\',\'annuity\')">CD-to-Annuity</span>';
+ h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'" onclick="setFilter(\'cat\',\'life\')">Life Insurance</span>';
+ h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'" onclick="setFilter(\'cat\',\'iul\')">IUL</span>';
+ h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
+ h+='</div>';
+
+ // Difficulty filter
+ h+='<div style="margin-bottom:6px;font-size:11px;color:var(--muted);font-weight:600">DIFFICULTY</div>';
+ h+='<div class="pill-row" style="margin-bottom:16px">';
+ h+='<span class="pill'+(filterDiff==='easy'?' active':'')+'" onclick="setFilter(\'diff\',\'easy\')">Easy</span>';
+ h+='<span class="pill'+(filterDiff==='medium'?' active':'')+'" onclick="setFilter(\'diff\',\'medium\')">Medium</span>';
+ h+='<span class="pill'+(filterDiff==='hard'?' active':'')+'" onclick="setFilter(\'diff\',\'hard\')">Hard</span>';
+ h+='</div>';
+
+ // Persona cards
+ var filtered=PERSONAS.filter(function(p){
+  if(filterCat!=='all'&&p.category!==filterCat) return false;
+  if(filterDiff!=='all'&&p.difficulty!==filterDiff) return false;
+  return true;
+ });
+
+ h+='<div class="persona-grid">';
+ filtered.forEach(function(p){
+  var catColors={annuity:'grn',life:'red',iul:'amb',banking:'pri'};
+  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',iul:'IUL',banking:'Banking/CD'};
+  // Find best score for this persona
+  var bestScore=0;
+  sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
+
+  h+='<div class="persona-card" onclick="startSession(\''+p.id+'\')">';
+  h+='<div class="avatar">'+p.avatar+'</div>';
+  h+='<div class="pname">'+p.name+', '+p.age+'</div>';
+  h+='<div class="psit">'+p.situation.substring(0,100)+'...</div>';
+  h+='<div class="pmeta">';
+  h+='<span class="badge badge-'+catColors[p.category]+'">'+catLabels[p.category]+'</span>';
+  h+='<span class="badge badge-'+(p.difficulty==='easy'?'grn':p.difficulty==='medium'?'amb':'red')+'">'+p.difficulty.charAt(0).toUpperCase()+p.difficulty.slice(1)+'</span>';
+  if(bestScore>0) h+='<span class="badge badge-pri">Best: '+bestScore+'</span>';
+  h+='</div></div>';
+ });
+ h+='</div>';
+ return h;
+}
+
+function renderChatView(){
+ var p=activeSession.persona;
+ var h='';
+
+ // Phase tracker
+ h+='<div class="phase-tracker">';
+ PHASES.forEach(function(ph,i){
+  if(i>0) h+='<div class="phase-line'+(activeSession.phaseVisited[i-1]?' done':'')+'"></div>';
+  var cls=activeSession.phaseVisited[i]?'done':(i>0&&activeSession.phaseVisited[i-1]?'current':'');
+  if(i===0&&!activeSession.phaseVisited[0]) cls='current';
+  h+='<div class="phase-step">';
+  h+='<div class="phase-dot '+cls+'" style="'+(cls==='done'?'background:'+ph.color:'')+'">'+(i+1)+'</div>';
+  h+='<div class="phase-lbl">'+ph.short+'</div>';
+  h+='</div>';
+ });
+ h+='</div>';
+
+ // Session bar
+ h+='<div class="session-bar">';
+ h+='<div>'+p.avatar+' <b>'+p.name+'</b> <span class="badge badge-'+(p.difficulty==='easy'?'grn':p.difficulty==='medium'?'amb':'red')+'" style="margin-left:4px">'+p.difficulty+'</span></div>';
+ h+='<div class="timer" id="sessionTimer">'+fmtTime(sessionSeconds)+'</div>';
+ h+='</div>';
+
+ // Chat container
+ h+='<div class="chat-wrapper">';
+ h+='<div class="chat-container" id="chatContainer">';
+ activeSession.transcript.forEach(function(m){
+  if(m.role==='client'){
+   h+='<div class="chat-row client">';
+   h+='<div><div class="chat-persona-tag">'+p.avatar+' '+p.name.split(' ')[0]+'</div>';
+   h+='<div class="chat-bubble client-msg">'+m.text+'</div></div></div>';
+  } else {
+   h+='<div class="chat-row agent">';
+   h+='<div class="chat-bubble agent-msg">'+m.text+'</div></div>';
+  }
+ });
+ if(activeSession.typing){
+  h+='<div class="chat-row client"><div><div class="chat-persona-tag">'+p.avatar+' '+p.name.split(' ')[0]+'</div>';
+  h+='<div class="chat-bubble client-msg"><div class="typing-dots"><span></span><span></span><span></span></div></div></div></div>';
+ }
+ h+='</div>';
+
+ // Input bar
+ h+='<div class="chat-input-bar">';
+ h+='<textarea id="chatInput" placeholder="Type your response..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
+ h+='<button class="send-btn" onclick="sendMessage()"'+(activeSession.typing?' disabled':'')+'>Send</button>';
+ h+='<button class="end-btn" onclick="endSession()">End</button>';
+ h+='</div></div>';
+
+ return h;
+}
+
+function renderChat(){
+ if(!activeSession) return;
+ $1('#p0').innerHTML=renderChatView();
+ var ta=$1('#chatInput');
+ if(ta&&!activeSession.typing){
+  ta.addEventListener('keydown',function(e){
+   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+  });
+  ta.focus();
+ }
+ scrollChatBottom();
+}
+
+function sendMessage(){
+ var ta=$1('#chatInput');
+ if(!ta||!ta.value.trim()||activeSession.typing) return;
+ handleAgentMessage(ta.value);
+ ta.value='';
+}
+
+// ── History Tab ──
+function renderHistory(){
+ var h='<h3 style="margin-bottom:12px">Practice History</h3>';
+
+ if(sessions.length===0){
+  h+='<div class="card" style="text-align:center;color:var(--muted)">No sessions yet. Start practicing!</div>';
+  $1('#p1').innerHTML=h;
+  return;
+ }
+
+ // Filters
+ h+='<div class="pill-row">';
+ h+='<span class="pill active" onclick="histFilter=\'all\';renderHistory()">All</span>';
+ h+='<span class="pill cat-annuity" onclick="histFilter=\'annuity\';renderHistory()">Annuity</span>';
+ h+='<span class="pill cat-life" onclick="histFilter=\'life\';renderHistory()">Life</span>';
+ h+='<span class="pill cat-iul" onclick="histFilter=\'iul\';renderHistory()">IUL</span>';
+ h+='<span class="pill cat-banking" onclick="histFilter=\'banking\';renderHistory()">Banking</span>';
+ h+='</div>';
+
+ var filtered=sessions;
+ if(typeof histFilter!=='undefined'&&histFilter!=='all'){
+  filtered=sessions.filter(function(s){return s.category===histFilter});
+ }
+
+ h+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Showing '+filtered.length+' session'+(filtered.length!==1?'s':'')+'</div>';
+
+ filtered.forEach(function(s,idx){
+  var scoreColor=s.total>=80?'grn':s.total>=60?'amb':'red';
+  h+='<div class="session-row" onclick="toggleSessionDetail('+idx+')">';
+  h+='<div class="sr-top"><span class="sr-name">'+s.personaName+'</span>';
+  h+='<span class="badge badge-'+scoreColor+'">'+s.total+'/100</span></div>';
+  h+='<div class="sr-meta">';
+  h+='<span>'+fmtDate(s.date)+'</span>';
+  h+='<span>'+fmtTime(s.duration)+'</span>';
+  h+='<span class="badge badge-'+(s.difficulty==='easy'?'grn':s.difficulty==='medium'?'amb':'red')+'" style="font-size:9px">'+s.difficulty+'</span>';
+  h+='<span class="badge badge-'+(s.mode==='api'?'grn':'amb')+'" style="font-size:9px">'+s.mode+'</span>';
+  h+='</div>';
+
+  // Expandable detail
+  h+='<div class="session-detail" id="sd_'+idx+'">';
+  // Mini transcript
+  h+='<div class="mini-transcript">';
+  (s.transcript||[]).forEach(function(m){
+   h+='<div><span class="mt-'+(m.role==='client'?'client':'agent')+'">'+(m.role==='client'?s.personaName.split(' ')[0]:'You')+':</span> '+m.text+'</div>';
+  });
+  h+='</div>';
+  // Score bars
+  var cats=[{k:'phase',l:'Phase Completion'},{k:'question',l:'Question Quality'},{k:'objection',l:'Objection Handling'},{k:'empathy',l:'Empathy'},{k:'close',l:'Close Technique'}];
+  cats.forEach(function(c){
+   var v=(s.scores&&s.scores[c.k])||0;
+   var bc=v>=15?'var(--grn)':v>=10?'var(--amb)':'var(--red)';
+   h+='<div class="score-row"><div class="score-label"><span style="font-size:11px">'+c.l+'</span><span style="font-size:11px;color:'+bc+'">'+v+'/20</span></div>';
+   h+='<div class="score-bar"><div class="score-fill" style="width:'+(v/20*100)+'%;background:'+bc+'"></div></div></div>';
+  });
+  if(s.feedback) h+='<div class="coaching-tip" style="margin-top:8px"><b>Coach:</b> '+s.feedback+'</div>';
+  h+='<button class="btn btn-sm btn-red" style="margin-top:8px" onclick="event.stopPropagation();deleteSession('+idx+')">Delete Session</button>';
+  h+='</div></div>';
+ });
+
+ $1('#p1').innerHTML=h;
+}
+var histFilter='all';
+
+function toggleSessionDetail(idx){
+ var el=$1('#sd_'+idx);
+ if(el) el.classList.toggle('show');
+}
+
+function deleteSession(idx){
+ if(!confirm('Delete this session?')) return;
+ sessions.splice(idx,1);
+ saveSessions();
+ renderHistory();
+ showToast('Session deleted');
+}
+
+// ── Stats Tab ──
+function renderStats(){
+ var h='';
+
+ if(sessions.length===0){
+  h+='<div class="card" style="text-align:center;color:var(--muted)">Complete your first practice session to see stats!</div>';
+  $1('#p2').innerHTML=h;
+  return;
+ }
+
+ // Summary cards
+ var totalSessions=sessions.length;
+ var avgScore=Math.round(sessions.reduce(function(s,x){return s+x.total},0)/totalSessions);
+ var bestSession=sessions.reduce(function(best,s){return s.total>best.total?s:best},sessions[0]);
+
+ // This week count
+ var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+ var thisWeek=sessions.filter(function(s){return new Date(s.date)>=weekAgo}).length;
+
+ h+='<div class="stat-grid">';
+ h+='<div class="stat-card"><div class="num">'+totalSessions+'</div><div class="lbl">Sessions</div><div class="sub">'+thisWeek+' this week</div></div>';
+ h+='<div class="stat-card grn"><div class="num">'+avgScore+'</div><div class="lbl">Avg Score</div></div>';
+ h+='<div class="stat-card amb"><div class="num">'+streak.current+'</div><div class="lbl">Day Streak</div><div class="sub">Best: '+streak.longest+'</div></div>';
+ h+='<div class="stat-card"><div class="num">'+bestSession.total+'</div><div class="lbl">Best Score</div><div class="sub">'+bestSession.personaName+'</div></div>';
+ h+='</div>';
+
+ // Bar chart - last 14 sessions
+ var recent=sessions.slice(0,14).reverse();
+ h+='<div class="card"><h3>Recent Sessions</h3>';
+ h+='<div class="bar-chart">';
+ recent.forEach(function(s){
+  var pct=s.total;
+  var color=s.total>=80?'var(--grn)':s.total>=60?'var(--amb)':'var(--red)';
+  h+='<div class="bar-col">';
+  h+='<div class="bar-score" style="color:'+color+'">'+s.total+'</div>';
+  h+='<div class="bar-fill" style="height:'+pct+'%;background:'+color+'"></div>';
+  h+='<div class="bar-date">'+fmtDateShort(s.date)+'</div>';
+  h+='</div>';
+ });
+ h+='</div></div>';
+
+ // Category breakdown
+ h+='<div class="card"><h3>By Category</h3>';
+ var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',iul:'IUL',banking:'Banking/CD'};
+ var catColors={annuity:'var(--grn)',life:'var(--red)',iul:'var(--amb)',banking:'var(--pri)'};
+ ['annuity','life','iul','banking'].forEach(function(cat){
+  var catSessions=sessions.filter(function(s){return s.category===cat});
+  if(catSessions.length===0) return;
+  var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
+  var color=avg>=80?'var(--grn)':avg>=60?'var(--amb)':'var(--red)';
+  h+='<div style="margin-bottom:10px">';
+  h+='<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:3px"><span>'+catNames[cat]+' ('+catSessions.length+')</span><span style="color:'+color+'">Avg: '+avg+'</span></div>';
+  h+='<div class="score-bar"><div class="score-fill" style="width:'+avg+'%;background:'+color+'"></div></div>';
+  h+='</div>';
+ });
+ h+='</div>';
+
+ // Weakest area
+ var dimTotals={phase:0,question:0,objection:0,empathy:0,close:0};
+ sessions.forEach(function(s){
+  if(!s.scores) return;
+  Object.keys(dimTotals).forEach(function(k){dimTotals[k]+=(s.scores[k]||0)});
+ });
+ var dimAvgs={};
+ Object.keys(dimTotals).forEach(function(k){dimAvgs[k]=Math.round(dimTotals[k]/totalSessions*10)/10});
+ var weakestKey=Object.keys(dimAvgs).reduce(function(a,b){return dimAvgs[a]<dimAvgs[b]?a:b});
+ var dimLabels={phase:'NEPQ Phase Completion',question:'Question Quality',objection:'Objection Handling',empathy:'Empathy & Rapport',close:'Close Technique'};
+ var dimTips={
+  phase:'Practice asking situation questions before introducing solutions. Follow the 5-phase order.',
+  question:'Use more open-ended questions: "How does that feel?", "What concerns you most?", "Tell me about..."',
+  objection:'When they object, acknowledge first ("I hear you"), then reframe. Review the objection scripts.',
+  empathy:'Add reflective statements: "It sounds like...", "I can see why that matters", "That makes sense."',
+  close:'Tie your close to their timeline. "Your CD matures on the 15th \u2014 shall we have paperwork ready?"'
+ };
+
+ h+='<div class="card"><h3>Focus Area</h3>';
+ h+='<div style="text-align:center;margin-bottom:12px">';
+ h+='<div style="font-size:11px;color:var(--muted)">Your weakest dimension</div>';
+ h+='<div style="font-size:16px;font-weight:700;color:var(--red)">'+dimLabels[weakestKey]+' ('+dimAvgs[weakestKey].toFixed(1)+'/20 avg)</div>';
+ h+='</div>';
+ h+='<div class="coaching-tip"><b>Tip:</b> '+dimTips[weakestKey]+'</div>';
+
+ // All dimensions
+ h+='<div style="margin-top:12px">';
+ Object.keys(dimAvgs).forEach(function(k){
+  var v=dimAvgs[k];
+  var pct=(v/20)*100;
+  var c=v>=15?'var(--grn)':v>=10?'var(--amb)':'var(--red)';
+  h+='<div class="score-row"><div class="score-label"><span style="font-size:11px">'+dimLabels[k]+'</span><span style="font-size:11px;color:'+c+'">'+v.toFixed(1)+'</span></div>';
+  h+='<div class="score-bar"><div class="score-fill" style="width:'+pct+'%;background:'+c+'"></div></div></div>';
+ });
+ h+='</div></div>';
+
+ // Streak calendar
+ h+='<div class="card"><h3>Practice Calendar (30 Days)</h3>';
+ h+='<div class="day-labels"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>';
+ h+='<div class="streak-cal">';
+ var today=new Date();
+ var todayStr=today.toISOString().substring(0,10);
+ // Start from 29 days ago, find first Sunday
+ var start=new Date();start.setDate(start.getDate()-29);
+ while(start.getDay()!==0) start.setDate(start.getDate()-1);
+ var end=new Date();end.setDate(end.getDate()+6-end.getDay());// End on Saturday
+
+ var d=new Date(start);
+ while(d<=end){
+  var ds=d.toISOString().substring(0,10);
+  var practiced=streak.practiceDates&&streak.practiceDates.indexOf(ds)>=0;
+  var isToday=ds===todayStr;
+  var isFuture=d>today;
+  h+='<div class="streak-day'+(practiced?' active':'')+(isToday?' today':'')+'" style="'+(isFuture?'opacity:.3':'')+'" title="'+ds+'"></div>';
+  d.setDate(d.getDate()+1);
+ }
+ h+='</div></div>';
+
+ $1('#p2').innerHTML=h;
+}
+
+// ── Settings Tab ──
+function renderSettings(){
+ var h='';
+
+ // API Key
+ h+='<div class="card"><h3>Claude API Key</h3>';
+ h+='<div class="form-group"><label>Anthropic API Key <span class="api-status '+(getApiKey()?'unk':'err')+'" id="apiStatusDot"></span></label>';
+ h+='<div style="display:flex;gap:6px"><input type="password" id="apiKeyInput" value="'+(getApiKey()||'')+'" placeholder="sk-ant-...">';
+ h+='<button class="btn btn-sm btn-pri" onclick="saveApiKey()">Save</button>';
+ h+='<button class="btn btn-sm btn-outline" onclick="testApiKey()">Test</button></div>';
+ h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Enables Claude AI client mode. Costs ~$0.01-0.03 per session. Key stays in your browser only.</div>';
+ h+='</div></div>';
+
+ // Preferences
+ h+='<div class="card"><h3>Practice Preferences</h3>';
+ h+='<div class="form-group"><label>Default Difficulty</label>';
+ h+='<select id="prefDifficulty" onchange="settings.difficulty=this.value;saveSettings()">';
+ h+='<option value="all"'+(settings.difficulty==='all'?' selected':'')+'>All (Random)</option>';
+ h+='<option value="easy"'+(settings.difficulty==='easy'?' selected':'')+'>Easy</option>';
+ h+='<option value="medium"'+(settings.difficulty==='medium'?' selected':'')+'>Medium</option>';
+ h+='<option value="hard"'+(settings.difficulty==='hard'?' selected':'')+'>Hard</option>';
+ h+='</select></div>';
+
+ h+='<div class="form-group"><label>Daily Session Goal</label>';
+ h+='<input type="number" id="prefGoal" value="'+(settings.dailyGoal||1)+'" min="1" max="10" onchange="settings.dailyGoal=parseInt(this.value)||1;saveSettings()"></div>';
+
+ h+='<div class="form-group"><label>Default Mode</label>';
+ h+='<select id="prefMode" onchange="settings.mode=this.value;saveSettings()">';
+ h+='<option value="scripted"'+(settings.mode==='scripted'?' selected':'')+'>Scripted (No API)</option>';
+ h+='<option value="api"'+(settings.mode==='api'?' selected':'')+'>Claude API</option>';
+ h+='</select></div>';
+ h+='</div>';
+
+ // Data
+ h+='<div class="card"><h3>Data Management</h3>';
+ h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+ h+='<button class="btn btn-sm btn-outline" onclick="exportData()">Export History</button>';
+ h+='<button class="btn btn-sm btn-outline" onclick="resetStreak()">Reset Streak</button>';
+ h+='<button class="btn btn-sm btn-red" onclick="clearAllData()">Clear All Data</button>';
+ h+='</div>';
+ var bytes=JSON.stringify(sessions).length+JSON.stringify(settings).length+JSON.stringify(streak).length;
+ h+='<div style="font-size:10px;color:var(--muted);margin-top:8px">Storage: '+(bytes/1024).toFixed(1)+' KB used</div>';
+ h+='</div>';
+
+ // About
+ h+='<div class="card"><h3>About NEPQ Scoring</h3>';
+ h+='<div style="font-size:12px;line-height:1.6;color:var(--muted)">';
+ h+='<b>5 Phases:</b> Situation \u2192 Problem Awareness \u2192 Solution Awareness \u2192 Consequence \u2192 Commitment<br><br>';
+ h+='<b>5 Scoring Categories (20 pts each, 100 total):</b><br>';
+ h+='1. <b>Phase Completion</b> \u2014 Did you follow all 5 phases in order?<br>';
+ h+='2. <b>Question Quality</b> \u2014 Open-ended, client-focused questions?<br>';
+ h+='3. <b>Objection Handling</b> \u2014 Acknowledged and reframed concerns?<br>';
+ h+='4. <b>Empathy & Rapport</b> \u2014 Active listening, reflective statements?<br>';
+ h+='5. <b>Close Technique</b> \u2014 Assumptive close tied to their timeline?<br><br>';
+ h+='<b>Scripted mode</b> uses keyword matching \u2014 good for building habits.<br>';
+ h+='<b>Claude API mode</b> provides dynamic responses and detailed coaching feedback.';
+ h+='</div></div>';
+
+ $1('#p3').innerHTML=h;
+}
+
+function saveApiKey(){
+ var key=($1('#apiKeyInput')||{}).value||'';
+ setApiKey(key.trim());
+ showToast(key?'API key saved':'API key cleared');
+ renderSettings();
+}
+
+function testApiKey(){
+ var key=getApiKey();
+ if(!key){showToast('No API key configured');return}
+ showToast('Testing connection...');
+ fetch('https://api.anthropic.com/v1/messages',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+  body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'Hi'}]})
+ }).then(function(r){
+  var dot=$1('#apiStatusDot');
+  if(r.ok){
+   if(dot){dot.className='api-status ok'}
+   showToast('API connection successful!');
+  } else {
+   if(dot){dot.className='api-status err'}
+   showToast('API error: '+r.status);
+  }
+ }).catch(function(e){
+  var dot=$1('#apiStatusDot');
+  if(dot){dot.className='api-status err'}
+  showToast('Connection failed: '+e.message);
+ });
+}
+
+function exportData(){
+ var data=JSON.stringify({sessions:sessions,settings:settings,streak:streak},null,2);
+ var blob=new Blob([data],{type:'application/json'});
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='DuetCoach_export_'+new Date().toISOString().substring(0,10)+'.json';
+ a.click();
+ showToast('Data exported!');
+}
+
+function resetStreak(){
+ if(!confirm('Reset your streak? This cannot be undone.')) return;
+ streak.current=0;streak.longest=0;streak.practiceDates=[];
+ saveStreak();
+ renderStats();
+ renderStreakDisplay();
+ showToast('Streak reset');
+}
+
+function clearAllData(){
+ if(!confirm('Delete ALL practice data? This cannot be undone.')) return;
+ sessions=[];streak={current:0,longest:0,lastDate:null,practiceDates:[]};
+ saveSessions();saveStreak();
+ renderStreakDisplay();
+ showTab(currentTab);
+ showToast('All data cleared');
+}
+
+// ── Init ──
+renderStreakDisplay();
+renderPractice();
+</script>
+</body>
+</html>
