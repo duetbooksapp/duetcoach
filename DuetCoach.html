@@ -238,6 +238,27 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 .challenge-fill{height:100%;background:var(--pri);border-radius:3px;transition:width .3s}
 .challenge-pct{font-size:11px;font-weight:700;color:var(--pri)}
 
+/* Help Modal */
+.help-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;z-index:1500;justify-content:center;align-items:flex-start;padding:20px}
+.help-overlay.show{display:flex}
+.help-modal{background:var(--card);border-radius:16px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);margin-top:40px}
+.help-header{position:sticky;top:0;background:var(--card);padding:20px 20px 12px;border-bottom:1px solid var(--border);z-index:2;border-radius:16px 16px 0 0}
+.help-header h2{color:var(--pri);font-size:18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.help-header .close-help{background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;padding:4px 8px}
+.help-search{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;box-sizing:border-box}
+.help-search:focus{outline:none;border-color:var(--pri)}
+.help-body{padding:8px 20px 20px}
+.help-topic{border-bottom:1px solid var(--border);overflow:hidden}
+.help-topic:last-child{border-bottom:none}
+.help-topic-header{padding:12px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13px;color:var(--txt)}
+.help-topic-header:hover{color:var(--pri)}
+.help-topic-arrow{font-size:12px;color:var(--muted);transition:transform .2s}
+.help-topic.open .help-topic-arrow{transform:rotate(90deg)}
+.help-topic-content{display:none;padding:0 0 12px;font-size:12px;color:var(--muted);line-height:1.7}
+.help-topic.open .help-topic-content{display:block}
+.help-topic-content b{color:var(--txt)}
+.help-topic-content ul{margin:6px 0 6px 18px}
+
 /* Onboarding Overlay */
 .onboarding-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:2000;padding:20px}
 .onboarding-overlay.show{display:flex}
@@ -273,6 +294,9 @@ td{padding:8px;border-bottom:1px solid var(--border)}
  .login-screen{padding:12px}
  .login-card{padding:28px 20px;max-width:100%}
  .login-card h1{font-size:24px}
+ .help-modal{max-width:100%;max-height:95vh;border-radius:12px;margin-top:10px}
+ .help-header{padding:16px 16px 10px}
+ .help-body{padding:4px 16px 16px}
  .onboarding-card{padding:24px 16px;max-width:95%}
  .ob-step{min-height:120px}
  .ob-step p{font-size:12px}
@@ -328,7 +352,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 
 <div class="topbar">
  <div><span class="brand">DuetCoach</span><span class="sub">Sales Practice</span></div>
- <div class="topbar-right"><span id="agentName"></span> <span id="streakDisplay"></span></div>
+ <div class="topbar-right"><span id="agentName"></span> <span id="streakDisplay"></span> <button onclick="openHelp()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:14px;font-weight:700;width:26px;height:26px;border-radius:50%;cursor:pointer;margin-left:6px">?</button></div>
 </div>
 
 <div class="tabs">
@@ -357,6 +381,17 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 
 <div class="modal-overlay" id="scoreModal"><div class="modal" id="scoreModalContent"></div></div>
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Help Modal -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)closeHelp()">
+ <div class="help-modal">
+  <div class="help-header">
+   <h2>Help & How-To <button class="close-help" onclick="closeHelp()">&times;</button></h2>
+   <input type="text" class="help-search" id="helpSearch" placeholder="Search topics..." oninput="filterHelpTopics()">
+  </div>
+  <div class="help-body" id="helpBody"></div>
+ </div>
+</div>
 
 <!-- Onboarding Overlay -->
 <div class="onboarding-overlay" id="onboardingOverlay">
@@ -3299,6 +3334,177 @@ function clearAllData(){
  renderStreakDisplay();
  showTab(currentTab);
  showToast('All data cleared');
+}
+
+// ── Help System ──
+var HELP_TOPICS=[
+ {title:'Getting Started',keywords:'start begin setup account create login sign pin new',content:
+  '<b>Create an account:</b> Enter your full name and a 4-6 digit PIN on the login screen. Your data syncs across devices via Firebase.'
+  +'<br><br><b>First session:</b> Start with <b>Scripted Mode</b> and an <b>Easy</b> persona to learn the flow. No API key needed.'
+  +'<br><br><b>API keys:</b> For Claude AI and Script Training modes, add your Anthropic API key in Settings. For voice mode, add your ElevenLabs key.'},
+
+ {title:'Practice Modes',keywords:'mode scripted claude api script training choose which',content:
+  '<b>Scripted Mode (Free):</b> Pre-built conversations with keyword matching. The client follows a branching script based on what you type. Good for learning the conversation structure and building muscle memory.'
+  +'<br><br><b>Claude AI Mode (~$0.02/session):</b> Claude plays the client in real-time. Fully dynamic — the client responds naturally to exactly what you say. Feels like a real conversation. Best for sharpening your skills after you know the framework.'
+  +'<br><br><b>Script Training (~$0.02/session):</b> Practice your exact sales scripts with AI clients who throw curveballs. You\'re scored on how closely you follow the script checkpoints, use key phrases, recover from distractions, and maintain proper tone. Unlock harder levels by mastering easier ones.'},
+
+ {title:'Choosing a Persona',keywords:'persona character client category difficulty easy medium hard',content:
+  '<b>6 Categories:</b>'
+  +'<ul><li><b>CD-to-Annuity</b> — client walks in to open a CD, you guide them to a fixed annuity</li>'
+  +'<li><b>Life Insurance</b> — final expense / funeral coverage conversations</li>'
+  +'<li><b>Life Conversion</b> — converting renewable term to fixed term or universal life</li>'
+  +'<li><b>Long-Term Care</b> — Eclipse Protector IUL with LTC agreement</li>'
+  +'<li><b>Kids IUL</b> — wealth-building for children</li>'
+  +'<li><b>IUL (Adult)</b> — retirement, infinite banking, or lifetime income rider</li></ul>'
+  +'<b>3 difficulty levels per category:</b>'
+  +'<ul><li><b>Easy</b> — agreeable client, receptive to your pitch</li>'
+  +'<li><b>Medium</b> — analytical client, wants numbers and proof</li>'
+  +'<li><b>Hard</b> — skeptical client, pushes back hard, may want to leave</li></ul>'},
+
+ {title:'Script Training',keywords:'script training checkpoint curveball adherence key phrase recovery sequence',content:
+  '<b>How it works:</b> Each category has a specific sales script broken into 24-29 checkpoints across 5 stages (Connection, Engagement, Transition, Presentation, Commitment). As you talk, the app tracks which checkpoints you hit.'
+  +'<br><br><b>Curveballs:</b> ~30% of turns, the AI client throws a distraction — a tangent ("my grandson just graduated"), an emotional reaction ("are you trying to sell me?"), or an off-topic objection ("my son says annuities are bad"). Your job: acknowledge briefly and get back to the script.'
+  +'<br><br><b>Scoring (100 points):</b>'
+  +'<ul><li><b>Checkpoints Hit (30)</b> — how many script stages you covered</li>'
+  +'<li><b>Script Sequence (20)</b> — did you hit them in order?</li>'
+  +'<li><b>Key Phrases (20)</b> — did you use the framework language?</li>'
+  +'<li><b>Curveball Recovery (20)</b> — how fast you got back on script</li>'
+  +'<li><b>Tone & Language (10)</b> — permission-based vs. pushy</li></ul>'},
+
+ {title:'Progressive Unlock',keywords:'unlock level easy medium hard progress threshold score',content:
+  '<b>Script Training only.</b> Each category tracks independently.'
+  +'<br><br><b>Easy:</b> Always unlocked — start here.'
+  +'<br><b>Medium:</b> Score <b>75+</b> on any Easy persona in that category to unlock.'
+  +'<br><b>Hard:</b> Score <b>80+</b> on any Medium persona in that category to unlock.'
+  +'<br><br>Locked personas show a progress bar and your current best score vs. the threshold. A celebration toast appears when you cross a threshold.'
+  +'<br><br>In Scripted and Claude AI modes, all difficulty levels are always available.'},
+
+ {title:'Voice Mode',keywords:'voice elevenlabs speak talk mic microphone audio push hold',content:
+  '<b>Setup:</b> Add your ElevenLabs API key in Settings → Voice Mode section. Get a key at elevenlabs.io → Developers → API Keys. Starter plan ($5/month) covers daily practice.'
+  +'<br><br><b>Enable:</b> Check "Enable Voice Mode" in Settings, or toggle the "🔊 Voice" checkbox during any session.'
+  +'<br><br><b>How to talk:</b> Press and <b>hold</b> the 🎤 mic button (push-to-talk). Speak naturally. Your words appear in the text box in real-time. <b>Release</b> to send your message. Like a walkie-talkie.'
+  +'<br><br><b>Client voice:</b> Each of the 18 personas has a unique AI voice. The client\'s response is spoken aloud automatically when voice mode is on.'
+  +'<br><br><b>Cost:</b> ~$0.02-0.03 per session on ElevenLabs Starter plan. Free tier gives ~5-8 sessions/month.'},
+
+ {title:'Session Recording',keywords:'record recording audio playback listen download rec',content:
+  '<b>Auto-records</b> when voice mode is on. Both your mic and the client\'s AI voice are mixed into a single audio track.'
+  +'<br><br><b>🔴 REC indicator</b> pulses in the session bar during recording.'
+  +'<br><br><b>After the session:</b> Recording appears in the History tab with a built-in audio player. Press play to listen back to the full conversation.'
+  +'<br><br><b>Download:</b> Tap the ⬇ button to save the recording to your device.'
+  +'<br><br><b>Storage:</b> Last 10 recordings kept on your device. Older ones auto-removed (session data kept, audio stripped). Recordings don\'t sync to other devices — download any you want to keep.'},
+
+ {title:'Scoring System',keywords:'score points dimension phase question objection empathy close technique',content:
+  '<b>Standard modes (Scripted / Claude AI) — 5 categories, 20 points each:</b>'
+  +'<ul><li><b>Framework Completion</b> — Did you follow all 5 phases in order?</li>'
+  +'<li><b>Question Quality</b> — Open-ended, client-focused questions?</li>'
+  +'<li><b>Objection Handling</b> — Acknowledged and reframed concerns?</li>'
+  +'<li><b>Empathy & Rapport</b> — Active listening, reflective statements?</li>'
+  +'<li><b>Close Technique</b> — Assumptive close tied to their timeline?</li></ul>'
+  +'<b>Script Training — 5 categories, different weights:</b>'
+  +'<ul><li>Checkpoints Hit (30), Sequence (20), Key Phrases (20), Recovery (20), Tone (10)</li></ul>'
+  +'After each session, your weakest area is highlighted with a specific coaching tip.'},
+
+ {title:'Session Notes',keywords:'notes comments journal reflect learn feelings mistakes pattern',content:
+  '<b>After every session:</b> A text area appears in the score modal. Write what you felt, what went wrong, what you\'ll do differently.'
+  +'<br><br><b>In History:</b> Your notes appear in a yellow section on each session. Sessions without notes show a text area so you can add one later. Click "Edit note" to update existing notes.'
+  +'<br><br><b>Why it matters:</b> Over time, you\'ll see patterns in your own words — "rushed again," "forgot the identity frame," "got thrown by the spouse objection." This self-awareness is what turns practice into real improvement.'},
+
+ {title:'Team & Leaderboard',keywords:'team leaderboard rank streak activity accountability invite share',content:
+  '<b>Team tab</b> shows everyone who has an account, ranked by streak consistency.'
+  +'<br><br><b>What\'s visible to everyone:</b>'
+  +'<ul><li>Green dot = practiced today, gray = not yet</li>'
+  +'<li>Current streak (consecutive days)</li>'
+  +'<li>Sessions this week and total sessions</li>'
+  +'<li>Best streak ever</li></ul>'
+  +'<b>What\'s private:</b> Individual scores, session transcripts, notes.'
+  +'<br><br><b>Invite your team:</b> Tap "Copy Invite Link" at the bottom of the Team tab and share the URL.'},
+
+ {title:'Badges',keywords:'badge earn achievement award icon trophy streak master',content:
+  '<b>14 badges</b> to earn. Unearned badges show grayed out.'
+  +'<ul><li>⭐ <b>First Steps</b> — complete 1 session</li>'
+  +'<li>🔥 <b>On Fire</b> — 3-day streak</li>'
+  +'<li>💪 <b>Iron Will</b> — 7-day streak</li>'
+  +'<li>🏆 <b>Unstoppable</b> — 14-day streak</li>'
+  +'<li>👑 <b>Legend</b> — 30-day streak</li>'
+  +'<li>⭐ <b>Sharp</b> — score 80+</li>'
+  +'<li>💎 <b>Elite</b> — score 90+</li>'
+  +'<li>🌍 <b>Well Rounded</b> — try all personas</li>'
+  +'<li>🥊 <b>Heavyweight</b> — score 75+ on Hard</li>'
+  +'<li>🎯 <b>Dedicated</b> — 10 sessions</li>'
+  +'<li>🚀 <b>Committed</b> — 25 sessions</li>'
+  +'<li>🥇 <b>Master</b> — 50 sessions</li>'
+  +'<li>📚 <b>Full Range</b> — all categories</li>'
+  +'<li>🤖 <b>AI Sparring</b> — use Claude API mode</li></ul>'},
+
+ {title:'Weekly Challenges',keywords:'weekly challenge rotate goal target progress',content:
+  '<b>Rotate automatically each week.</b> Check the Team tab to see this week\'s challenge.'
+  +'<br><br><b>7 challenges:</b>'
+  +'<ul><li><b>Hard Mode Week</b> — 3 Hard sessions</li>'
+  +'<li><b>Consistency Challenge</b> — practice 5 of 7 days</li>'
+  +'<li><b>Category Explorer</b> — practice all categories</li>'
+  +'<li><b>Score Crusher</b> — 3 sessions scoring 75+</li>'
+  +'<li><b>Marathon Week</b> — 7 sessions total</li>'
+  +'<li><b>New Faces</b> — 3 personas you haven\'t tried</li>'
+  +'<li><b>Objection Master</b> — 3 CD-to-Annuity sessions</li></ul>'
+  +'Progress bar shows how close you are. "Complete!" badge appears when you hit the target.'},
+
+ {title:'Settings',keywords:'settings api key preference difficulty mode data export clear logout',content:
+  '<b>Claude API Key:</b> Required for Claude AI and Script Training modes. Get yours at console.anthropic.com. Test button verifies the connection.'
+  +'<br><br><b>ElevenLabs API Key:</b> Required for voice mode. Get yours at elevenlabs.io → Developers. Test button plays a sample voice.'
+  +'<br><br><b>Preferences:</b> Default difficulty, daily session goal, default mode.'
+  +'<br><br><b>Data:</b> Export history as JSON, reset streak, clear all data.'
+  +'<br><br><b>Account:</b> Shows your name, sign out button.'
+  +'<br><br><b>Re-run setup wizard:</b> Link at the bottom to replay the onboarding.'},
+
+ {title:'Tips for Improvement',keywords:'tips improve better practice routine daily advice coaching',content:
+  '<b>Daily routine:</b>'
+  +'<ul><li>10-15 minutes per day — one or two sessions</li>'
+  +'<li>Start with <b>Easy</b> personas to learn the script flow</li>'
+  +'<li>Move to <b>Medium</b> when you\'re scoring 70+ consistently</li>'
+  +'<li>Unlock <b>Hard</b> when Medium feels comfortable</li></ul>'
+  +'<b>Mode progression:</b>'
+  +'<ul><li>Week 1: <b>Scripted</b> — learn the checkpoints and key phrases</li>'
+  +'<li>Week 2: <b>Script Training</b> — practice with curveballs</li>'
+  +'<li>Week 3+: <b>Claude AI</b> — fully dynamic conversations</li></ul>'
+  +'<b>After each session:</b>'
+  +'<ul><li>Write notes about what felt off</li>'
+  +'<li>Check your Stats tab — what\'s your weakest dimension?</li>'
+  +'<li>Read the coaching tip and practice that specific thing next session</li></ul>'
+  +'<b>The agents who practice daily outsell the ones who don\'t. Build the streak.</b>'}
+];
+
+function openHelp(){
+ $1('#helpOverlay').classList.add('show');
+ renderHelpTopics();
+ var s=$1('#helpSearch');
+ if(s){s.value='';s.focus()}
+}
+
+function closeHelp(){
+ $1('#helpOverlay').classList.remove('show');
+}
+
+function renderHelpTopics(){
+ var query=($1('#helpSearch')||{}).value||'';
+ var lower=query.toLowerCase();
+ var h='';
+ HELP_TOPICS.forEach(function(t,i){
+  // Filter by search
+  if(lower&&t.title.toLowerCase().indexOf(lower)<0&&t.keywords.indexOf(lower)<0&&t.content.toLowerCase().indexOf(lower)<0) return;
+  h+='<div class="help-topic" id="ht_'+i+'" onclick="toggleHelpTopic('+i+')">';
+  h+='<div class="help-topic-header"><span>'+t.title+'</span><span class="help-topic-arrow">&#x25B6;</span></div>';
+  h+='<div class="help-topic-content">'+t.content+'</div>';
+  h+='</div>';
+ });
+ if(!h) h='<div style="text-align:center;color:var(--muted);padding:20px">No topics match "'+query+'"</div>';
+ $1('#helpBody').innerHTML=h;
+}
+
+function filterHelpTopics(){renderHelpTopics()}
+
+function toggleHelpTopic(i){
+ var el=$1('#ht_'+i);
+ if(el) el.classList.toggle('open');
 }
 
 // ── Onboarding ──
