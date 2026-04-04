@@ -559,7 +559,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:true, iul:false, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, iul:false, banking:false};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -656,6 +656,63 @@ var LIFE_CURVEBALLS=[
  {type:'objection',trigger:'I need to talk to my daughter about this first before I sign anything.',recovery:['absolutely','smart','daughter','bring her','information','no rush','together']}
 ];
 
+// ── Life Conversion Script Framework (27 Checkpoints) ──
+var CONVERSION_SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'Reference the returned card / rate increase',keywords:['card','rate increase','notice','returned','mail','upcoming']},
+  {id:2,desc:'Identify as assigned account lead',keywords:['account lead','assigned','your','reaching out','getting back']},
+  {id:3,desc:'Ask: stop rate hikes or look at options?',keywords:['stop','rate hikes','options','looking','see']},
+  {id:4,desc:'Lower status — just seeing eligibility',keywords:['eligible','final say','my job','see what','age and health']},
+  {id:5,desc:'Ask permission to ask questions',keywords:['opposed','mind if','few questions','current policy','better off staying']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:6,desc:'What do you have in place right now?',keywords:['what do you have','in place','right now','current','policy']},
+  {id:7,desc:'How long have you had it?',keywords:['how long','had that','had it','years','when']},
+  {id:8,desc:'Family situation — who are you protecting?',keywords:['family','married','wife','kids','children','own','protecting','taking care']},
+  {id:9,desc:'What caused you to go with the 5-year renewable?',keywords:['caused','why','went with','chose','cheapest','back then','5-year']},
+  {id:10,desc:'Do you like that they\'re hiking your rates?',keywords:['like','hiking','raising','rates','increase','going up']},
+  {id:11,desc:'Clarify the pain',keywords:['how do you mean','tell me more','exactly','frustrating','explain']},
+  {id:12,desc:'How long do you want to keep paying hikes?',keywords:['how long','keep paying','out of hand','force','higher rate','every 5 years','renewable']},
+  {id:13,desc:'Had you been looking to lock in your rate?',keywords:['looking','lock in','strategies','permanently','doing']},
+  {id:14,desc:'If rate was 100% locked in — what would that do?',keywords:['100%','locked in','never','rate hike','approved','what would that','peace of mind']},
+  {id:15,desc:'What happens if you can\'t afford it and drop it?',keywords:['what happens','can\'t afford','drop it','5','10','years','jump','something happens']},
+  {id:16,desc:'Do you want to put her in that situation?',keywords:['want to put','situation','didn\'t have to','do you want']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:17,desc:'Summarize: want family protected + renewable trap',keywords:['based on what','you said','you told me','want to make sure','jacking','rates']},
+  {id:18,desc:'Acknowledge the stress',keywords:['stressed','worried','concerned','affording','future','feel']},
+  {id:19,desc:'I have options that fit',keywords:['options','fit','work for you','exactly','looking for']},
+  {id:20,desc:'Do you have a pen handy?',keywords:['pen','handy','write','down','ready']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:21,desc:'Name the problem: 5-year renewable traps',keywords:['5-year','renewable','trap','move away','completely']},
+  {id:22,desc:'Option 1: Fixed Term — locked for 15-20 years',keywords:['fixed term','lock','15','20','stays the same','never raise','exact same']},
+  {id:23,desc:'Option 2: Universal Life — locked forever',keywords:['universal life','forever','lasts','never','re-qualify','rest of your life']},
+  {id:24,desc:'Ask which makes more sense',keywords:['which one','makes sense','locking','20 years','forever','feel','between']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:25,desc:'Why do you feel like it is though?',keywords:['why do you','why is that','feel like it is','tell me why']},
+  {id:26,desc:'First step: get medically approved',keywords:['first step','medically','approved','get you','state']},
+  {id:27,desc:'Start collecting info — into application',keywords:['first name','spelled','correct','middle initial','pulled up','computer','application']}
+ ]}
+];
+
+// ── Life Conversion Curveballs ──
+var CONVERSION_CURVEBALLS=[
+ {type:'tangent',trigger:'You know, my current insurance company has been terrible. Let me tell you what happened when I tried to file a claim for my car...',recovery:['understand','frustrating','focus','life','what we were','let me']},
+ {type:'tangent',trigger:'Can I bundle this with my auto and home insurance? I want one company for everything.',recovery:['separate','different','focus on','life','rate','let\'s make sure']},
+ {type:'tangent',trigger:'I saw a commercial for SelectQuote. They said they can save me 50%. Is that legit?',recovery:['compare','what matters','locked in','rate','let me show','the difference is']},
+ {type:'tangent',trigger:'What about whole life? I heard you can build cash value with that.',recovery:['whole life','option','but based on','what you said','priority','rate','let\'s focus']},
+ {type:'emotional',trigger:'This whole thing makes me angry. I\'ve been paying them for 5 years and now they just jack up the price? That\'s a scam.',recovery:['understand','frustrating','exactly why','that\'s why','fix','lock in','stop']},
+ {type:'emotional',trigger:'What if I can\'t pass the medical exam? Then I\'m stuck with the expensive policy AND I wasted my time.',recovery:['understand','concern','see if','eligible','won\'t know until','many clients','health']},
+ {type:'emotional',trigger:'I feel like insurance is just a racket. You pay and pay and hope you never need it.',recovery:['understand','feel that way','but','family','protect','what if','mortgage']},
+ {type:'objection',trigger:'Can\'t I just cancel the whole thing and go without? I\'m healthy.',recovery:['healthy','best time','but','family','mortgage','what if','wife','kids']},
+ {type:'objection',trigger:'My job gives me life insurance. Maybe I should just rely on that.',recovery:['group','work','but','retire','leave','doesn\'t follow','portable','change jobs']},
+ {type:'objection',trigger:'What if I just switch to another 5-year term somewhere else? It might be cheaper.',recovery:['another 5-year','same trap','5 years from now','again','locked in','fixed','permanent']},
+ {type:'objection',trigger:'I don\'t want to do any medical exam. Can you do no-exam policies?',recovery:['understand','options','simplified','guaranteed issue','let\'s see','qualify','health questions']},
+ {type:'objection',trigger:'Let me shop around first and compare rates before I commit to anything.',recovery:['absolutely','compare','but','rate','age','health','locked in','today','changes','waiting']}
+];
+
 // Curveball triggers — injected randomly during script mode
 var CURVEBALLS=[
  // Tangents
@@ -746,6 +803,28 @@ var PERSONAS=[
   resistTriggers:'Contradicting his financial advisor directly',
   successClose:'LifeTime UL with conservative allocation, positioned as crash protection layer'},
 
+ // Life Conversion (Renewable Term → Fixed/UL)
+ {id:'martinez',name:'Tony Martinez',age:40,avatar:'&#x1F468;',category:'conversion',difficulty:'easy',
+  personality:'agreeable',situation:'Married, 2 kids (8 and 11). Has a $250K 5-year renewable term that\'s about to jump 20%. Wife is a stay-at-home mom. Mortgage is $320K. Returned the direct mail card because the rate increase scared him.',
+  primaryObjection:'think-about-it',hiddenObjection:'Worried about qualifying medically — gained weight since original policy',
+  openTriggers:'When you show the locked-in rate comparison',
+  resistTriggers:'Feeling rushed or pressured to decide on the call',
+  successClose:'Locks in a 20-year fixed term to cover kids through college'},
+
+ {id:'chen_r',name:'Rebecca Chen',age:52,avatar:'&#x1F469;',category:'conversion',difficulty:'medium',
+  personality:'analytical',situation:'Dual income household ($140K combined). Has a $300K renewable term, already renewed once — rate went from $45 to $68/month. Husband has no coverage. Wants numbers and comparisons before deciding.',
+  primaryObjection:'shop-around',hiddenObjection:'Husband had a health scare last year — worried he won\'t qualify if they wait',
+  openTriggers:'When you show the cost projection of staying on renewable vs locking in',
+  resistTriggers:'Vague claims without specific rate comparisons',
+  successClose:'Fixed 20-year term for herself + starts UL application for husband'},
+
+ {id:'davis',name:'Marcus Davis',age:35,avatar:'&#x1F468;',category:'conversion',difficulty:'hard',
+  personality:'skeptical',situation:'Self-employed contractor, wife and 3-year-old. Has a $500K renewable term he got when the baby was born. Rate is about to jump and he\'s angry about it. Thinks all insurance is a scam. Considering just canceling everything.',
+  primaryObjection:'cancel-everything',hiddenObjection:'Business is slow this quarter — cash flow is tight but won\'t admit it',
+  openTriggers:'When you show what happens to his family and mortgage if he drops coverage',
+  resistTriggers:'Any hint of upselling or adding more coverage',
+  successClose:'Converts to 20-year fixed term at a comparable monthly cost'},
+
  // Banking/CD
  {id:'ellen',name:'Ellen Park',age:75,avatar:'&#x1F475;',category:'banking',difficulty:'easy',
   personality:'agreeable',situation:'Widow, $80K in savings account earning 0.5%. Doesn\'t know about CDs. Very loyal to her local bank branch. Fixed income from Social Security + small pension.',
@@ -784,6 +863,8 @@ var OBJECTIONS={
  'bad-press':{label:'Read bad things about IUL',idealResponse:'There\'s a lot of noise online, and some of it is valid — poorly designed IULs with unrealistic illustrations have hurt people. That\'s why we use conservative assumptions. Let me show you the guaranteed column, not the projected one.',keywords:['valid','poorly designed','conservative','guaranteed column','realistic','honest','not projected','actual']},
  'online-rates':{label:'Online banks pay more',idealResponse:'Some do — and if rate is the only factor, that makes sense. But with $300K, you\'re over the FDIC limit at any single bank. Here we can structure across products to keep everything fully insured. Also, try getting someone on the phone at an online bank when you need something.',keywords:['fdic','limit','$250','over','structure','insured','phone','someone','service']},
  'lock-up-money':{label:'Don\'t want to lock up money',idealResponse:'I hear that. A 12-month CD means your money is only committed for one year, and the rate is significantly better than savings. If something comes up, the early withdrawal penalty is just a few months of interest — not the principal.',keywords:['12 month','one year','committed','better than savings','penalty','few months','interest','principal safe']},
+ 'shop-around':{label:'Let me shop around first',idealResponse:'Absolutely, you should compare. But here\'s what changes while you shop: your age. Every month you wait, rates go up because you\'re older. And if anything changes with your health, you might not qualify at all. The rate I can lock in today is based on your current age and health — that\'s the best it will ever be.',keywords:['compare','shop','but','age','health','today','locked in','changes','waiting','best','qualify','rate']},
+ 'cancel-everything':{label:'Just cancel it all',idealResponse:'I get the frustration with the rate hike. But think about this — you got this policy because of your family. Your mortgage, your wife, your kid. If you cancel and something happens, what does your family do tomorrow? The answer isn\'t to drop coverage — it\'s to fix the structure so you\'re not getting gouged every 5 years.',keywords:['family','mortgage','wife','kid','cancel','drop','coverage','fix','structure','gouged','something happens']},
  'higher-rate':{label:'Want the highest rate',idealResponse:'I respect that — rate matters. Let me show you our current CD rates by term. But I also want to mention: if you\'re looking 3-5 years out, a fixed annuity may actually net you more after taxes, since CD interest is taxed annually while annuity growth is deferred.',keywords:['rates','current','term','3-5 years','annuity','net more','after taxes','deferred','taxed annually']}
 };
 
@@ -867,7 +948,10 @@ function getOpening(p){
   wright:'My financial advisor says IUL is never a good idea. But I keep seeing articles about it for retirement planning. I\'m 58, most of my money is in a 401K, and frankly, a 30% market drop right now would wreck my plans.',
   ellen:'Hello dear. I\'ve been keeping my savings at First National for years. My friend Betty told me I should look into one of those CD things — she said she\'s getting more interest than me.',
   ross:'We have CDs at three different banks — we always chase the best rate. What are your current CD rates? We have about $400K to place.',
-  michael:'I\'m going to be direct — I have $300K and I can get 5.2% at an online bank right now. What can you do for me?'
+  michael:'I\'m going to be direct — I have $300K and I can get 5.2% at an online bank right now. What can you do for me?',
+  martinez:'Yeah, hi. I got this card in the mail about my life insurance rates going up? I have a term policy through you guys and it says it\'s renewing at a higher rate. I just want to know what I can do about it.',
+  chen_r:'Hello, I\'m calling because I received something about my term life policy. The rate already went up once and now it looks like it\'s going to go up again. I need to understand my options — I want real numbers, not a sales pitch.',
+  davis:'Yeah, so I got this letter saying my rates are going up. Honestly, I\'m thinking about just canceling the whole thing. I don\'t even know if I need life insurance. What are you going to tell me that\'s different?'
  };
  return openers[p.id]||'Hi, I\'m here to discuss my financial options.';
 }
@@ -885,7 +969,10 @@ function getSituationResponse(p){
   wright:'I have about $800K in my 401K, mostly in a target date fund. I\'m 58, planning to retire at 63. My advisor has me 60/40 stocks and bonds. But 2022 scared me — I was down almost $200K at one point. I can\'t go through that again close to retirement.',
   ellen:'I have about $80,000 in my savings account at First National. I\'ve been going there for 30 years — they know me by name. I think the savings rate is maybe half a percent? Betty said she\'s getting over 4% on her CD.',
   ross:'Right now we have $150K at Chase at 4.3%, $125K at Ally at 4.8%, and $125K at Marcus at 4.6%. They mature at different times throughout the year. We\'re retiring in 3 years and want to make sure we\'re maximizing every dollar.',
-  michael:'I run an import business. I have $300K that I need to park somewhere safe for 1-2 years. I don\'t care about relationships or perks — I want the highest rate with FDIC insurance. Period.'
+  michael:'I run an import business. I have $300K that I need to park somewhere safe for 1-2 years. I don\'t care about relationships or perks — I want the highest rate with FDIC insurance. Period.',
+  martinez:'I have a $250,000 term policy. I\'ve had it about 5 years. I\'m married, my wife Maria stays home with the kids — we have two, 8 and 11. I just went with the cheapest option when we got the mortgage.',
+  chen_r:'We have a $300,000 term. It already renewed once — went from $45 to $68 a month. My husband David and I both work, combined we make about $140K. He doesn\'t have any coverage at all, which worries me.',
+  davis:'I have a $500,000 term. Got it when my son was born, so about 3 years ago. I\'m self-employed, run a contracting business. My wife doesn\'t work — she stays home with our boy. I just went with the 5-year because it was cheap.'
  };
  return resps[p.id]||'I have some savings I\'m looking to do something with.';
 }
@@ -903,7 +990,10 @@ function getProblemResponse(p){
   wright:'So you\'re saying there\'s a floor? If the market drops, I don\'t lose anything? That sounds too good to be true. What\'s the catch — there must be caps or something?',
   ellen:'Oh my, 4%? That\'s much better than what I\'m getting! But I don\'t want to lock up all my money. What if I need it for something? I\'m on a fixed income, you know.',
   ross:'Those are competitive rates. But honestly, what we\'re really worried about is income in retirement. $400K sounds like a lot but with inflation... how long will it really last? Is a CD even the right vehicle for retirement income?',
-  michael:'OK, so your rates are close to online. But why should I open an account here when I can do everything on my phone? What\'s the value-add?'
+  michael:'OK, so your rates are close to online. But why should I open an account here when I can do everything on my phone? What\'s the value-add?',
+  martinez:'No, I don\'t like it at all. It\'s going up like 20% and we\'re already tight with the mortgage and the kids\' activities. It\'s frustrating — I feel like they just wait until you\'re locked in and then raise the price.',
+  chen_r:'It\'s very frustrating. We\'re already paying $68 and now it\'s going to jump again. That\'s almost double what we started at. And the thing is, David needs coverage too but we keep putting it off because of the cost.',
+  davis:'Honestly? It makes me want to just cancel the whole thing. I\'m paying for something I\'ll probably never use, and now they want more money? My business is slow right now and every dollar counts.'
  };
  return resps[p.id]||'Hmm, I hadn\'t really thought about it that way.';
 }
@@ -921,7 +1011,10 @@ function getSolutionResponse(p){
   wright:'A 0% floor with a 7.5% cap on the S&P option. So in a year like 2022, I\'d lose nothing, and in a good year I\'d get up to 7.5%? And the income is tax-free? Show me how that would work with $200K over the next 5 years.',
   ellen:'Oh, so I could put some in a CD and keep the rest in savings? I don\'t have to move everything? That makes me feel better. What\'s the minimum for a CD? And can I still go to my branch?',
   ross:'So if we put $200K in CDs for short-term access and $200K in a fixed annuity for retirement income... what would the annuity actually pay us monthly? Can you run those numbers?',
-  michael:'OK, the FDIC point is valid — I am over the limit at one bank. I didn\'t think about that. How would you structure $300K to be fully insured? And what are your actual rates?'
+  michael:'OK, the FDIC point is valid — I am over the limit at one bank. I didn\'t think about that. How would you structure $300K to be fully insured? And what are your actual rates?',
+  martinez:'A locked-in rate? So it would never go up? That would be huge. Maria and I could actually budget around it. Right now I\'m always worried about the next renewal hitting us with another increase.',
+  chen_r:'That\'s interesting. What would the actual numbers look like? I need to see a side-by-side — what I\'m paying now, what it\'ll go to on the renewable, versus what a fixed rate would cost. Can you run those numbers?',
+  davis:'Look, I hear what you\'re saying about my family. And yeah, if something happened to me, my wife and kid would be in trouble. The mortgage alone is $2,800 a month. But I just don\'t trust insurance companies. They always find a way to take your money.'
  };
  return resps[p.id]||'That\'s interesting. Tell me more about how that would work.';
 }
@@ -939,7 +1032,10 @@ function getPostObjectionResponse(p){
   wright:'The crash protection is really what sells me. If I can protect $200K from another 2022 scenario and still get reasonable returns... that lets me sleep at night. What are the next steps?',
   ellen:'Oh that sounds just fine! $50K in the CD and I keep the rest in savings in case I need it. Will I still get my statement at the branch? I like talking to my banker about things.',
   ross:'The combination approach makes a lot of sense. Liquid money in CDs for the next 3 years, and the annuity kicks in for retirement income after that. Can you show us the projected monthly income from the annuity portion?',
-  michael:'Fine — structure it for maximum FDIC coverage across your products. What\'s the split? And I want the paperwork done today, I don\'t have time to come back.'
+  michael:'Fine — structure it for maximum FDIC coverage across your products. What\'s the split? And I want the paperwork done today, I don\'t have time to come back.',
+  martinez:'You\'re right, I don\'t want Maria to have to deal with that. OK, the 20-year fixed makes the most sense — the kids will be out of the house by then and the mortgage will be paid off. What do I need to do?',
+  chen_r:'OK, I think the fixed term makes sense for me, and we need to start looking at something for David too — especially given his health. Can we do both applications today? I want to get this handled.',
+  davis:'Alright, fine. The 20-year fixed term makes sense. It\'s about the same monthly cost and at least I know it won\'t go up. But if the rate is higher than what I\'m paying now, I\'m walking. Show me the numbers.'
  };
  return resps[p.id]||'OK, I\'m listening. What would you recommend?';
 }
@@ -957,7 +1053,10 @@ function getCommitmentResponse(p){
   wright:'I want to allocate $200K when I roll over my 401K next year. Can we set up the LifeTime UL now with a smaller initial premium and increase it at rollover?',
   ellen:'$50K in the 12-month CD sounds perfect. Can I do that at my branch? I want to talk to Kathy about it — she\'s been my banker for 15 years.',
   ross:'Let\'s do the full plan — $200K CD ladder and $200K annuity. Can you draft up both proposals so we can review the numbers at home tonight?',
-  michael:'Get the paperwork ready. Split it however maximizes coverage and rates. I\'ll sign today if the numbers work. And send everything to my email — I don\'t want paper.'
+  michael:'Get the paperwork ready. Split it however maximizes coverage and rates. I\'ll sign today if the numbers work. And send everything to my email — I don\'t want paper.',
+  martinez:'Because it\'s the same protection for my family but I\'ll never have to worry about the rate going up again. Maria will be relieved. Let\'s get the application started.',
+  chen_r:'Because we need this settled — both of us. The peace of mind of knowing exactly what we\'re paying for the next 20 years is worth it. And David needs to get covered before his health gets any worse. Let\'s do this.',
+  davis:'Because I can\'t afford to NOT have coverage with a wife and a 3-year-old. And at least with the fixed rate I know exactly what I\'m paying. No more surprises. Let\'s get it done before I change my mind.'
  };
  return resps[p.id]||'OK, let\'s move forward. What do I need to do?';
 }
@@ -985,9 +1084,9 @@ function startSession(personaId){
   startTime:new Date().toISOString(),
   apiMessages:[],
   // Script training mode extras
-  scriptStages:persona.category==='life'?LIFE_SCRIPT_STAGES:SCRIPT_STAGES,
-  scriptCurveballs:persona.category==='life'?LIFE_CURVEBALLS:CURVEBALLS,
-  scriptCheckpoints:(persona.category==='life'?LIFE_SCRIPT_STAGES:SCRIPT_STAGES).reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
+  scriptStages:persona.category==='life'?LIFE_SCRIPT_STAGES:persona.category==='conversion'?CONVERSION_SCRIPT_STAGES:SCRIPT_STAGES,
+  scriptCurveballs:persona.category==='life'?LIFE_CURVEBALLS:persona.category==='conversion'?CONVERSION_CURVEBALLS:CURVEBALLS,
+  scriptCheckpoints:(persona.category==='life'?LIFE_SCRIPT_STAGES:persona.category==='conversion'?CONVERSION_SCRIPT_STAGES:SCRIPT_STAGES).reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
   scriptRecoveries:[],
   curveBallsThrown:0,
   curveBallsRecovered:0,
@@ -1006,6 +1105,8 @@ function startSession(personaId){
    ' that I want to put somewhere safe.';
  } else if(mode==='script'&&persona.category==='life'){
   firstMsg='Hi there, I\'m '+persona.name.split(' ')[0]+'. I\'m a AAA member and I heard you all offer some kind of life insurance or funeral coverage? I don\'t really have anything in place right now and I figured I should probably look into it.';
+ } else if(mode==='script'&&persona.category==='conversion'){
+  firstMsg='Hello? Yeah, this is '+persona.name.split(' ')[0]+'. I got a card in the mail about my life insurance rates going up. I\'ve got a 5-year term policy and it looks like it\'s about to renew at a higher rate. I wanted to see what my options are.';
  } else {
   firstMsg=tree[0].clientMsg;
  }
@@ -1256,6 +1357,17 @@ function handleScriptResponse(agentText){
    +'- When asked if you want them to go through that: "No, absolutely not. I need to get this done"\n'
    +'- When presented options: lean toward the middle option\n'
    +'- When asked why: "Because it\'s affordable and it makes sure they won\'t have to pay for anything"\n\n';
+ } else if(p.category==='conversion'){
+  scenarioText='SCENARIO: You have a 5-year renewable term life insurance policy that\'s about to renew at a higher rate. You returned a direct mail card and the agent is calling you back. You\'re frustrated about the rate increase. You have a family to protect (spouse and kids) and a mortgage. You want to know your options but are skeptical.\n\n'
+   +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
+   +'- When asked about current policy: give details about your term policy amount and how long you\'ve had it\n'
+   +'- When asked why you chose it: "It was just the cheapest option at the time"\n'
+   +'- When asked about rate hikes: "It\'s frustrating. It\'s going up like 20%"\n'
+   +'- When asked how long you want to keep paying: "I really don\'t want to. I need something fixed"\n'
+   +'- When asked what locked-in rate would mean: "It would give us peace of mind"\n'
+   +'- When asked about consequences of dropping coverage: express concern about family/mortgage\n'
+   +'- When presented options: lean toward the fixed term (20-year)\n'
+   +'- When asked why: explain you want fixed budget and to protect spouse\n\n';
  } else {
   scenarioText='SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n';
  }
@@ -1732,6 +1844,7 @@ function renderScenarioPicker(){
  var isScript=settings.mode==='script';
  h+='<span class="pill cat-annuity'+(filterCat==='annuity'?' active':'')+'" onclick="setFilter(\'cat\',\'annuity\')">CD-to-Annuity'+(isScript?' &#x2705;':'')+'</span>';
  h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.life?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'life\')">Life Insurance'+(isScript?(SCRIPT_AVAILABLE.life?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill'+(filterCat==='conversion'?' active':'')+'" onclick="setFilter(\'cat\',\'conversion\')">Life Conversion'+(isScript?(SCRIPT_AVAILABLE.conversion?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.iul?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  if(!isScript){
   h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
@@ -1762,8 +1875,8 @@ function renderScenarioPicker(){
 
  h+='<div class="persona-grid">';
  filtered.forEach(function(p){
-  var catColors={annuity:'grn',life:'red',iul:'amb',banking:'pri'};
-  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',iul:'IUL',banking:'Banking/CD'};
+  var catColors={annuity:'grn',life:'red',conversion:'pri',iul:'amb',banking:'pri'};
+  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',iul:'IUL',banking:'Banking/CD'};
   // Find best score for this persona
   var bestScore=0;
   sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
@@ -1993,9 +2106,9 @@ function renderStats(){
 
  // Category breakdown
  h+='<div class="card"><h3>By Category</h3>';
- var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',iul:'IUL',banking:'Banking/CD'};
- var catColors={annuity:'var(--grn)',life:'var(--red)',iul:'var(--amb)',banking:'var(--pri)'};
- ['annuity','life','iul','banking'].forEach(function(cat){
+ var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',iul:'IUL',banking:'Banking/CD'};
+ var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',iul:'var(--amb)',banking:'var(--pri)'};
+ ['annuity','life','conversion','iul','banking'].forEach(function(cat){
   var catSessions=sessions.filter(function(s){return s.category===cat});
   if(catSessions.length===0) return;
   var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
