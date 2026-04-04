@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>DuetCoach — NEPQ Sales Roleplay Practice</title>
+<title>DuetCoach — Sales Roleplay Practice</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -205,7 +205,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 <body>
 
 <div class="topbar">
- <div><span class="brand">DuetCoach</span><span class="sub">NEPQ Sales Practice</span></div>
+ <div><span class="brand">DuetCoach</span><span class="sub">Sales Practice</span></div>
  <div class="topbar-right" id="streakDisplay"></div>
 </div>
 
@@ -270,7 +270,7 @@ function saveStreak(){saveJSON('db_coach_streak',streak)}
 function getApiKey(){return localStorage.getItem('db_coach_apikey')||''}
 function setApiKey(k){localStorage.setItem('db_coach_apikey',k)}
 
-// ── NEPQ Phases ──
+// ── Sales Framework Phases ──
 var PHASES=[
  {name:'Situation',short:'SIT',color:'#3498db',desc:'Understand their current position'},
  {name:'Problem',short:'PROB',color:'#e67e22',desc:'Surface pain points'},
@@ -635,7 +635,7 @@ function handleAgentMessage(text){
  if(!activeSession||!text.trim()) return;
  activeSession.transcript.push({role:'agent',text:text.trim()});
 
- // Detect NEPQ phases from agent's message
+ // Detect Sales Framework phases from agent's message
  var lower=text.toLowerCase();
  PHASE_KEYWORDS.forEach(function(kws,i){
   kws.forEach(function(kw){
@@ -733,11 +733,11 @@ function handleAPIResponse(agentText){
   +'RULES:\n'
   +'- Stay in character at all times. You are the CLIENT, not the agent.\n'
   +'- Respond naturally in 2-4 sentences. Be conversational, not robotic.\n'
-  +'- If the agent follows NEPQ well (asks good questions, shows empathy, addresses your concerns), gradually become more receptive.\n'
+  +'- If the agent follows Sales Framework well (asks good questions, shows empathy, addresses your concerns), gradually become more receptive.\n'
   +'- If the agent is pushy or skips steps, become more resistant.\n'
   +'- When you feel genuinely convinced, agree to: '+p.successClose+'\n'
   +'- If the agent asks for the close and you\'re convinced, agree and end with [SESSION_COMPLETE]\n'
-  +'- Never break character or mention NEPQ, scoring, or that this is practice.';
+  +'- Never break character or mention Sales Framework, scoring, or that this is practice.';
 
  fetch('https://api.anthropic.com/v1/messages',{
   method:'POST',
@@ -803,7 +803,7 @@ function scoreSessionAPI(){
   body:JSON.stringify({
    model:'claude-sonnet-4-20250514',
    max_tokens:800,
-   messages:[{role:'user',content:'You are an expert NEPQ sales coach evaluating a practice roleplay transcript.\n\nThe NEPQ framework has 5 phases:\n1. Situation — understand current position\n2. Problem Awareness — surface pain points\n3. Solution Awareness — introduce alternatives\n4. Consequence — cost of inaction\n5. Commitment — close with assumptive choice\n\nScore the AGENT\'s performance in these 5 categories (0-20 each):\n1. NEPQ Phase Completion — Did they progress through all 5 phases in order?\n2. Question Quality — Open-ended, client-focused, not leading?\n3. Objection Handling — Addressed concerns effectively?\n4. Empathy & Rapport — Active listening, reflective statements?\n5. Close Technique — Assumptive close, tied to timeline?\n\nReturn ONLY valid JSON in this exact format:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of coaching advice"}\n\nTRANSCRIPT:\n'+transcript}]
+   messages:[{role:'user',content:'You are an expert Sales Framework sales coach evaluating a practice roleplay transcript.\n\nThe Sales Framework framework has 5 phases:\n1. Situation — understand current position\n2. Problem Awareness — surface pain points\n3. Solution Awareness — introduce alternatives\n4. Consequence — cost of inaction\n5. Commitment — close with assumptive choice\n\nScore the AGENT\'s performance in these 5 categories (0-20 each):\n1. Framework Completion — Did they progress through all 5 phases in order?\n2. Question Quality — Open-ended, client-focused, not leading?\n3. Objection Handling — Addressed concerns effectively?\n4. Empathy & Rapport — Active listening, reflective statements?\n5. Close Technique — Assumptive close, tied to timeline?\n\nReturn ONLY valid JSON in this exact format:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of coaching advice"}\n\nTRANSCRIPT:\n'+transcript}]
   })
  }).then(function(r){return r.json()}).then(function(data){
   activeSession.typing=false;
@@ -857,7 +857,7 @@ function showScoreModal(scores,feedback){
 
  // Build score modal
  var cats=[
-  {key:'phase',label:'NEPQ Phase Completion',color:'#3498db'},
+  {key:'phase',label:'Framework Completion',color:'#3498db'},
   {key:'question',label:'Question Quality',color:'var(--pri)'},
   {key:'objection',label:'Objection Handling',color:'var(--amb)'},
   {key:'empathy',label:'Empathy & Rapport',color:'var(--grn)'},
@@ -1255,7 +1255,7 @@ function renderStats(){
  var dimAvgs={};
  Object.keys(dimTotals).forEach(function(k){dimAvgs[k]=Math.round(dimTotals[k]/totalSessions*10)/10});
  var weakestKey=Object.keys(dimAvgs).reduce(function(a,b){return dimAvgs[a]<dimAvgs[b]?a:b});
- var dimLabels={phase:'NEPQ Phase Completion',question:'Question Quality',objection:'Objection Handling',empathy:'Empathy & Rapport',close:'Close Technique'};
+ var dimLabels={phase:'Framework Completion',question:'Question Quality',objection:'Objection Handling',empathy:'Empathy & Rapport',close:'Close Technique'};
  var dimTips={
   phase:'Practice asking situation questions before introducing solutions. Follow the 5-phase order.',
   question:'Use more open-ended questions: "How does that feel?", "What concerns you most?", "Tell me about..."',
@@ -1352,7 +1352,7 @@ function renderSettings(){
  h+='</div>';
 
  // About
- h+='<div class="card"><h3>About NEPQ Scoring</h3>';
+ h+='<div class="card"><h3>About Scoring</h3>';
  h+='<div style="font-size:12px;line-height:1.6;color:var(--muted)">';
  h+='<b>5 Phases:</b> Situation \u2192 Problem Awareness \u2192 Solution Awareness \u2192 Consequence \u2192 Commitment<br><br>';
  h+='<b>5 Scoring Categories (20 pts each, 100 total):</b><br>';
