@@ -1740,31 +1740,45 @@ function startSession(personaId){
  }
 }
 
+var endingSession=false;
 function endSession(){
- if(!activeSession) return;
+ if(!activeSession||endingSession) return;
+ endingSession=true;
  clearInterval(sessionTimer);
  // Stop current audio playback
  if(currentAudio){try{currentAudio.pause()}catch(e){}}
  currentAudio=null;
- // Stop recording and save audio
+ // Stop recording — try to save but don't block scoring
  if(isRecording){
-  var timeout=setTimeout(function(){
-   // Safety: if stopSessionRecording hangs, proceed anyway
-   isRecording=false;
-   runScoring();
-  },3000);
-  stopSessionRecording().then(function(audioData){
-   clearTimeout(timeout);
-   if(audioData) activeSession.recordingData=audioData;
-   runScoring();
-  }).catch(function(){
-   clearTimeout(timeout);
-   isRecording=false;
-   runScoring();
-  });
- } else {
-  runScoring();
+  isRecording=false;
+  try{
+   if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+    mediaRecorder.onstop=function(){
+     if(micStream) micStream.getTracks().forEach(function(t){t.stop()});
+     if(recordedChunks.length>0){
+      var blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||'audio/webm'});
+      var reader=new FileReader();
+      reader.onloadend=function(){
+       // Save recording to most recent session after scoring already ran
+       if(sessions.length>0&&!sessions[0].recording){
+        sessions[0].recording={data:reader.result,type:blob.type,size:blob.size};
+        saveSessions();
+       }
+      };
+      reader.readAsDataURL(blob);
+     }
+    };
+    mediaRecorder.stop();
+   } else {
+    if(micStream) micStream.getTracks().forEach(function(t){t.stop()});
+   }
+  }catch(e){
+   if(micStream) try{micStream.getTracks().forEach(function(t){t.stop()})}catch(e2){}
+  }
  }
+ // Run scoring immediately — don't wait for recording
+ runScoring();
+ endingSession=false;
 }
 
 function runScoring(){
