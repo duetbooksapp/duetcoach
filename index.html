@@ -559,7 +559,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, kidsiul:true, iul:false, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, kidsiul:true, iul:true, banking:false};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -830,6 +830,64 @@ var KIDSIUL_CURVEBALLS=[
  {type:'objection',trigger:'What\'s the actual rate of return? I need real numbers, not hypotheticals.',recovery:['historical','index','cap','floor','0%','illustration','conservative','guaranteed','show you','actual']}
 ];
 
+// ── Adult IUL Script Framework (28 Checkpoints) ──
+var IUL_SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'Reference request/appointment or walk-in',keywords:['request','appointment','calendar','office','getting back','stopped by','came in']},
+  {id:2,desc:'Ask: specific goals or exploring?',keywords:['specific','looking for','options','wanting','explore']},
+  {id:3,desc:'Lower status — just seeing eligibility',keywords:['final say','my job','eligible','health','see what']},
+  {id:4,desc:'Identify goal: retirement, banking, or income rider',keywords:['death benefit','retirement','tax-free','bank','banking','income','rider','living benefits','which','goal']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:5,desc:'Walk me through current retirement strategy',keywords:['walk me through','current','retirement','strategy','401k','ira','in place','doing']},
+  {id:6,desc:'How long contributing?',keywords:['how long','contributing','years','been']},
+  {id:7,desc:'Do you like that 401k is fully taxed at retirement?',keywords:['taxed','taxes','retire','401k','like','hate','tax']},
+  {id:8,desc:'Clarify the tax pain',keywords:['how do you mean','exactly','tell me more','what do you mean']},
+  {id:9,desc:'What if market crashes 30-40% AND you pay taxes?',keywords:['crash','30%','40%','2008','market','lose','right before','retire','taxes','left']},
+  {id:10,desc:'Are you willing to settle for that?',keywords:['willing','settle','accept','have to','work another','5','10']},
+  {id:11,desc:'Before today, looking for crash-proof tax-free strategies?',keywords:['before','looking','strategies','research','crash','tax-free','doing']},
+  {id:12,desc:'If approved: tax-free, protected, liquid — what would that do?',keywords:['tax-free','protected','crashes','liquidity','access','penalty','what would','personally','peace of mind']},
+  {id:13,desc:'What if taxes go up and market wipes out nest egg?',keywords:['what happens','don\'t do anything','taxes','roof','market','correction','wipes','nest egg','retire']},
+  {id:14,desc:'Do you want to put yourself in that situation?',keywords:['want to put','situation','didn\'t have to','do you want']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:15,desc:'Summarize: goal + money stuck in taxable/exposed 401k',keywords:['based on what','you said','you told me','retire','bank','income','stuck','401k','exposed','crashes','taxes']},
+  {id:16,desc:'Acknowledge the worry',keywords:['worried','concerned','feel','future','making you','financial']},
+  {id:17,desc:'I have an option that fits',keywords:['option','fit','work for you','exactly','looking for']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:18,desc:'Name it: Indexed Universal Life / IUL',keywords:['indexed universal life','iul','policy']},
+  {id:19,desc:'Structured for max cash accumulation — min death benefit',keywords:['cash','accumulation','minimum','death benefit','every dollar','growth','structured','irs']},
+  {id:20,desc:'Growth tied to market index',keywords:['market','index','tied','grows','up','returns']},
+  {id:21,desc:'0% floor — no losses',keywords:['0%','floor','crash','lose','dime','protect','doesn\'t lose']},
+  {id:22,desc:'Tax-free loans / act as your own bank',keywords:['tax-free','loan','bank','real estate','business','your own','access','liquidity']},
+  {id:23,desc:'Money stays compounding uninterrupted',keywords:['stays','compounding','original','keeps','uninterrupted','account','loan against']},
+  {id:24,desc:'OR: Lifetime Income Rider — guaranteed income forever',keywords:['lifetime','income','rider','guaranteed','monthly','rest of your life','outlive','switch','flip']},
+  {id:25,desc:'Does that make sense / see how it helps?',keywords:['does that make sense','make sense','do you see','help','follow']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:26,desc:'Do you feel this could be the answer?',keywords:['feel','answer','right','could be','need']},
+  {id:27,desc:'Why do you feel like it is though?',keywords:['why do you','why is that','feel like it is','tell me why']},
+  {id:28,desc:'First step: medical approval + application',keywords:['first step','medically','approved','application','health','questionnaire','pulled up','computer','first name','spelled']}
+ ]}
+];
+
+// ── Adult IUL Curveballs ──
+var IUL_CURVEBALLS=[
+ {type:'tangent',trigger:'My coworker told me to just max out my Roth IRA instead. Why wouldn\'t I do that?',recovery:['roth','great','but','income limits','cap','$7,000','iul','unlimited','both','complement']},
+ {type:'tangent',trigger:'What about real estate? I\'ve been thinking about buying a rental property.',recovery:['real estate','great','but','iul','bank','loan','fund','real estate','tax-free','your own bank','actually']},
+ {type:'tangent',trigger:'My financial advisor told me IULs are garbage and I should just buy term and invest the difference.',recovery:['btid','term','invest','but','tax-free','0% floor','crash','different','gap','not replacing']},
+ {type:'tangent',trigger:'I just heard about this new high-yield savings account paying 5%. Why wouldn\'t I just park my money there?',recovery:['savings','5%','today','but','taxed','every year','1099','rates change','iul','tax-free','locked','compound']},
+ {type:'emotional',trigger:'I\'m honestly scared of the market right now. Everything feels unstable.',recovery:['understand','scary','exactly why','0% floor','protected','can\'t lose','peace of mind','that\'s the point']},
+ {type:'emotional',trigger:'I feel like I\'m already behind on retirement. Is it too late for me?',keywords:['never too late','start','every dollar','compound','tax-free','catch up','powerful','time']},
+ {type:'emotional',trigger:'This all sounds too good to be true. What\'s the catch?',recovery:['fair question','caps','not unlimited','upside','trade-off','protection','floor','honest','transparent']},
+ {type:'objection',trigger:'I read that the fees in IULs are like 2-3% per year. That kills the returns.',recovery:['fees','built in','net','returns','after','cost','what you keep','tax-free','compare','after-tax','actually']},
+ {type:'objection',trigger:'What if I need the money before retirement? Am I locked in?',recovery:['access','loan','tax-free','any time','no penalty','liquidity','that\'s the beauty','your money']},
+ {type:'objection',trigger:'I don\'t trust insurance companies. They always find ways to not pay.',recovery:['understand','regulated','state','contract','guaranteed','written','legal','obligation','AM Best','rated']},
+ {type:'objection',trigger:'Let me think about it and do some more research.',recovery:['absolutely','research','but','age','health','locked in','today','rate','changes','qualify','information','take this']},
+ {type:'objection',trigger:'Can I just start small and add more later?',recovery:['absolutely','flexible','premiums','start','increase','later','important','get started','insurability','young','healthy']}
+];
+
 // Curveball triggers — injected randomly during script mode
 var CURVEBALLS=[
  // Tangents
@@ -900,25 +958,25 @@ var PERSONAS=[
 
  // IUL
  {id:'patel',name:'Dr. Priya Patel',age:42,avatar:'&#x1F469;',category:'iul',difficulty:'easy',
-  personality:'agreeable',situation:'Physician earning $350K. Maxes out 401K and backdoor Roth. Looking for additional tax-advantaged growth. Financially literate but unfamiliar with IUL.',
+  personality:'agreeable',situation:'Physician earning $350K. Maxes out 401K and backdoor Roth. Looking for additional tax-advantaged growth. Filled out request online after watching IUL videos. Primary goal: tax-free retirement supplement.',
   primaryObjection:'fees',hiddenObjection:'Concerned about opportunity cost vs index funds',
   openTriggers:'When you show the tax-free income potential and downside protection',
   resistTriggers:'Oversimplifying — she wants real numbers',
-  successClose:'Accumulator IUL with target premium, funded over 10 years'},
+  successClose:'IUL structured for max cash accumulation, funded over 10 years'},
 
  {id:'nguyen',name:'Kevin & Maria Nguyen',age:38,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'iul',difficulty:'medium',
-  personality:'analytical',situation:'Dual income ($180K combined). Two young kids. Already have term life. Kevin reads a lot of personal finance blogs that are anti-IUL. Maria is more open.',
+  personality:'analytical',situation:'Dual income ($180K combined). Two young kids. Kevin has $220K in 401K, contributing max. Heard about infinite banking concept — wants to be his own bank for real estate investments. Reads personal finance blogs that are anti-IUL.',
   primaryObjection:'why-not-index-funds',hiddenObjection:'Kevin\'s blog sources are biased but he trusts them',
-  openTriggers:'When you acknowledge the index fund argument and show where IUL fills a gap BTID doesn\'t cover',
+  openTriggers:'When you show how IUL loans can fund real estate without disrupting compounding',
   resistTriggers:'Dismissing his research or being condescending',
-  successClose:'Modest IUL policy alongside existing term, positioned as tax diversification'},
+  successClose:'IUL structured for infinite banking — plans to use loans for rental property down payments'},
 
  {id:'wright',name:'Thomas Wright',age:58,avatar:'&#x1F474;',category:'iul',difficulty:'hard',
-  personality:'skeptical',situation:'Nearing retirement, $800K in 401K. Read bad press about IUL surrender charges and caps. Financial advisor told him IUL is "never a good idea." Wants to be convinced he\'s wrong.',
-  primaryObjection:'bad-press',hiddenObjection:'Actually worried about market crash wiping out retirement savings',
-  openTriggers:'When you show the 0% floor protecting against crashes',
+  personality:'skeptical',situation:'Nearing retirement, $800K in 401K. Terrified of a 2008 repeat. Financial advisor told him IUL is "never a good idea." Walked into office after seeing ad. Wants lifetime income rider but doesn\'t trust insurance products.',
+  primaryObjection:'bad-press',hiddenObjection:'Actually worried about market crash wiping out retirement savings — 2022 scared him',
+  openTriggers:'When you show the 0% floor and lifetime income guarantee',
   resistTriggers:'Contradicting his financial advisor directly',
-  successClose:'LifeTime UL with conservative allocation, positioned as crash protection layer'},
+  successClose:'IUL with Lifetime Income Rider — guaranteed tax-free monthly income in retirement'},
 
  // Life Conversion (Renewable Term → Fixed/UL)
  {id:'martinez',name:'Tony Martinez',age:40,avatar:'&#x1F468;',category:'conversion',difficulty:'easy',
@@ -1316,6 +1374,7 @@ function getScriptForCategory(cat){
  if(cat==='conversion') return {stages:CONVERSION_SCRIPT_STAGES,curveballs:CONVERSION_CURVEBALLS};
  if(cat==='ltc') return {stages:LTC_SCRIPT_STAGES,curveballs:LTC_CURVEBALLS};
  if(cat==='kidsiul') return {stages:KIDSIUL_SCRIPT_STAGES,curveballs:KIDSIUL_CURVEBALLS};
+ if(cat==='iul') return {stages:IUL_SCRIPT_STAGES,curveballs:IUL_CURVEBALLS};
  return {stages:SCRIPT_STAGES,curveballs:CURVEBALLS};
 }
 
@@ -1368,6 +1427,8 @@ function startSession(personaId){
  } else if(mode==='script'&&persona.category==='ltc'){
   firstMsg=getOpening(persona);
  } else if(mode==='script'&&persona.category==='kidsiul'){
+  firstMsg=getOpening(persona);
+ } else if(mode==='script'&&persona.category==='iul'){
   firstMsg=getOpening(persona);
  } else {
   firstMsg=tree[0].clientMsg;
@@ -1619,6 +1680,19 @@ function handleScriptResponse(agentText){
    +'- When asked if you want them to go through that: "No, absolutely not. I need to get this done"\n'
    +'- When presented options: lean toward the middle option\n'
    +'- When asked why: "Because it\'s affordable and it makes sure they won\'t have to pay for anything"\n\n';
+ } else if(p.category==='iul'){
+  scenarioText='SCENARIO: You are exploring Indexed Universal Life options. You may have called in from a request, or walked into the office. You have a 401K or IRA as your primary retirement vehicle. You are concerned about market risk and taxes eating your retirement savings.\n\n'
+   +'YOUR GOAL (varies by persona — pick based on your situation):\n'
+   +'- RETIREMENT: You want tax-free growth to supplement retirement\n'
+   +'- INFINITE BANKING: You want to be your own bank, access cash for investments\n'
+   +'- LIFETIME INCOME: You want guaranteed income you can\'t outlive\n\n'
+   +'REFERENCE RESPONSES:\n'
+   +'- When asked about current strategy: describe your 401K, how long contributing\n'
+   +'- When asked about taxes on 401K: frustrated — "I hate thinking about taxes"\n'
+   +'- When asked about market crash risk: worried — "I\'d have to work another 5-10 years"\n'
+   +'- When shown tax-free growth + 0% floor: very interested\n'
+   +'- When shown the loan/banking or income rider feature: this is what they wanted\n'
+   +'- When asked why they want it: defend tax-free growth + market protection\n\n';
  } else if(p.category==='kidsiul'){
   scenarioText='SCENARIO: You are a parent looking into wealth-building and life insurance options for your young child. You may currently have a savings account, 529 plan, or custodial brokerage. You want your child to have a financial head start but are unsure about the best vehicle.\n\n'
    +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
@@ -2132,7 +2206,7 @@ function renderScenarioPicker(){
  h+='<span class="pill'+(filterCat==='conversion'?' active':'')+'" onclick="setFilter(\'cat\',\'conversion\')">Life Conversion'+(isScript?(SCRIPT_AVAILABLE.conversion?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='ltc'?' active':'')+'" onclick="setFilter(\'cat\',\'ltc\')">Long-Term Care'+(isScript?(SCRIPT_AVAILABLE.ltc?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='kidsiul'?' active':'')+'" onclick="setFilter(\'cat\',\'kidsiul\')">Kids IUL'+(isScript?(SCRIPT_AVAILABLE.kidsiul?' &#x2705;':' &#x1F512;'):'')+'</span>';
- h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.iul?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'" onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  if(!isScript){
   h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
  }
@@ -2419,7 +2493,7 @@ function renderStats(){
  h+='<div class="card"><h3>By Category</h3>';
  var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD'};
  var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',kidsiul:'var(--grn)',iul:'var(--amb)',banking:'var(--pri)'};
- ['annuity','life','conversion','ltc','kidsiul','iul','banking'].forEach(function(cat){
+ ['annuity','life','conversion','ltc','kidsiul','iul'].forEach(function(cat){
   var catSessions=sessions.filter(function(s){return s.category===cat});
   if(catSessions.length===0) return;
   var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
