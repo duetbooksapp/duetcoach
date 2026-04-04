@@ -2188,13 +2188,35 @@ function setFilter(type,val){
 function renderScenarioPicker(){
  var h='';
 
- // Mode toggle
- h+='<div class="card" style="text-align:center">';
- h+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Mode</div>';
- h+='<div class="pill-row" style="justify-content:center">';
- h+='<span class="pill'+(settings.mode==='scripted'?' active':'')+'" onclick="settings.mode=\'scripted\';saveSettings();renderPractice()">Scripted</span>';
- h+='<span class="pill'+(settings.mode==='api'?' active':'')+'" onclick="'+(getApiKey()?'settings.mode=\'api\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'">'+(getApiKey()?'Claude API':'Claude API (no key)')+'</span>';
- h+='<span class="pill'+(settings.mode==='script'?' active':'')+'" style="border-color:var(--grn);'+(settings.mode==='script'?'color:var(--grn);background:var(--gtint)':'')+'" onclick="'+(getApiKey()?'settings.mode=\'script\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'">Script Training'+(getApiKey()?'':' (no key)')+'</span>';
+ // Mode selector
+ h+='<div class="card"><div style="font-size:12px;font-weight:700;color:var(--pri);margin-bottom:10px;text-align:center">Choose Your Practice Mode</div>';
+ h+='<div style="display:flex;flex-direction:column;gap:8px">';
+
+ // Scripted
+ var sAct=settings.mode==='scripted';
+ h+='<div onclick="settings.mode=\'scripted\';saveSettings();renderPractice()" style="border:2px solid '+(sAct?'var(--pri)':'var(--border)')+';background:'+(sAct?'var(--ptint)':'var(--card)')+';border-radius:12px;padding:14px;cursor:pointer;transition:all .15s">';
+ h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">&#x1F4DD;</span><div>';
+ h+='<div style="font-weight:700;font-size:14px;color:'+(sAct?'var(--pri)':'var(--txt)')+'">Scripted Mode</div>';
+ h+='<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px">Pre-built conversations that follow keyword matching. Great for <b>learning the flow</b> and building muscle memory. No API key needed. <b>Free.</b></div>';
+ h+='</div></div></div>';
+
+ // Claude API
+ var aAct=settings.mode==='api';
+ var hasKey=getApiKey()?true:false;
+ h+='<div onclick="'+(hasKey?'settings.mode=\'api\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'" style="border:2px solid '+(aAct?'var(--pri)':'var(--border)')+';background:'+(aAct?'var(--ptint)':'var(--card)')+';border-radius:12px;padding:14px;cursor:pointer;transition:all .15s;'+(hasKey?'':'opacity:.6')+'">';
+ h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">&#x1F916;</span><div>';
+ h+='<div style="font-weight:700;font-size:14px;color:'+(aAct?'var(--pri)':'var(--txt)')+'">Claude AI Mode'+(hasKey?'':' <span style="font-size:10px;color:var(--red)">(needs API key)</span>')+'</div>';
+ h+='<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px">AI plays the client in <b>real-time</b>. Fully dynamic responses based on what you say. Feels like a <b>real conversation</b>. Best for sharpening your skills. <b>~$0.02/session.</b></div>';
+ h+='</div></div></div>';
+
+ // Script Training
+ var tAct=settings.mode==='script';
+ h+='<div onclick="'+(hasKey?'settings.mode=\'script\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'" style="border:2px solid '+(tAct?'var(--grn)':'var(--border)')+';background:'+(tAct?'var(--gtint)':'var(--card)')+';border-radius:12px;padding:14px;cursor:pointer;transition:all .15s;'+(hasKey?'':'opacity:.6')+'">';
+ h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">&#x1F3AF;</span><div>';
+ h+='<div style="font-weight:700;font-size:14px;color:'+(tAct?'var(--grn)':'var(--txt)')+'">Script Training'+(hasKey?'':' <span style="font-size:10px;color:var(--red)">(needs API key)</span>')+'</div>';
+ h+='<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px">Practice your <b>exact sales scripts</b> with AI clients who throw curveballs. Scored on <b>checkpoint adherence, key phrases, recovery speed</b>, and tone. Master Easy to unlock Medium, then Hard. <b>~$0.02/session.</b></div>';
+ h+='</div></div></div>';
+
  h+='</div></div>';
 
  // Category filter
