@@ -559,7 +559,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, iul:false, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, iul:false, banking:false};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -713,6 +713,65 @@ var CONVERSION_CURVEBALLS=[
  {type:'objection',trigger:'Let me shop around first and compare rates before I commit to anything.',recovery:['absolutely','compare','but','rate','age','health','locked in','today','changes','waiting']}
 ];
 
+// ── Long-Term Care Script Framework (29 Checkpoints) ──
+var LTC_SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'Warm greeting — acknowledge why they came in',keywords:['great to meet','came in','stopped by','office','long-term care','options']},
+  {id:2,desc:'Ask what brought them in today',keywords:['what brought','why','today','looking at','hoping']},
+  {id:3,desc:'Lower status — just seeing eligibility',keywords:['final say','my job','eligible','age and health','see what']},
+  {id:4,desc:'Ask permission to ask questions',keywords:['opposed','mind if','few questions','in place','help you','first place']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:5,desc:'If something happened — what do you have for care?',keywords:['something happened','tomorrow','walk me through','nursing','in-home','care','in place']},
+  {id:6,desc:'Medicare only covers short-term — do you have $150-200K saved?',keywords:['medicare','short-term','rehabilitation','150','200','bank','set aside','cash']},
+  {id:7,desc:'Who would be responsible for caring/paying?',keywords:['who','responsible','person','family','take care','pay','facility']},
+  {id:8,desc:'What would that do to them — quit job? Loans?',keywords:['quit','job','scrounge','loan','burden','money','forced','pay']},
+  {id:9,desc:'Identity frame: some people don\'t mind burdening kids',keywords:['some people','don\'t mind','stress','kids','burden','responsibility','you know what']},
+  {id:10,desc:'Before today, had you been looking for strategies?',keywords:['before','looking','strategies','protect','been doing','what had you']},
+  {id:11,desc:'If approved for $4,100+/month — pay family as caregiver',keywords:['4,100','4,167','every month','check','pay','caregiver','home','approved']},
+  {id:12,desc:'What happens if you walk out and have a health event?',keywords:['walk out','today','putting it off','health event','what happens','few years']},
+  {id:13,desc:'Family drains savings to take care of you',keywords:['drain','savings','bankrupt','ruin','financially','take care']},
+  {id:14,desc:'Do you want to put them in that situation?',keywords:['want to put','situation','didn\'t have to','do you want']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:15,desc:'Summarize: don\'t want to be a burden + no plan',keywords:['based on what','you said','you told me','burden','no plan','don\'t have','cash reserves']},
+  {id:16,desc:'Acknowledge the worry',keywords:['worried','concerned','feel','future','making you']},
+  {id:17,desc:'I have an option that fits',keywords:['option','fit','work for you','exactly','looking for']},
+  {id:18,desc:'Do you have a pen handy?',keywords:['pen','handy','write','down']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:19,desc:'Name the product: Eclipse Protector IUL',keywords:['eclipse','protector','indexed universal','policy']},
+  {id:20,desc:'Explain LTC Agreement',keywords:['long-term care','agreement','ltc','long term']},
+  {id:21,desc:'Death benefit: $200K tax-free',keywords:['death benefit','200','tax-free','pass away','family']},
+  {id:22,desc:'Living benefits: $4,167/month for 4 years',keywords:['4,167','4,100','monthly','4 years','chronically ill','living benefits','advance']},
+  {id:23,desc:'Cash indemnity — freedom to spend however',keywords:['cash indemnity','freedom','spend','however','nursing','home','caregiver','groceries','wheelchair']},
+  {id:24,desc:'Premium and No Lapse Guarantee',keywords:['premium','629','month','no lapse','guarantee','locked in','guaranteed','rest of your life']},
+  {id:25,desc:'Check: could this help protect your family?',keywords:['does that make sense','do you see','help','protect']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:26,desc:'Do you feel this could be the answer?',keywords:['feel','answer','right','could be']},
+  {id:27,desc:'Why do you feel like it is though?',keywords:['why do you','why is that','feel like it is','tell me why']},
+  {id:28,desc:'Next steps: application + health questionnaire',keywords:['application','health','questionnaire','submit','next step','medically','approved']},
+  {id:29,desc:'Start collecting info',keywords:['first name','spelled','correct','pulled up','computer']}
+ ]}
+];
+
+// ── LTC Curveballs ──
+var LTC_CURVEBALLS=[
+ {type:'tangent',trigger:'You know, my friend went into a nursing home last year and it was $8,000 a month. She burned through her savings in less than a year.',recovery:['exactly','that\'s why','common','plan','protect','this is what']},
+ {type:'tangent',trigger:'What about Medicaid? Doesn\'t the government pay for nursing homes?',recovery:['medicaid','qualify','spend down','assets','below','poverty','not until','wipe out']},
+ {type:'tangent',trigger:'I saw an ad for one of those hybrid life insurance policies. Is that what this is?',recovery:['similar','hybrid','what makes this','different','cash indemnity','freedom','eclipse']},
+ {type:'tangent',trigger:'My neighbor got long-term care insurance years ago and the premiums tripled. She had to drop it.',recovery:['traditional','ltc','different','no lapse','guaranteed','never increase','locked in']},
+ {type:'emotional',trigger:'I don\'t want to think about getting old and sick. This conversation is depressing.',recovery:['understand','hard','important','family','plan','peace of mind','rather talk now','won\'t have to worry']},
+ {type:'emotional',trigger:'I feel like you\'re trying to scare me into buying something.',recovery:['not at all','your decision','no pressure','just want','informed','reality','up to you']},
+ {type:'emotional',trigger:'My mother had Alzheimer\'s and it destroyed our family financially. I watched it happen.',recovery:['sorry','understand','firsthand','exactly why','never have to','your kids','protect','that experience']},
+ {type:'objection',trigger:'$629 a month is a lot of money. I\'m on a fixed income.',recovery:['understand','investment','but','$200,000','nursing home','compare','alternative','what it costs without']},
+ {type:'objection',trigger:'What if I never need long-term care? Then I just wasted all that money.',recovery:['death benefit','family','$200,000','tax-free','either way','covered','win either way','not wasted']},
+ {type:'objection',trigger:'Can\'t I just self-insure? I\'ll put $629 a month into a savings account instead.',recovery:['math','$629','years','save','compared to','$200,000','takes','decades','what if','before then']},
+ {type:'objection',trigger:'I want to talk to my kids about this before I make any decisions.',recovery:['absolutely','family','smart','together','information','take this','show them','numbers']},
+ {type:'objection',trigger:'What if the insurance company goes bankrupt? Then I lose everything.',recovery:['securian','rated','AM Best','A+','financial strength','regulated','state','guarantee']}
+];
+
 // Curveball triggers — injected randomly during script mode
 var CURVEBALLS=[
  // Tangents
@@ -825,6 +884,28 @@ var PERSONAS=[
   resistTriggers:'Any hint of upselling or adding more coverage',
   successClose:'Converts to 20-year fixed term at a comparable monthly cost'},
 
+ // Long-Term Care
+ {id:'dorothy',name:'Dorothy Williams',age:67,avatar:'&#x1F475;',category:'ltc',difficulty:'easy',
+  personality:'agreeable',situation:'Retired nurse, widowed. Daughter Sarah lives nearby. Has Medicare and small pension. No LTC coverage, no significant savings. Came in after seeing a friend go into a nursing home. Very receptive to protecting her daughter from burden.',
+  primaryObjection:'think-about-it',hiddenObjection:'Worried about affording the premium on fixed income',
+  openTriggers:'When you mention her daughter wouldn\'t have to quit her job or drain savings',
+  resistTriggers:'Feeling pressured on cost without understanding the benefit first',
+  successClose:'Applies for Eclipse Protector with LTC rider, understands the $4,167/month benefit'},
+
+ {id:'gene',name:'Gene & Patricia Anderson',age:71,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'ltc',difficulty:'medium',
+  personality:'analytical',situation:'Retired couple, $180K in savings. Two adult children out of state. Gene\'s mother had Alzheimer\'s for 8 years — he watched it bankrupt the family. Patricia thinks they\'re healthy enough to not need it. Gene wants numbers and comparisons.',
+  primaryObjection:'self-insure',hiddenObjection:'Gene is traumatized by his mother\'s experience but Patricia doesn\'t share the urgency',
+  openTriggers:'When you do the self-insure math — $629/month vs years to save $200K',
+  resistTriggers:'Talking only to Gene and ignoring Patricia\'s concerns',
+  successClose:'Both apply — Gene immediately, Patricia agrees after seeing the math'},
+
+ {id:'howard',name:'Howard Price',age:63,avatar:'&#x1F468;',category:'ltc',difficulty:'hard',
+  personality:'skeptical',situation:'Still working, makes $95K. Divorced, two adult kids who don\'t visit much. Thinks he can tough it out. "I\'ll just die before I need a nursing home." Secretly terrified of losing independence. Came in on a referral but resistant.',
+  primaryObjection:'never-need-it',hiddenObjection:'Pride — doesn\'t want to admit he might become dependent',
+  openTriggers:'When you frame it as maintaining independence and control, not being helpless',
+  resistTriggers:'Implying he\'s old or frail, or that he can\'t handle things himself',
+  successClose:'Agrees to apply after you show the cash indemnity gives HIM control of his care decisions'},
+
  // Banking/CD
  {id:'ellen',name:'Ellen Park',age:75,avatar:'&#x1F475;',category:'banking',difficulty:'easy',
   personality:'agreeable',situation:'Widow, $80K in savings account earning 0.5%. Doesn\'t know about CDs. Very loyal to her local bank branch. Fixed income from Social Security + small pension.',
@@ -864,6 +945,8 @@ var OBJECTIONS={
  'online-rates':{label:'Online banks pay more',idealResponse:'Some do — and if rate is the only factor, that makes sense. But with $300K, you\'re over the FDIC limit at any single bank. Here we can structure across products to keep everything fully insured. Also, try getting someone on the phone at an online bank when you need something.',keywords:['fdic','limit','$250','over','structure','insured','phone','someone','service']},
  'lock-up-money':{label:'Don\'t want to lock up money',idealResponse:'I hear that. A 12-month CD means your money is only committed for one year, and the rate is significantly better than savings. If something comes up, the early withdrawal penalty is just a few months of interest — not the principal.',keywords:['12 month','one year','committed','better than savings','penalty','few months','interest','principal safe']},
  'shop-around':{label:'Let me shop around first',idealResponse:'Absolutely, you should compare. But here\'s what changes while you shop: your age. Every month you wait, rates go up because you\'re older. And if anything changes with your health, you might not qualify at all. The rate I can lock in today is based on your current age and health — that\'s the best it will ever be.',keywords:['compare','shop','but','age','health','today','locked in','changes','waiting','best','qualify','rate']},
+ 'self-insure':{label:'I\'ll just save the money myself',idealResponse:'Let\'s do the math. At $629/month, it takes you over 26 years to save $200,000. If you need care in 5 years, you\'d have about $38,000 saved. A nursing home costs $8,000-$10,000 a month. You\'d burn through your savings in 4-5 months. The policy gives you $200,000 in protection from day one.',keywords:['math','save','years','$200,000','nursing home','costs','burn','day one','compare','decades']},
+ 'never-need-it':{label:'I\'ll never need long-term care',idealResponse:'I hope you\'re right. But the statistics say 70% of people over 65 will need some form of long-term care. And here\'s the thing — even if you never use the LTC benefit, the $200,000 death benefit still goes to your family tax-free. Either way, the money goes somewhere useful. It\'s not wasted.',keywords:['70%','statistics','hope','but','death benefit','family','tax-free','either way','not wasted','still']},
  'cancel-everything':{label:'Just cancel it all',idealResponse:'I get the frustration with the rate hike. But think about this — you got this policy because of your family. Your mortgage, your wife, your kid. If you cancel and something happens, what does your family do tomorrow? The answer isn\'t to drop coverage — it\'s to fix the structure so you\'re not getting gouged every 5 years.',keywords:['family','mortgage','wife','kid','cancel','drop','coverage','fix','structure','gouged','something happens']},
  'higher-rate':{label:'Want the highest rate',idealResponse:'I respect that — rate matters. Let me show you our current CD rates by term. But I also want to mention: if you\'re looking 3-5 years out, a fixed annuity may actually net you more after taxes, since CD interest is taxed annually while annuity growth is deferred.',keywords:['rates','current','term','3-5 years','annuity','net more','after taxes','deferred','taxed annually']}
 };
@@ -951,7 +1034,10 @@ function getOpening(p){
   michael:'I\'m going to be direct — I have $300K and I can get 5.2% at an online bank right now. What can you do for me?',
   martinez:'Yeah, hi. I got this card in the mail about my life insurance rates going up? I have a term policy through you guys and it says it\'s renewing at a higher rate. I just want to know what I can do about it.',
   chen_r:'Hello, I\'m calling because I received something about my term life policy. The rate already went up once and now it looks like it\'s going to go up again. I need to understand my options — I want real numbers, not a sales pitch.',
-  davis:'Yeah, so I got this letter saying my rates are going up. Honestly, I\'m thinking about just canceling the whole thing. I don\'t even know if I need life insurance. What are you going to tell me that\'s different?'
+  davis:'Yeah, so I got this letter saying my rates are going up. Honestly, I\'m thinking about just canceling the whole thing. I don\'t even know if I need life insurance. What are you going to tell me that\'s different?',
+  dorothy:'Hi there. My friend Betty just went into a nursing home and it really shook me. I realized I don\'t have anything set up if that happened to me. I just want to make sure my daughter doesn\'t get stuck with the bills.',
+  gene:'We\'ve been talking about this for a while. My mother had Alzheimer\'s for 8 years and it wiped out everything she had. I don\'t want that to happen to our kids. Patricia thinks we\'re overthinking it, but I want to see the numbers.',
+  howard:'Yeah, so my buddy Jim sent me in here. He said you helped him with something. Look, I\'m going to be honest — I don\'t think I need long-term care insurance. I\'m healthy, I\'m still working. But Jim insisted, so here I am.'
  };
  return openers[p.id]||'Hi, I\'m here to discuss my financial options.';
 }
@@ -972,7 +1058,10 @@ function getSituationResponse(p){
   michael:'I run an import business. I have $300K that I need to park somewhere safe for 1-2 years. I don\'t care about relationships or perks — I want the highest rate with FDIC insurance. Period.',
   martinez:'I have a $250,000 term policy. I\'ve had it about 5 years. I\'m married, my wife Maria stays home with the kids — we have two, 8 and 11. I just went with the cheapest option when we got the mortgage.',
   chen_r:'We have a $300,000 term. It already renewed once — went from $45 to $68 a month. My husband David and I both work, combined we make about $140K. He doesn\'t have any coverage at all, which worries me.',
-  davis:'I have a $500,000 term. Got it when my son was born, so about 3 years ago. I\'m self-employed, run a contracting business. My wife doesn\'t work — she stays home with our boy. I just went with the 5-year because it was cheap.'
+  davis:'I have a $500,000 term. Got it when my son was born, so about 3 years ago. I\'m self-employed, run a contracting business. My wife doesn\'t work — she stays home with our boy. I just went with the 5-year because it was cheap.',
+  dorothy:'I don\'t really have anything. Just Medicare and my pension — about $2,400 a month. I have maybe $15,000 in savings. My daughter Sarah lives about 20 minutes away, she works full time as a teacher. I definitely don\'t have $200,000 saved up for a nursing home.',
+  gene:'We have about $180,000 in savings between us. I have Medicare and Patricia has Medicare too. No long-term care policy. We thought about it years ago but never pulled the trigger. My mother\'s care cost the family over $300,000 over 8 years. It was devastating.',
+  howard:'I\'ve got Medicare, that\'s about it. I make about $95K at my job. I have maybe $60,000 in a 401K. I don\'t have kids who are around much — they\'re both out of state. I figure if something happens, I\'ll figure it out. I always have.'
  };
  return resps[p.id]||'I have some savings I\'m looking to do something with.';
 }
@@ -993,7 +1082,10 @@ function getProblemResponse(p){
   michael:'OK, so your rates are close to online. But why should I open an account here when I can do everything on my phone? What\'s the value-add?',
   martinez:'No, I don\'t like it at all. It\'s going up like 20% and we\'re already tight with the mortgage and the kids\' activities. It\'s frustrating — I feel like they just wait until you\'re locked in and then raise the price.',
   chen_r:'It\'s very frustrating. We\'re already paying $68 and now it\'s going to jump again. That\'s almost double what we started at. And the thing is, David needs coverage too but we keep putting it off because of the cost.',
-  davis:'Honestly? It makes me want to just cancel the whole thing. I\'m paying for something I\'ll probably never use, and now they want more money? My business is slow right now and every dollar counts.'
+  davis:'Honestly? It makes me want to just cancel the whole thing. I\'m paying for something I\'ll probably never use, and now they want more money? My business is slow right now and every dollar counts.',
+  dorothy:'It scares me, honestly. I watched Betty go from living on her own to needing full-time care in about 6 months. Her daughter had to quit her job to help. I could never do that to Sarah — she has her own family to worry about.',
+  gene:'Patricia thinks we\'re fine because we have savings. But I know the numbers. Mom\'s care was $8,000 a month and she was in the facility for 8 years. We don\'t have $800,000. Not even close. I\'m tired of worrying about it.',
+  howard:'Look, I appreciate the concern, but I\'m not the kind of person who plans for getting sick. I\'m 63 and I can still outwork guys half my age. What makes you think I\'m going to need a nursing home?'
  };
  return resps[p.id]||'Hmm, I hadn\'t really thought about it that way.';
 }
@@ -1014,7 +1106,10 @@ function getSolutionResponse(p){
   michael:'OK, the FDIC point is valid — I am over the limit at one bank. I didn\'t think about that. How would you structure $300K to be fully insured? And what are your actual rates?',
   martinez:'A locked-in rate? So it would never go up? That would be huge. Maria and I could actually budget around it. Right now I\'m always worried about the next renewal hitting us with another increase.',
   chen_r:'That\'s interesting. What would the actual numbers look like? I need to see a side-by-side — what I\'m paying now, what it\'ll go to on the renewable, versus what a fixed rate would cost. Can you run those numbers?',
-  davis:'Look, I hear what you\'re saying about my family. And yeah, if something happened to me, my wife and kid would be in trouble. The mortgage alone is $2,800 a month. But I just don\'t trust insurance companies. They always find a way to take your money.'
+  davis:'Look, I hear what you\'re saying about my family. And yeah, if something happened to me, my wife and kid would be in trouble. The mortgage alone is $2,800 a month. But I just don\'t trust insurance companies. They always find a way to take your money.',
+  dorothy:'$4,100 a month? And I could use it to pay Sarah to take care of me instead of a stranger? That would be incredible. She wouldn\'t have to quit her teaching job — she could help me on her schedule. That changes everything.',
+  gene:'OK, so let me make sure I understand the math. $200,000 in protection from day one. $4,167 a month if either of us needs care. And we can use it however we want — even to pay our kids to help. Patricia, are you hearing this? This is exactly what I\'ve been worried about.',
+  howard:'Alright, I hear you on the statistics. And I guess... yeah, I don\'t want to end up like some of the guys I know, depending on everyone else. If this thing lets me stay in control of how I get taken care of — pay for what I want, where I want — that\'s different than what I thought.'
  };
  return resps[p.id]||'That\'s interesting. Tell me more about how that would work.';
 }
@@ -1035,7 +1130,10 @@ function getPostObjectionResponse(p){
   michael:'Fine — structure it for maximum FDIC coverage across your products. What\'s the split? And I want the paperwork done today, I don\'t have time to come back.',
   martinez:'You\'re right, I don\'t want Maria to have to deal with that. OK, the 20-year fixed makes the most sense — the kids will be out of the house by then and the mortgage will be paid off. What do I need to do?',
   chen_r:'OK, I think the fixed term makes sense for me, and we need to start looking at something for David too — especially given his health. Can we do both applications today? I want to get this handled.',
-  davis:'Alright, fine. The 20-year fixed term makes sense. It\'s about the same monthly cost and at least I know it won\'t go up. But if the rate is higher than what I\'m paying now, I\'m walking. Show me the numbers.'
+  davis:'Alright, fine. The 20-year fixed term makes sense. It\'s about the same monthly cost and at least I know it won\'t go up. But if the rate is higher than what I\'m paying now, I\'m walking. Show me the numbers.',
+  dorothy:'I think this is the right thing to do. The $629 a month is tight on my budget, but knowing Sarah won\'t have to go through what Betty\'s daughter went through... I need to do this. Let\'s get started.',
+  gene:'Patricia and I talked it over right here. We both want to apply. I\'ve been carrying this worry since what happened with my mother. Knowing our kids won\'t have to go through that — it\'s worth every penny. Let\'s do it.',
+  howard:'OK. You got me. The control part is what sold me. I don\'t want someone else deciding where I go or how I get taken care of. If this gives me $4,100 a month to call the shots, I\'m in. What do you need from me?'
  };
  return resps[p.id]||'OK, I\'m listening. What would you recommend?';
 }
@@ -1056,7 +1154,10 @@ function getCommitmentResponse(p){
   michael:'Get the paperwork ready. Split it however maximizes coverage and rates. I\'ll sign today if the numbers work. And send everything to my email — I don\'t want paper.',
   martinez:'Because it\'s the same protection for my family but I\'ll never have to worry about the rate going up again. Maria will be relieved. Let\'s get the application started.',
   chen_r:'Because we need this settled — both of us. The peace of mind of knowing exactly what we\'re paying for the next 20 years is worth it. And David needs to get covered before his health gets any worse. Let\'s do this.',
-  davis:'Because I can\'t afford to NOT have coverage with a wife and a 3-year-old. And at least with the fixed rate I know exactly what I\'m paying. No more surprises. Let\'s get it done before I change my mind.'
+  davis:'Because I can\'t afford to NOT have coverage with a wife and a 3-year-old. And at least with the fixed rate I know exactly what I\'m paying. No more surprises. Let\'s get it done before I change my mind.',
+  dorothy:'Because I saw what happened to Betty\'s family when she didn\'t have a plan. Sarah is everything to me, and I refuse to put that on her. The $4,100 a month means she can still live her life while knowing I\'m taken care of.',
+  gene:'Because I lived through it with my mother. I know exactly how bad it gets. $180,000 in savings sounds like a lot until you\'re spending $8,000 a month. This policy solves the problem Patricia and I have been avoiding for years.',
+  howard:'Because I want to be in control. Period. If something happens to me, I want to decide where I go and who takes care of me. The cash indemnity means nobody else is making those decisions for me. That\'s worth $629 a month.'
  };
  return resps[p.id]||'OK, let\'s move forward. What do I need to do?';
 }
@@ -1111,6 +1212,13 @@ function checkForUnlockCelebration(record){
  }
 }
 
+function getScriptForCategory(cat){
+ if(cat==='life') return {stages:LIFE_SCRIPT_STAGES,curveballs:LIFE_CURVEBALLS};
+ if(cat==='conversion') return {stages:CONVERSION_SCRIPT_STAGES,curveballs:CONVERSION_CURVEBALLS};
+ if(cat==='ltc') return {stages:LTC_SCRIPT_STAGES,curveballs:LTC_CURVEBALLS};
+ return {stages:SCRIPT_STAGES,curveballs:CURVEBALLS};
+}
+
 // ── Active Session State ──
 var activeSession=null;
 var sessionTimer=null;
@@ -1134,9 +1242,9 @@ function startSession(personaId){
   startTime:new Date().toISOString(),
   apiMessages:[],
   // Script training mode extras
-  scriptStages:persona.category==='life'?LIFE_SCRIPT_STAGES:persona.category==='conversion'?CONVERSION_SCRIPT_STAGES:SCRIPT_STAGES,
-  scriptCurveballs:persona.category==='life'?LIFE_CURVEBALLS:persona.category==='conversion'?CONVERSION_CURVEBALLS:CURVEBALLS,
-  scriptCheckpoints:(persona.category==='life'?LIFE_SCRIPT_STAGES:persona.category==='conversion'?CONVERSION_SCRIPT_STAGES:SCRIPT_STAGES).reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
+  scriptStages:getScriptForCategory(persona.category).stages,
+  scriptCurveballs:getScriptForCategory(persona.category).curveballs,
+  scriptCheckpoints:getScriptForCategory(persona.category).stages.reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
   scriptRecoveries:[],
   curveBallsThrown:0,
   curveBallsRecovered:0,
@@ -1157,6 +1265,8 @@ function startSession(personaId){
   firstMsg='Hi there, I\'m '+persona.name.split(' ')[0]+'. I\'m a AAA member and I heard you all offer some kind of life insurance or funeral coverage? I don\'t really have anything in place right now and I figured I should probably look into it.';
  } else if(mode==='script'&&persona.category==='conversion'){
   firstMsg='Hello? Yeah, this is '+persona.name.split(' ')[0]+'. I got a card in the mail about my life insurance rates going up. I\'ve got a 5-year term policy and it looks like it\'s about to renew at a higher rate. I wanted to see what my options are.';
+ } else if(mode==='script'&&persona.category==='ltc'){
+  firstMsg=getOpening(persona);
  } else {
   firstMsg=tree[0].clientMsg;
  }
@@ -1407,6 +1517,16 @@ function handleScriptResponse(agentText){
    +'- When asked if you want them to go through that: "No, absolutely not. I need to get this done"\n'
    +'- When presented options: lean toward the middle option\n'
    +'- When asked why: "Because it\'s affordable and it makes sure they won\'t have to pay for anything"\n\n';
+ } else if(p.category==='ltc'){
+  scenarioText='SCENARIO: You came into the AAA office to ask about long-term care and life insurance options. You don\'t have any LTC coverage. You may have Medicare but you don\'t realize it doesn\'t cover long-term care. You don\'t have $150-200K saved for a nursing home. Your main concern is not being a burden to your family.\n\n'
+   +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
+   +'- When asked about what you have in place: "Just Medicare, I guess" / limited savings\n'
+   +'- When told Medicare doesn\'t cover LTC: surprise, concern\n'
+   +'- When asked who would be responsible: name a family member\n'
+   +'- When asked about burden on family: "I could never do that" / refuse to burden kids\n'
+   +'- When presented $4,100/month benefit + can pay family as caregiver: very interested\n'
+   +'- When told the premium: hesitate slightly but see the value\n'
+   +'- When asked why you want it: explain you don\'t want family burdened / want control of care\n\n';
  } else if(p.category==='conversion'){
   scenarioText='SCENARIO: You have a 5-year renewable term life insurance policy that\'s about to renew at a higher rate. You returned a direct mail card and the agent is calling you back. You\'re frustrated about the rate increase. You have a family to protect (spouse and kids) and a mortgage. You want to know your options but are skeptical.\n\n'
    +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
@@ -1897,6 +2017,7 @@ function renderScenarioPicker(){
  h+='<span class="pill cat-annuity'+(filterCat==='annuity'?' active':'')+'" onclick="setFilter(\'cat\',\'annuity\')">CD-to-Annuity'+(isScript?' &#x2705;':'')+'</span>';
  h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.life?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'life\')">Life Insurance'+(isScript?(SCRIPT_AVAILABLE.life?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='conversion'?' active':'')+'" onclick="setFilter(\'cat\',\'conversion\')">Life Conversion'+(isScript?(SCRIPT_AVAILABLE.conversion?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill'+(filterCat==='ltc'?' active':'')+'" onclick="setFilter(\'cat\',\'ltc\')">Long-Term Care'+(isScript?(SCRIPT_AVAILABLE.ltc?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.iul?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  if(!isScript){
   h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
@@ -1927,8 +2048,8 @@ function renderScenarioPicker(){
 
  h+='<div class="persona-grid">';
  filtered.forEach(function(p){
-  var catColors={annuity:'grn',life:'red',conversion:'pri',iul:'amb',banking:'pri'};
-  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',iul:'IUL',banking:'Banking/CD'};
+  var catColors={annuity:'grn',life:'red',conversion:'pri',ltc:'amb',iul:'amb',banking:'pri'};
+  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',iul:'IUL',banking:'Banking/CD'};
   var bestScore=0;
   sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
 
@@ -2182,9 +2303,9 @@ function renderStats(){
 
  // Category breakdown
  h+='<div class="card"><h3>By Category</h3>';
- var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',iul:'IUL',banking:'Banking/CD'};
- var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',iul:'var(--amb)',banking:'var(--pri)'};
- ['annuity','life','conversion','iul','banking'].forEach(function(cat){
+ var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',iul:'IUL',banking:'Banking/CD'};
+ var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',iul:'var(--amb)',banking:'var(--pri)'};
+ ['annuity','life','conversion','ltc','iul','banking'].forEach(function(cat){
   var catSessions=sessions.filter(function(s){return s.category===cat});
   if(catSessions.length===0) return;
   var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
