@@ -128,6 +128,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 .chat-input-bar .send-btn{background:var(--pri);color:#fff;border:none;border-radius:var(--radius);padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
 .chat-input-bar .send-btn:disabled{opacity:.4;cursor:default}
 .end-btn{background:var(--red);color:#fff;border:none;border-radius:var(--radius);padding:10px 14px;font-weight:600;font-size:11px;cursor:pointer;white-space:nowrap}
+.mic-btn{background:var(--ptint);color:var(--pri);border:1.5px solid var(--pri);border-radius:var(--radius);padding:10px 12px;font-size:16px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.mic-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
+.voice-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.voice-toggle input[type=checkbox]{width:16px;height:16px;accent-color:var(--pri)}
+.speaker-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;opacity:.5}
+.speaker-btn:hover{opacity:1}
 
 /* Score Modal */
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
@@ -1369,6 +1375,119 @@ function checkForUnlockCelebration(record){
  }
 }
 
+// ── ElevenLabs Voice System ──
+var ELEVENLABS_URL='https://api.elevenlabs.io/v1/text-to-speech/';
+var ELEVENLABS_MODEL='eleven_flash_v2_5';
+
+// Voice assignments per persona — mapped to ElevenLabs voice IDs
+var PERSONA_VOICES={
+ // CD-to-Annuity
+ margaret:'pFZP5JQG7iQjIQuC4Bku',  // Lily — warm, mature female
+ torres:'cjVigY5qzO86Huf0OWal',     // Eric — smooth, professional male
+ frank:'nPczCjzI2devNBz1zQrb',       // Brian — resonant, comforting male (skeptical tone)
+ // Life Insurance
+ sarah:'EXAVITQu4vr4xnSDxMaL',      // Sarah — young, warm female
+ hoffman:'pqHfZKP75CvOlQylNhV4',    // Bill — older, friendly male
+ carlos:'iP95p4xoKVk53GoZ742B',     // Chris — natural, down-to-earth male
+ // Life Conversion
+ martinez:'TX3LPaxmHKxFdv7VOQHJ',   // Liam — young, energetic male
+ chen_r:'XrExE9yKIg1WjnnlVkGX',     // Matilda — professional female
+ davis:'N2lVS1w4EtoT3dr4eOWO',      // Callum — gravelly, edgy male
+ // Long-Term Care
+ dorothy:'hpp4J3VqNfWAUOO0d1Us',    // Bella — warm, bright female
+ gene:'CwhRBWXzGAHq8TQ4Fs17',      // Roger — easy-going middle-aged male
+ howard:'onwK4e9ZLuTAKqWW03F9',     // Daniel — strong, professional male
+ // Kids IUL
+ jess:'FGY2WhTYpPnrIDTdsKH5',       // Laura — sunny, enthusiastic female
+ andre:'bIHbv24MWmeRgasZH58o',      // Will — conversational, laid back male
+ kim:'cgSgspJ2msm6clMCkdW9',        // Jessica — playful American female
+ // Adult IUL
+ patel:'Xb7hH8MSUJpSbSDYk0k2',     // Alice — clear, engaging educator
+ nguyen:'IKne3meq5aSn9XLyUdCD',     // Charlie — confident, energetic
+ wright:'JBFqnCBsd6RMkjVDRZzb'      // George — warm, captivating male
+};
+
+function getElevenLabsKey(){return localStorage.getItem('dc_elevenlabs_key')||''}
+function setElevenLabsKey(k){localStorage.setItem('dc_elevenlabs_key',k)}
+function isVoiceMode(){return localStorage.getItem('dc_voice_mode')==='true'&&getElevenLabsKey()}
+function setVoiceMode(on){localStorage.setItem('dc_voice_mode',on?'true':'false')}
+
+// Play audio from ElevenLabs TTS
+var currentAudio=null;
+function speakText(text,personaId){
+ var key=getElevenLabsKey();
+ if(!key) return Promise.resolve();
+ var voiceId=PERSONA_VOICES[personaId]||'EXAVITQu4vr4xnSDxMaL'; // fallback to Sarah
+
+ return fetch(ELEVENLABS_URL+voiceId,{
+  method:'POST',
+  headers:{
+   'Content-Type':'application/json',
+   'xi-api-key':key
+  },
+  body:JSON.stringify({
+   text:text,
+   model_id:ELEVENLABS_MODEL,
+   voice_settings:{stability:0.5,similarity_boost:0.75,style:0.3}
+  })
+ }).then(function(r){
+  if(!r.ok) throw new Error('ElevenLabs error: '+r.status);
+  return r.blob();
+ }).then(function(blob){
+  var url=URL.createObjectURL(blob);
+  if(currentAudio){currentAudio.pause();currentAudio=null}
+  currentAudio=new Audio(url);
+  return currentAudio.play();
+ }).catch(function(e){
+  console.error('Voice error:',e);
+ });
+}
+
+// Speech recognition for mic input
+var voiceRec=null;
+function startMicInput(){
+ var SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRec){
+  showToast('Speech recognition not supported in this browser');
+  return;
+ }
+
+ var micBtn=$1('#micBtn');
+ if(micBtn){micBtn.style.background='var(--red)';micBtn.style.color='#fff'}
+
+ voiceRec=new SpeechRec();
+ voiceRec.lang='en-US';
+ voiceRec.interimResults=false;
+ voiceRec.continuous=false;
+ voiceRec.maxAlternatives=1;
+
+ voiceRec.onresult=function(e){
+  var transcript=e.results[0][0].transcript;
+  var ta=$1('#chatInput');
+  if(ta) ta.value=transcript;
+  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+  // Auto-send after voice input
+  sendMessage();
+ };
+
+ voiceRec.onerror=function(e){
+  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+  if(e.error==='not-allowed') showToast('Microphone access denied');
+ };
+
+ voiceRec.onend=function(){
+  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+ };
+
+ try{
+  voiceRec.start();
+  showToast('Listening...',2000);
+ }catch(e){
+  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+  showToast('Could not start microphone');
+ }
+}
+
 function getScriptForCategory(cat){
  if(cat==='life') return {stages:LIFE_SCRIPT_STAGES,curveballs:LIFE_CURVEBALLS};
  if(cat==='conversion') return {stages:CONVERSION_SCRIPT_STAGES,curveballs:CONVERSION_CURVEBALLS};
@@ -1440,6 +1559,7 @@ function startSession(personaId){
  }
  renderPractice();
  setTimeout(scrollChatBottom,100);
+ if(isVoiceMode()) speakText(firstMsg,persona.id);
 }
 
 function endSession(){
@@ -1534,12 +1654,14 @@ function handleAgentMessage(text){
    activeSession.phaseVisited[4]=true;
    renderChat();
    scrollChatBottom();
+   if(isVoiceMode()) speakText(commitMsg,activeSession.persona.id);
    setTimeout(endSession,1000);
   } else {
    var nextNode=activeSession.tree[bestBranch.nextNode];
    if(nextNode){
     activeSession.currentNode=bestBranch.nextNode;
     activeSession.transcript.push({role:'client',text:nextNode.clientMsg,phase:nextNode.phase});
+    if(isVoiceMode()) speakText(nextNode.clientMsg,activeSession.persona.id);
    }
    renderChat();
    scrollChatBottom();
@@ -1596,6 +1718,7 @@ function handleAPIResponse(agentText){
   activeSession.transcript.push({role:'client',text:reply});
   renderChat();
   scrollChatBottom();
+  if(isVoiceMode()) speakText(reply,activeSession.persona.id);
   if(isComplete) setTimeout(endSession,1500);
  }).catch(function(err){
   activeSession.typing=false;
@@ -1768,6 +1891,7 @@ function handleScriptResponse(agentText){
   activeSession.transcript.push({role:'client',text:reply});
   renderChat();
   scrollChatBottom();
+  if(isVoiceMode()) speakText(reply,activeSession.persona.id);
   if(isComplete) setTimeout(endSession,1500);
  }).catch(function(err){
   activeSession.typing=false;
@@ -2338,8 +2462,12 @@ function renderChatView(){
  // Session bar
  h+='<div class="session-bar">';
  h+='<div>'+p.avatar+' <b>'+p.name+'</b> <span class="badge badge-'+(p.difficulty==='easy'?'grn':p.difficulty==='medium'?'amb':'red')+'" style="margin-left:4px">'+p.difficulty+'</span></div>';
+ h+='<div style="display:flex;align-items:center;gap:10px">';
+ if(getElevenLabsKey()){
+  h+='<label class="voice-toggle"><input type="checkbox" '+(isVoiceMode()?'checked':'')+' onchange="setVoiceMode(this.checked);renderChat()"> &#x1F50A; Voice</label>';
+ }
  h+='<div class="timer" id="sessionTimer">'+fmtTime(sessionSeconds)+'</div>';
- h+='</div>';
+ h+='</div></div>';
 
  // Chat container
  h+='<div class="chat-wrapper">';
@@ -2362,7 +2490,12 @@ function renderChatView(){
 
  // Input bar
  h+='<div class="chat-input-bar">';
- h+='<textarea id="chatInput" placeholder="Type your response..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
+ if(isVoiceMode()){
+  h+='<button class="mic-btn" id="micBtn" onclick="startMicInput()"'+(activeSession.typing?' disabled':'')+'>&#x1F3A4;</button>';
+  h+='<textarea id="chatInput" placeholder="Tap mic or type..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
+ } else {
+  h+='<textarea id="chatInput" placeholder="Type your response..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
+ }
  h+='<button class="send-btn" onclick="sendMessage()"'+(activeSession.typing?' disabled':'')+'>Send</button>';
  h+='<button class="end-btn" onclick="endSession()">End</button>';
  h+='</div></div>';
@@ -2766,6 +2899,19 @@ function renderSettings(){
  h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Enables Claude AI client mode. Costs ~$0.01-0.03 per session. Key stays in your browser only.</div>';
  h+='</div></div>';
 
+ // ElevenLabs Voice
+ h+='<div class="card"><h3>&#x1F50A; Voice Mode (ElevenLabs)</h3>';
+ h+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Enable realistic AI voices for client personas. Each persona has a unique voice. Starter plan: ~$5/month for daily practice.</div>';
+ h+='<div class="form-group"><label>ElevenLabs API Key <span class="api-status '+(getElevenLabsKey()?'unk':'err')+'" id="elApiStatusDot"></span></label>';
+ h+='<div style="display:flex;gap:6px"><input type="password" id="elApiKeyInput" value="'+(getElevenLabsKey()||'')+'" placeholder="sk_...">';
+ h+='<button class="btn btn-sm btn-pri" onclick="saveElApiKey()">Save</button>';
+ h+='<button class="btn btn-sm btn-outline" onclick="testElApiKey()">Test</button></div>';
+ h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Get your key at <a href="https://elevenlabs.io" target="_blank" style="color:var(--pri)">elevenlabs.io</a> → Developers → API Keys</div>';
+ h+='</div>';
+ h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px">';
+ h+='<label class="voice-toggle"><input type="checkbox" '+(isVoiceMode()?'checked':'')+' onchange="setVoiceMode(this.checked)"> Enable Voice Mode</label>';
+ h+='</div></div>';
+
  // Preferences
  h+='<div class="card"><h3>Practice Preferences</h3>';
  h+='<div class="form-group"><label>Default Difficulty</label>';
@@ -2827,6 +2973,44 @@ function saveApiKey(){
  setApiKey(key.trim());
  showToast(key?'API key saved':'API key cleared');
  renderSettings();
+}
+
+function saveElApiKey(){
+ var key=($1('#elApiKeyInput')||{}).value||'';
+ setElevenLabsKey(key.trim());
+ showToast(key?'ElevenLabs key saved':'ElevenLabs key cleared');
+}
+
+function testElApiKey(){
+ var key=getElevenLabsKey();
+ if(!key){showToast('No ElevenLabs key configured');return}
+ showToast('Testing voice...');
+ fetch(ELEVENLABS_URL+'EXAVITQu4vr4xnSDxMaL',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','xi-api-key':key},
+  body:JSON.stringify({text:'Hello, this is a test.',model_id:ELEVENLABS_MODEL,voice_settings:{stability:0.5,similarity_boost:0.75}})
+ }).then(function(r){
+  var dot=$1('#elApiStatusDot');
+  if(r.ok){
+   if(dot) dot.className='api-status ok';
+   return r.blob();
+  } else {
+   if(dot) dot.className='api-status err';
+   showToast('ElevenLabs error: '+r.status);
+   throw new Error('fail');
+  }
+ }).then(function(blob){
+  var url=URL.createObjectURL(blob);
+  var audio=new Audio(url);
+  audio.play();
+  showToast('Voice connected! Playing test...');
+ }).catch(function(e){
+  if(e.message!=='fail'){
+   var dot=$1('#elApiStatusDot');
+   if(dot) dot.className='api-status err';
+   showToast('Connection failed');
+  }
+ });
 }
 
 function testApiKey(){
