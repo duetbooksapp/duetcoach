@@ -1743,10 +1743,23 @@ function startSession(personaId){
 function endSession(){
  if(!activeSession) return;
  clearInterval(sessionTimer);
+ // Stop current audio playback
+ if(currentAudio){try{currentAudio.pause()}catch(e){}}
+ currentAudio=null;
  // Stop recording and save audio
  if(isRecording){
+  var timeout=setTimeout(function(){
+   // Safety: if stopSessionRecording hangs, proceed anyway
+   isRecording=false;
+   runScoring();
+  },3000);
   stopSessionRecording().then(function(audioData){
+   clearTimeout(timeout);
    if(audioData) activeSession.recordingData=audioData;
+   runScoring();
+  }).catch(function(){
+   clearTimeout(timeout);
+   isRecording=false;
    runScoring();
   });
  } else {
@@ -1756,6 +1769,12 @@ function endSession(){
 
 function runScoring(){
  if(!activeSession) return;
+ // Stop any pending typing state
+ activeSession.typing=false;
+ // Cancel any pending speech recognition
+ if(voiceRec){try{voiceRec.stop()}catch(e){}}
+ micHeld=false;
+
  if(activeSession.mode==='script'){
   scoreScriptSession();
  } else if(activeSession.mode==='api'){
