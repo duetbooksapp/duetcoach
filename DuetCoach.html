@@ -559,7 +559,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:false, iul:false, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, iul:false, banking:false};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -600,6 +600,60 @@ var SCRIPT_STAGES=[
   {id:26,desc:'Why do you feel it is though? (they defend it)',keywords:['why do you','why is that','what makes you','tell me why']},
   {id:27,desc:'Next steps: allocate + paperwork',keywords:['allocate','paperwork','started','next step','proceed','how much','get going','appropriate']}
  ]}
+];
+
+// ── Life Insurance Script Framework (24 Checkpoints) ──
+var LIFE_SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'AAA context opener — not just towing',keywords:['aaa','trip-tik','towing','auto club','member']},
+  {id:2,desc:'Confirm they came in for final expense',keywords:['final expense','life insurance','came in','looking at','options']},
+  {id:3,desc:'Lower status — just seeing what you\'re eligible for',keywords:['eligible','qualify','final say','my job','see if']},
+  {id:4,desc:'Ask: basic funeral or leave extra for kids?',keywords:['funeral','cremation','basic','extra','kids','grandkids','leave behind']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:5,desc:'Confirm no current life insurance',keywords:['any life insurance','coverage','in place','currently have']},
+  {id:6,desc:'What do you have to cover funeral/medical bills?',keywords:['savings','assets','cover','funeral','medical','bills','in place']},
+  {id:7,desc:'Who would meet with the funeral director?',keywords:['who','funeral director','responsible','person','family','plan','pay']},
+  {id:8,desc:'Funeral directors play off emotions',keywords:['emotions','expensive','casket','service','play off','funeral director']},
+  {id:9,desc:'Would child have to scrounge money or get a loan?',keywords:['scrounge','loan','interest','pocket','pay','forced','money together']},
+  {id:10,desc:'If approved today — what would that do for you?',keywords:['approved','today','wouldn\'t have to stress','grieving','what would that','personally']},
+  {id:11,desc:'What happens if you walk out without coverage?',keywords:['walk out','without','pass away','sooner','weeks','months','what happens']},
+  {id:12,desc:'Do you want them to go through that?',keywords:['want them','go through','have to','didn\'t have to']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:13,desc:'Summarize: want kids protected + no coverage',keywords:['you said','you told me','based on what','kids don\'t have to','no coverage']},
+  {id:14,desc:'Acknowledge the worry/burden',keywords:['worried','burden','stressed','concerned','making you feel']},
+  {id:15,desc:'I have an option that fits',keywords:['option','fit','work for you','exactly what','looking for']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:16,desc:'Name it: state-regulated Final Expense policy',keywords:['final expense','state-regulated','policy','state regulated']},
+  {id:17,desc:'Cost is locked in — no rate hikes',keywords:['locked in','consistent','rate hikes','stays the same','never have to worry','cost']},
+  {id:18,desc:'Check for agreement',keywords:['does that make sense','make sense','follow','understand']},
+  {id:19,desc:'Present 3 options (High/Medium/Low)',keywords:['three','options','15,000','10,000','5,000','per month','option']},
+  {id:20,desc:'Guide to middle option',keywords:['middle','most','clients','covers','funeral','inflation','lean towards']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:21,desc:'Could this be the answer to take burden off kids?',keywords:['answer','burden','kids','take','off']},
+  {id:22,desc:'Why do you feel it is though?',keywords:['why do you','why is that','tell me why','feel it is']},
+  {id:23,desc:'Assume the application — get medically approved',keywords:['medically','approved','first step','application','state','see if']},
+  {id:24,desc:'Start collecting info',keywords:['first name','spelled','correct','middle initial','pulled up','computer']}
+ ]}
+];
+
+// ── Life Insurance Curveballs ──
+var LIFE_CURVEBALLS=[
+ {type:'tangent',trigger:'You know, my wife passed away two years ago and the funeral cost us almost $12,000. I still have nightmares about that bill.',recovery:['sorry','hear that','understand','exactly why','that\'s why','protect']},
+ {type:'tangent',trigger:'Speaking of AAA, can you also help me with my car insurance? I think I\'m paying too much.',recovery:['separate','focus','life','what we were','come back to','let me']},
+ {type:'tangent',trigger:'My doctor says I need to lose 30 pounds. Do you think that\'ll affect my eligibility?',recovery:['health','questions','application','we\'ll see','let\'s focus','cross that bridge']},
+ {type:'tangent',trigger:'I saw those Colonial Penn commercials with the $9.95 plan. Is yours better than that?',recovery:['different','state-regulated','locked in','compare','what makes ours','guaranteed']},
+ {type:'emotional',trigger:'I really don\'t like talking about this. It makes me uncomfortable thinking about my own funeral.',recovery:['understand','uncomfortable','hard','important','family','quick','simple']},
+ {type:'emotional',trigger:'Are you telling me I need to do this right now? I feel like I\'m being pressured.',recovery:['no pressure','your decision','up to you','just want to make sure','information','whenever you\'re ready']},
+ {type:'emotional',trigger:'What happens to the money if I don\'t die for another 20 years? Am I just throwing money away?',recovery:['locked in','value','whole life','never expires','beneficiaries','guaranteed']},
+ {type:'objection',trigger:'My kids are doing well financially. They can handle it.',recovery:['glad','doing well','but','burden','grieving','wouldn\'t you rather','still']},
+ {type:'objection',trigger:'Can\'t I just pre-pay the funeral home directly? Cut out the middleman.',recovery:['pre-pay','option','but','locked in','inflation','what if','move','change']},
+ {type:'objection',trigger:'My church said they\'d help with the funeral costs.',recovery:['wonderful','church','but','full amount','guarantee','count on','how much']},
+ {type:'objection',trigger:'What if I outlive the policy? Does it just go away?',recovery:['whole life','never expires','permanent','as long as','premiums','locked','guaranteed']},
+ {type:'objection',trigger:'I need to talk to my daughter about this first before I sign anything.',recovery:['absolutely','smart','daughter','bring her','information','no rush','together']}
 ];
 
 // Curveball triggers — injected randomly during script mode
@@ -931,7 +985,9 @@ function startSession(personaId){
   startTime:new Date().toISOString(),
   apiMessages:[],
   // Script training mode extras
-  scriptCheckpoints:SCRIPT_STAGES.reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
+  scriptStages:persona.category==='life'?LIFE_SCRIPT_STAGES:SCRIPT_STAGES,
+  scriptCurveballs:persona.category==='life'?LIFE_CURVEBALLS:CURVEBALLS,
+  scriptCheckpoints:(persona.category==='life'?LIFE_SCRIPT_STAGES:SCRIPT_STAGES).reduce(function(a,s){s.checkpoints.forEach(function(c){a[c.id]=false});return a},{}),
   scriptRecoveries:[],
   curveBallsThrown:0,
   curveBallsRecovered:0,
@@ -948,6 +1004,8 @@ function startSession(personaId){
   firstMsg='Hi, I\'m '+persona.name.split(' ')[0]+'. I saw your CD rates advertised and I want to open one. I have about '+
    (persona.id==='margaret'?'$150,000':persona.id==='torres'?'$250,000':'$200,000')+
    ' that I want to put somewhere safe.';
+ } else if(mode==='script'&&persona.category==='life'){
+  firstMsg='Hi there, I\'m '+persona.name.split(' ')[0]+'. I\'m a AAA member and I heard you all offer some kind of life insurance or funeral coverage? I don\'t really have anything in place right now and I figured I should probably look into it.';
  } else {
   firstMsg=tree[0].clientMsg;
  }
@@ -1133,7 +1191,8 @@ function handleScriptResponse(agentText){
  // Check which script checkpoints this message hits
  var lower=agentText.toLowerCase();
  var hitsThisMsg=0;
- SCRIPT_STAGES.forEach(function(stage){
+ var stages=activeSession.scriptStages||SCRIPT_STAGES;
+ stages.forEach(function(stage){
   stage.checkpoints.forEach(function(cp){
    if(activeSession.scriptCheckpoints[cp.id]) return; // already hit
    var matched=cp.keywords.filter(function(kw){return lower.indexOf(kw)>=0}).length;
@@ -1177,7 +1236,7 @@ function handleScriptResponse(agentText){
 
  var curveBallInstruction='';
  if(throwCurveball){
-  var available=CURVEBALLS.filter(function(c,i){return true}); // all available
+  var available=(activeSession.scriptCurveballs||CURVEBALLS).filter(function(c,i){return true});
   var cb=available[Math.floor(Math.random()*available.length)];
   curveBallInstruction='\n\nIMPORTANT FOR THIS RESPONSE: You must go OFF TOPIC. Instead of responding naturally to the agent, say something like: "'+cb.trigger+'" — This is a tangent/distraction. Stay in character but pull the conversation away from the sales script. The agent needs to practice getting back on track. After the agent responds, return to being a normal client responding to their guidance.';
   activeSession.lastCurveball=turnCount;
@@ -1185,9 +1244,25 @@ function handleScriptResponse(agentText){
   activeSession.curveBallsThrown++;
  }
 
- var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client who came into an AAA branch to open a CD.\n\n'
+ var scenarioText;
+ if(p.category==='life'){
+  scenarioText='SCENARIO: You walked into AAA because you heard they offer some kind of life insurance or funeral coverage. You don\'t have any life insurance. Your main concern is making sure your kids don\'t have to pay for your funeral. You have very little savings — just a small checking account. If asked who would handle funeral arrangements, it would be your daughter/son. You know funeral costs are expensive but haven\'t done anything about it yet.\n\n'
+   +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
+   +'- When asked about coverage: "Not much, just a small checking account"\n'
+   +'- When asked who handles funeral: name a family member\n'
+   +'- When asked about funeral director costs: "She\'d probably have to put it on a credit card"\n'
+   +'- When asked what approval would mean: "It would be a huge relief. I don\'t want to leave her with my bills"\n'
+   +'- When asked about walking out without coverage: "She\'d be in a really tough spot"\n'
+   +'- When asked if you want them to go through that: "No, absolutely not. I need to get this done"\n'
+   +'- When presented options: lean toward the middle option\n'
+   +'- When asked why: "Because it\'s affordable and it makes sure they won\'t have to pay for anything"\n\n';
+ } else {
+  scenarioText='SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n';
+ }
+
+ var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client who came into an AAA branch.\n\n'
   +'BACKGROUND: '+p.situation+'\n\n'
-  +'SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n'
+  +scenarioText
   +'YOUR PERSONALITY: '+p.personality+'. '+(p.personality==='skeptical'?'You push back on claims and want proof.':p.personality==='analytical'?'You want specific numbers and logic.':p.personality==='emotional'?'You respond to stories and feelings about family/security.':'You are generally receptive but need to be convinced.')+'\n\n'
   +'PRIMARY OBJECTION (raise naturally when relevant): '+p.primaryObjection+'\n'
   +'HIDDEN CONCERN: '+p.hiddenObjection+'\n\n'
@@ -1242,7 +1317,7 @@ function scoreScriptSession(){
  });
 
  // Build stage-by-stage breakdown
- var stageResults=SCRIPT_STAGES.map(function(stage){
+ var stageResults=(activeSession.scriptStages||SCRIPT_STAGES).map(function(stage){
   var hit=0;
   stage.checkpoints.forEach(function(cp){
    if(activeSession.scriptCheckpoints[cp.id]) hit++;
@@ -1277,7 +1352,7 @@ function getSequenceScore(){
  var hitOrder=[];
  agentMsgs.forEach(function(msg){
   var lower=msg.text.toLowerCase();
-  SCRIPT_STAGES.forEach(function(stage){
+  (activeSession.scriptStages||SCRIPT_STAGES).forEach(function(stage){
    stage.checkpoints.forEach(function(cp){
     if(hitOrder.indexOf(cp.id)===-1){
      var matched=cp.keywords.filter(function(kw){return lower.indexOf(kw)>=0}).length;
@@ -1714,7 +1789,7 @@ function renderChatView(){
  // Phase tracker — use script stages in script mode, else NEPQ phases
  h+='<div class="phase-tracker">';
  if(activeSession.mode==='script'){
-  SCRIPT_STAGES.forEach(function(stage,i){
+  (activeSession.scriptStages||SCRIPT_STAGES).forEach(function(stage,i){
    if(i>0) h+='<div class="phase-line'+(i>0&&stageComplete(i-1)?' done':'')+'"></div>';
    var done=stageComplete(i);
    var cls=done?'done':(i>0&&stageComplete(i-1)?'current':(i===0?'current':''));
@@ -1773,7 +1848,8 @@ function renderChatView(){
 
 function stageComplete(stageIdx){
  if(!activeSession||!activeSession.scriptCheckpoints) return false;
- var stage=SCRIPT_STAGES[stageIdx];
+ var stages=activeSession.scriptStages||SCRIPT_STAGES;
+ var stage=stages[stageIdx];
  if(!stage) return false;
  return stage.checkpoints.every(function(cp){return activeSession.scriptCheckpoints[cp.id]});
 }
