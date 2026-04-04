@@ -1443,49 +1443,89 @@ function speakText(text,personaId){
  });
 }
 
-// Speech recognition for mic input
+// Speech recognition for mic input (push-to-talk)
 var voiceRec=null;
-function startMicInput(){
- var SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRec){
-  showToast('Speech recognition not supported in this browser');
-  return;
- }
+var micHeld=false;
+var fullTranscript='';
 
+function micDown(){
+ var SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRec){showToast('Speech recognition not supported');return}
+ if(micHeld) return;
+
+ micHeld=true;
+ fullTranscript='';
  var micBtn=$1('#micBtn');
- if(micBtn){micBtn.style.background='var(--red)';micBtn.style.color='#fff'}
+ if(micBtn){micBtn.style.background='var(--red)';micBtn.style.color='#fff';micBtn.textContent='REC'}
+ var ta=$1('#chatInput');
+ if(ta){ta.placeholder='Listening... release to send';ta.value=''}
 
  voiceRec=new SpeechRec();
  voiceRec.lang='en-US';
- voiceRec.interimResults=false;
- voiceRec.continuous=false;
+ voiceRec.interimResults=true;
+ voiceRec.continuous=true;
  voiceRec.maxAlternatives=1;
 
  voiceRec.onresult=function(e){
-  var transcript=e.results[0][0].transcript;
-  var ta=$1('#chatInput');
-  if(ta) ta.value=transcript;
-  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
-  // Auto-send after voice input
-  sendMessage();
+  var interim='';
+  var final='';
+  for(var i=0;i<e.results.length;i++){
+   if(e.results[i].isFinal){
+    final+=e.results[i][0].transcript+' ';
+   } else {
+    interim+=e.results[i][0].transcript;
+   }
+  }
+  fullTranscript=final;
+  if(ta) ta.value=(final+interim).trim();
  };
 
  voiceRec.onerror=function(e){
-  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
   if(e.error==='not-allowed') showToast('Microphone access denied');
  };
 
  voiceRec.onend=function(){
-  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+  // If still held, restart (browser may stop after silence)
+  if(micHeld){
+   try{voiceRec.start()}catch(e){}
+  }
  };
 
  try{
   voiceRec.start();
-  showToast('Listening...',2000);
  }catch(e){
-  if(micBtn){micBtn.style.background='';micBtn.style.color=''}
+  micHeld=false;
+  if(micBtn){micBtn.style.background='';micBtn.style.color='';micBtn.textContent='\u{1F3A4}'}
   showToast('Could not start microphone');
  }
+}
+
+function micUp(){
+ if(!micHeld) return;
+ micHeld=false;
+ var micBtn=$1('#micBtn');
+ if(micBtn){micBtn.style.background='';micBtn.style.color='';micBtn.innerHTML='&#x1F3A4;'}
+ var ta=$1('#chatInput');
+ if(ta) ta.placeholder='Tap mic or type...';
+
+ if(voiceRec){
+  try{voiceRec.stop()}catch(e){}
+  voiceRec=null;
+ }
+
+ // Send whatever was captured
+ var text=(ta?ta.value:'').trim();
+ if(text){
+  sendMessage();
+ }
+}
+
+// Legacy click fallback (for non-touch)
+function startMicInput(){
+ if(micHeld){micUp();return}
+ micDown();
+ // Auto-stop after 15 seconds if they forget
+ setTimeout(function(){if(micHeld) micUp()},15000);
 }
 
 function getScriptForCategory(cat){
@@ -2491,7 +2531,7 @@ function renderChatView(){
  // Input bar
  h+='<div class="chat-input-bar">';
  if(isVoiceMode()){
-  h+='<button class="mic-btn" id="micBtn" onclick="startMicInput()"'+(activeSession.typing?' disabled':'')+'>&#x1F3A4;</button>';
+  h+='<button class="mic-btn" id="micBtn" ontouchstart="event.preventDefault();micDown()" ontouchend="event.preventDefault();micUp()" onmousedown="micDown()" onmouseup="micUp()"'+(activeSession.typing?' disabled':'')+'>&#x1F3A4;</button>';
   h+='<textarea id="chatInput" placeholder="Tap mic or type..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
  } else {
   h+='<textarea id="chatInput" placeholder="Type your response..." rows="1"'+(activeSession.typing?' disabled':'')+'></textarea>';
