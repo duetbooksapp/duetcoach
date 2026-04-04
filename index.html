@@ -14,6 +14,20 @@
 }
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;-webkit-tap-highlight-color:transparent}
 
+/* Login Screen */
+.login-screen{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px;background:linear-gradient(135deg,#534AB7 0%,#1D9E75 100%)}
+.login-card{background:#fff;border-radius:16px;padding:40px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);box-sizing:border-box}
+.login-card h1{color:var(--pri);font-size:28px;margin-bottom:4px;text-align:center}
+.login-card .subtitle{color:var(--muted);font-size:13px;text-align:center;margin-bottom:30px}
+.login-card label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;margin-top:16px;text-transform:uppercase;letter-spacing:.5px}
+.login-card input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit;box-sizing:border-box}
+.login-card input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(83,74,183,.15)}
+.login-btn{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin-top:24px;transition:background .2s}
+.login-btn:hover{background:#4339A0}
+.login-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.login-toggle a{color:var(--pri);cursor:pointer;text-decoration:underline}
+.login-error{color:var(--red);font-size:12px;text-align:center;margin-top:12px;display:none}
+
 /* Top Bar */
 .topbar{background:var(--pri);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar .brand{font-weight:700;font-size:17px;letter-spacing:-.3px}
@@ -192,6 +206,9 @@ td{padding:8px;border-bottom:1px solid var(--border)}
  .stat-grid{grid-template-columns:repeat(2,1fr)}
  .persona-grid{grid-template-columns:1fr}
  .chat-bubble{max-width:88%}
+ .login-screen{padding:12px}
+ .login-card{padding:28px 20px;max-width:100%}
+ .login-card h1{font-size:24px}
  .chat-wrapper{height:calc(100vh - 130px)}
  body.in-session .mobile-nav{display:none}
  body.in-session .panel{padding-bottom:70px}
@@ -206,9 +223,44 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 </head>
 <body>
 
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="loginScreen" class="login-screen">
+ <div class="login-card">
+  <h1>DuetCoach</h1>
+  <div class="subtitle">Sales Roleplay Practice</div>
+
+  <!-- Sign In Mode -->
+  <div id="loginMode">
+   <label>Your Name</label>
+   <input id="login_name" type="text" placeholder="First Last" autocomplete="name">
+   <label>PIN</label>
+   <input id="login_pin" type="password" placeholder="4-6 digit PIN" maxlength="6" inputmode="numeric">
+   <button class="login-btn" onclick="doLogin()">Sign In</button>
+   <div class="login-toggle">New here? <a onclick="toggleLoginMode()">Create Account</a></div>
+   <div id="loginError" class="login-error"></div>
+  </div>
+
+  <!-- Register Mode -->
+  <div id="registerMode" style="display:none">
+   <label>Your Full Name</label>
+   <input id="reg_name" type="text" placeholder="First Last" autocomplete="name">
+   <label>Create a PIN (4-6 digits)</label>
+   <input id="reg_pin" type="password" placeholder="PIN" maxlength="6" inputmode="numeric">
+   <label>Confirm PIN</label>
+   <input id="reg_pin2" type="password" placeholder="Confirm PIN" maxlength="6" inputmode="numeric">
+   <button class="login-btn" onclick="doRegister()">Create Account</button>
+   <div class="login-toggle">Already have an account? <a onclick="toggleLoginMode()">Sign In</a></div>
+   <div id="regError" class="login-error"></div>
+  </div>
+ </div>
+</div>
+
+<!-- ═══ MAIN APP (hidden until login) ═══ -->
+<div id="appShell" style="display:none">
+
 <div class="topbar">
  <div><span class="brand">DuetCoach</span><span class="sub">Sales Practice</span></div>
- <div class="topbar-right" id="streakDisplay"></div>
+ <div class="topbar-right"><span id="agentName"></span> <span id="streakDisplay"></span></div>
 </div>
 
 <div class="tabs">
@@ -235,7 +287,139 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 <div class="modal-overlay" id="scoreModal"><div class="modal" id="scoreModalContent"></div></div>
 <div class="toast-container" id="toastContainer"></div>
 
+</div><!-- /appShell -->
+
 <script>
+// ── Firebase ──
+var FIREBASE_URL='https://duet-crm-default-rtdb.firebaseio.com/duetcoach';
+var currentAgent=null;
+
+// ── SHA-256 Hash ──
+async function sha256(str){
+ var buf=new TextEncoder().encode(str);
+ var hash=await crypto.subtle.digest('SHA-256',buf);
+ return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+}
+
+function makeAgentId(name){
+ return name.trim().toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+
+function fbCoachPath(key){
+ return FIREBASE_URL+'/'+currentAgent.id+'/'+key+'.json';
+}
+
+function fbCoachSave(key,data){
+ return fetch(fbCoachPath(key),{method:'PUT',body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(){});
+}
+
+function fbCoachLoad(key){
+ return fetch(fbCoachPath(key)).then(function(r){return r.json()}).catch(function(){return null});
+}
+
+// ── Authentication ──
+function toggleLoginMode(){
+ var lm=$1('#loginMode'),rm=$1('#registerMode');
+ if(lm.style.display==='none'){lm.style.display='block';rm.style.display='none'}
+ else{lm.style.display='none';rm.style.display='block'}
+ $1('#loginError').style.display='none';
+ $1('#regError').style.display='none';
+}
+
+async function doRegister(){
+ var name=$1('#reg_name').value.trim();
+ var pin=$1('#reg_pin').value.trim();
+ var pin2=$1('#reg_pin2').value.trim();
+ var errEl=$1('#regError');
+
+ if(!name||name.split(' ').length<2){errEl.textContent='Please enter your full name (first and last)';errEl.style.display='block';return}
+ if(!pin||pin.length<4){errEl.textContent='PIN must be at least 4 digits';errEl.style.display='block';return}
+ if(pin!==pin2){errEl.textContent='PINs do not match';errEl.style.display='block';return}
+
+ var agentId=makeAgentId(name);
+ try{
+  var existing=await fetch(FIREBASE_URL+'/'+agentId+'/profile.json').then(function(r){return r.json()});
+  if(existing&&existing.name){errEl.textContent='An account with that name already exists. Please sign in.';errEl.style.display='block';return}
+ }catch(e){}
+
+ var pinHash=await sha256(pin);
+ var profile={name:name,pin:pinHash,created:new Date().toISOString()};
+ await fetch(FIREBASE_URL+'/'+agentId+'/profile.json',{method:'PUT',body:JSON.stringify(profile)});
+
+ currentAgent={id:agentId,name:name};
+ sessionStorage.setItem('dc_agent',JSON.stringify(currentAgent));
+
+ var remembered=JSON.parse(localStorage.getItem('dc_remembered_agents')||'[]');
+ if(!remembered.find(function(a){return a.id===agentId})){
+  remembered.push({id:agentId,name:name});
+  localStorage.setItem('dc_remembered_agents',JSON.stringify(remembered));
+ }
+
+ enterApp();
+ showToast('Welcome to DuetCoach, '+name.split(' ')[0]+'!');
+}
+
+async function doLogin(){
+ var name=$1('#login_name').value.trim();
+ var pin=$1('#login_pin').value.trim();
+ var errEl=$1('#loginError');
+
+ if(!name){errEl.textContent='Please enter your name';errEl.style.display='block';return}
+ if(!pin){errEl.textContent='Please enter your PIN';errEl.style.display='block';return}
+
+ var agentId=makeAgentId(name);
+ try{
+  var profile=await fetch(FIREBASE_URL+'/'+agentId+'/profile.json').then(function(r){return r.json()});
+  if(!profile||!profile.name){errEl.textContent='No account found. Check your name or create a new account.';errEl.style.display='block';return}
+
+  var pinHash=await sha256(pin);
+  if(pinHash!==profile.pin){errEl.textContent='Incorrect PIN. Please try again.';errEl.style.display='block';return}
+
+  currentAgent={id:agentId,name:profile.name};
+  sessionStorage.setItem('dc_agent',JSON.stringify(currentAgent));
+
+  var remembered=JSON.parse(localStorage.getItem('dc_remembered_agents')||'[]');
+  if(!remembered.find(function(a){return a.id===agentId})){
+   remembered.push({id:agentId,name:profile.name});
+   localStorage.setItem('dc_remembered_agents',JSON.stringify(remembered));
+  }
+
+  // Load cloud data
+  await loadCloudData();
+  showToast('Welcome back, '+profile.name.split(' ')[0]+'!');
+  enterApp();
+ }catch(e){
+  errEl.textContent='Connection error. Please try again.';
+  errEl.style.display='block';
+ }
+}
+
+async function loadCloudData(){
+ try{
+  var cloudSessions=await fbCoachLoad('sessions');
+  var cloudSettings=await fbCoachLoad('settings');
+  var cloudStreak=await fbCoachLoad('streak');
+  if(cloudSessions) sessions=cloudSessions;
+  if(cloudSettings) settings=Object.assign({},settings,cloudSettings);
+  if(cloudStreak) streak=Object.assign({},streak,cloudStreak);
+ }catch(e){}
+}
+
+function enterApp(){
+ $1('#loginScreen').style.display='none';
+ $1('#appShell').style.display='block';
+ if(currentAgent&&$1('#agentName')) $1('#agentName').textContent=currentAgent.name.split(' ')[0];
+ renderStreakDisplay();
+ renderPractice();
+}
+
+function doLogout(){
+ sessionStorage.removeItem('dc_agent');
+ currentAgent=null;
+ $1('#appShell').style.display='none';
+ $1('#loginScreen').style.display='flex';
+}
+
 // ── Utilities ──
 function $1(s){return document.querySelector(s)}
 function $$(s){return document.querySelectorAll(s)}
@@ -266,9 +450,9 @@ var sessions=loadJSON('db_coach_sessions',[]);
 var settings=loadJSON('db_coach_settings',{difficulty:'all',dailyGoal:1,categories:['annuity','life','iul','banking'],mode:'scripted'});
 var streak=loadJSON('db_coach_streak',{current:0,longest:0,lastDate:null,practiceDates:[]});
 
-function saveSessions(){saveJSON('db_coach_sessions',sessions)}
-function saveSettings(){saveJSON('db_coach_settings',settings)}
-function saveStreak(){saveJSON('db_coach_streak',streak)}
+function saveSessions(){saveJSON('db_coach_sessions',sessions);if(currentAgent)fbCoachSave('sessions',sessions)}
+function saveSettings(){saveJSON('db_coach_settings',settings);if(currentAgent)fbCoachSave('settings',settings)}
+function saveStreak(){saveJSON('db_coach_streak',streak);if(currentAgent)fbCoachSave('streak',streak)}
 function getApiKey(){return localStorage.getItem('db_coach_apikey')||''}
 function setApiKey(k){localStorage.setItem('db_coach_apikey',k)}
 
@@ -1355,6 +1539,13 @@ function renderSettings(){
  h+='<div style="font-size:10px;color:var(--muted);margin-top:8px">Storage: '+(bytes/1024).toFixed(1)+' KB used</div>';
  h+='</div>';
 
+ // Logout
+ h+='<div class="card"><h3>Account</h3>';
+ h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+ h+='<span style="font-size:13px">Signed in as <b>'+(currentAgent?currentAgent.name:'')+'</b></span>';
+ h+='<button class="btn btn-sm btn-red" onclick="doLogout()">Sign Out</button>';
+ h+='</div></div>';
+
  // About
  h+='<div class="card"><h3>About Scoring</h3>';
  h+='<div style="font-size:12px;line-height:1.6;color:var(--muted)">';
@@ -1432,8 +1623,23 @@ function clearAllData(){
 }
 
 // ── Init ──
-renderStreakDisplay();
-renderPractice();
+(function(){
+ var saved=sessionStorage.getItem('dc_agent');
+ if(saved){
+  try{
+   currentAgent=JSON.parse(saved);
+   loadCloudData().then(function(){
+    enterApp();
+   });
+  }catch(e){
+   // bad session, show login
+  }
+ }
+ // Update agent name display
+ if(currentAgent&&$1('#agentName')){
+  $1('#agentName').textContent=currentAgent.name.split(' ')[0];
+ }
+})();
 </script>
 </body>
 </html>
