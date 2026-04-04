@@ -504,7 +504,10 @@ function fmtDateShort(d){var dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getD
 var currentTab=0;
 function showTab(n){
  currentTab=n;
- $$('.panel').forEach(function(p,i){p.classList.toggle('active',i===n)});
+ for(var i=0;i<=4;i++){
+  var panel=$1('#p'+i);
+  if(panel) panel.classList.toggle('active',i===n);
+ }
  $$('.tab').forEach(function(t,i){t.classList.toggle('active',i===n)});
  $$('.mnav').forEach(function(m,i){m.classList.toggle('active',i===n)});
  if(n===0) renderPractice();
