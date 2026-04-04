@@ -198,6 +198,40 @@ table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--border)}
 td{padding:8px;border-bottom:1px solid var(--border)}
 
+/* Team Leaderboard */
+.team-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:8px}
+.team-rank{font-size:16px;font-weight:800;color:var(--muted);width:24px;text-align:center}
+.team-rank.gold{color:#FFD700}
+.team-rank.silver{color:#C0C0C0}
+.team-rank.bronze{color:#CD7F32}
+.team-avatar{width:36px;height:36px;border-radius:50%;background:var(--ptint);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--pri);flex-shrink:0}
+.team-info{flex:1;min-width:0}
+.team-name{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+.team-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.team-streak{text-align:right;flex-shrink:0}
+.team-streak .num{font-size:18px;font-weight:700;color:var(--pri)}
+.team-streak .lbl{font-size:9px;color:var(--muted);text-transform:uppercase}
+.today-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.today-dot.yes{background:var(--grn)}
+.today-dot.no{background:var(--border)}
+
+/* Badges */
+.badge-shelf{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.earned-badge{display:flex;flex-direction:column;align-items:center;width:72px;text-align:center}
+.earned-badge .badge-icon{font-size:28px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--ptint);border-radius:12px;margin-bottom:4px}
+.earned-badge .badge-icon.locked{filter:grayscale(1);opacity:.35}
+.earned-badge .badge-name{font-size:8px;color:var(--muted);font-weight:600;line-height:1.2;text-transform:uppercase;letter-spacing:.3px}
+.earned-badge .badge-name.earned{color:var(--pri)}
+
+/* Weekly Challenge */
+.challenge-card{background:linear-gradient(135deg,var(--ptint),var(--gtint));border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1.5px solid var(--pri)}
+.challenge-card h4{font-size:13px;color:var(--pri);margin-bottom:6px}
+.challenge-card .challenge-desc{font-size:12px;color:var(--txt);line-height:1.5}
+.challenge-progress{display:flex;align-items:center;gap:8px;margin-top:10px}
+.challenge-bar{flex:1;height:6px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden}
+.challenge-fill{height:100%;background:var(--pri);border-radius:3px;transition:width .3s}
+.challenge-pct{font-size:11px;font-weight:700;color:var(--pri)}
+
 /* Responsive */
 @media(max-width:768px){
  .tabs{display:none}
@@ -267,20 +301,23 @@ td{padding:8px;border-bottom:1px solid var(--border)}
  <div class="tab active" onclick="showTab(0)">Practice</div>
  <div class="tab" onclick="showTab(1)">History</div>
  <div class="tab" onclick="showTab(2)">Stats</div>
- <div class="tab" onclick="showTab(3)">Settings</div>
+ <div class="tab" onclick="showTab(3)">Team</div>
+ <div class="tab" onclick="showTab(4)">Settings</div>
 </div>
 
 <div class="panel active" id="p0"></div>
 <div class="panel" id="p1"></div>
 <div class="panel" id="p2"></div>
 <div class="panel" id="p3"></div>
+<div class="panel" id="p4"></div>
 
 <div class="mobile-nav">
  <div class="mobile-nav-inner">
   <button class="mnav active" onclick="showTab(0)"><span class="mnav-icon">&#x1F3AF;</span>Practice</button>
   <button class="mnav" onclick="showTab(1)"><span class="mnav-icon">&#x1F4CB;</span>History</button>
   <button class="mnav" onclick="showTab(2)"><span class="mnav-icon">&#x1F4CA;</span>Stats</button>
-  <button class="mnav" onclick="showTab(3)"><span class="mnav-icon">&#x2699;&#xFE0F;</span>Settings</button>
+  <button class="mnav" onclick="showTab(3)"><span class="mnav-icon">&#x1F3C6;</span>Team</button>
+  <button class="mnav" onclick="showTab(4)"><span class="mnav-icon">&#x2699;&#xFE0F;</span>Settings</button>
  </div>
 </div>
 
@@ -440,7 +477,8 @@ function showTab(n){
  if(n===0) renderPractice();
  if(n===1) renderHistory();
  if(n===2) renderStats();
- if(n===3) renderSettings();
+ if(n===3) renderTeam();
+ if(n===4) renderSettings();
 }
 
 // ── localStorage ──
@@ -1493,6 +1531,167 @@ function renderStats(){
  h+='</div></div>';
 
  $1('#p2').innerHTML=h;
+}
+
+// ── Badge Definitions ──
+var BADGES=[
+ {id:'first_session',icon:'&#x1F31F;',name:'First Steps',desc:'Complete your first session',check:function(s){return s.length>=1}},
+ {id:'streak_3',icon:'&#x1F525;',name:'On Fire',desc:'3-day practice streak',check:function(s,st){return st.current>=3||st.longest>=3}},
+ {id:'streak_7',icon:'&#x1F4AA;',name:'Iron Will',desc:'7-day practice streak',check:function(s,st){return st.current>=7||st.longest>=7}},
+ {id:'streak_14',icon:'&#x1F3C6;',name:'Unstoppable',desc:'14-day practice streak',check:function(s,st){return st.current>=14||st.longest>=14}},
+ {id:'streak_30',icon:'&#x1F451;',name:'Legend',desc:'30-day practice streak',check:function(s,st){return st.current>=30||st.longest>=30}},
+ {id:'score_80',icon:'&#x2B50;',name:'Sharp',desc:'Score 80+ on a session',check:function(s){return s.some(function(x){return x.total>=80})}},
+ {id:'score_90',icon:'&#x1F48E;',name:'Elite',desc:'Score 90+ on a session',check:function(s){return s.some(function(x){return x.total>=90})}},
+ {id:'all_personas',icon:'&#x1F30D;',name:'Well Rounded',desc:'Practice with all 12 personas',check:function(s){var ids={};s.forEach(function(x){ids[x.persona]=true});return Object.keys(ids).length>=12}},
+ {id:'hard_win',icon:'&#x1F94A;',name:'Heavyweight',desc:'Score 75+ on a Hard persona',check:function(s){return s.some(function(x){return x.difficulty==='hard'&&x.total>=75})}},
+ {id:'ten_sessions',icon:'&#x1F3AF;',name:'Dedicated',desc:'Complete 10 sessions',check:function(s){return s.length>=10}},
+ {id:'twentyfive',icon:'&#x1F680;',name:'Committed',desc:'Complete 25 sessions',check:function(s){return s.length>=25}},
+ {id:'fifty',icon:'&#x1F947;',name:'Master',desc:'Complete 50 sessions',check:function(s){return s.length>=50}},
+ {id:'all_cats',icon:'&#x1F4DA;',name:'Full Range',desc:'Practice all 4 categories',check:function(s){var c={};s.forEach(function(x){c[x.category]=true});return Object.keys(c).length>=4}},
+ {id:'api_mode',icon:'&#x1F916;',name:'AI Sparring',desc:'Complete a session in Claude API mode',check:function(s){return s.some(function(x){return x.mode==='api'})}}
+];
+
+// ── Weekly Challenge System ──
+function getWeeklyChallenge(){
+ // Rotate challenges weekly based on week number
+ var now=new Date();
+ var start=new Date(now.getFullYear(),0,1);
+ var weekNum=Math.floor((now-start)/(7*24*60*60*1000));
+ var challenges=[
+  {title:'Hard Mode Week',desc:'Complete 3 sessions with a Hard difficulty persona.',target:3,check:function(s){var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);return s.filter(function(x){return x.difficulty==='hard'&&new Date(x.date)>=weekAgo}).length}},
+  {title:'Consistency Challenge',desc:'Practice every day this week (5 of 7 days).',target:5,check:function(s){var days={};var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);s.forEach(function(x){if(new Date(x.date)>=weekAgo) days[x.date.substring(0,10)]=true});return Object.keys(days).length}},
+  {title:'Category Explorer',desc:'Practice at least one session in each product category.',target:4,check:function(s){var cats={};var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);s.forEach(function(x){if(new Date(x.date)>=weekAgo) cats[x.category]=true});return Object.keys(cats).length}},
+  {title:'Score Crusher',desc:'Get 3 sessions scoring 75 or higher.',target:3,check:function(s){var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);return s.filter(function(x){return x.total>=75&&new Date(x.date)>=weekAgo}).length}},
+  {title:'Marathon Week',desc:'Complete 7 practice sessions this week.',target:7,check:function(s){var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);return s.filter(function(x){return new Date(x.date)>=weekAgo}).length}},
+  {title:'New Faces',desc:'Practice with 3 personas you haven\'t tried before.',target:3,check:function(s){var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);var before={};var thisWeekNew={};s.forEach(function(x){if(new Date(x.date)<weekAgo) before[x.persona]=true});s.forEach(function(x){if(new Date(x.date)>=weekAgo&&!before[x.persona]) thisWeekNew[x.persona]=true});return Object.keys(thisWeekNew).length}},
+  {title:'Objection Master',desc:'Complete 3 CD-to-Annuity sessions (most objection-heavy).',target:3,check:function(s){var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);return s.filter(function(x){return x.category==='annuity'&&new Date(x.date)>=weekAgo}).length}}
+ ];
+ return challenges[weekNum%challenges.length];
+}
+
+// ── Team Tab ──
+async function renderTeam(){
+ var h='';
+
+ // Weekly Challenge
+ var challenge=getWeeklyChallenge();
+ var progress=challenge.check(sessions);
+ var pct=Math.min(100,Math.round(progress/challenge.target*100));
+ var completed=progress>=challenge.target;
+
+ h+='<div class="challenge-card">';
+ h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+ h+='<h4>&#x1F3AF; Weekly Challenge</h4>';
+ if(completed) h+='<span class="badge badge-grn">Complete!</span>';
+ h+='</div>';
+ h+='<div class="challenge-desc">'+challenge.desc+'</div>';
+ h+='<div class="challenge-progress">';
+ h+='<div class="challenge-bar"><div class="challenge-fill" style="width:'+pct+'%"></div></div>';
+ h+='<span class="challenge-pct">'+progress+'/'+challenge.target+'</span>';
+ h+='</div></div>';
+
+ // Team Leaderboard
+ h+='<div class="card"><h3>&#x1F3C6; Team Activity</h3>';
+ h+='<div style="font-size:10px;color:var(--muted);margin-bottom:10px">Ranked by streak consistency</div>';
+
+ // Load all agents from Firebase
+ try{
+  var allAgents=await fetch(FIREBASE_URL+'.json?shallow=true').then(function(r){return r.json()});
+  if(allAgents){
+   var agentIds=Object.keys(allAgents);
+   var teamData=[];
+
+   for(var i=0;i<agentIds.length;i++){
+    var aid=agentIds[i];
+    try{
+     var profile=await fetch(FIREBASE_URL+'/'+aid+'/profile.json').then(function(r){return r.json()});
+     var agentStreak=await fetch(FIREBASE_URL+'/'+aid+'/streak.json').then(function(r){return r.json()});
+     var agentSessions=await fetch(FIREBASE_URL+'/'+aid+'/sessions.json').then(function(r){return r.json()});
+     if(!profile||!profile.name) continue;
+
+     var today=new Date().toISOString().substring(0,10);
+     var practicedToday=agentStreak&&agentStreak.practiceDates&&agentStreak.practiceDates.indexOf(today)>=0;
+     var sessCount=agentSessions?agentSessions.length:0;
+     var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+     var thisWeek=agentSessions?agentSessions.filter(function(s){return new Date(s.date)>=weekAgo}).length:0;
+     var curStreak=(agentStreak&&agentStreak.current)||0;
+     var longestStreak=(agentStreak&&agentStreak.longest)||0;
+
+     teamData.push({
+      id:aid,
+      name:profile.name,
+      streak:curStreak,
+      longest:longestStreak,
+      total:sessCount,
+      thisWeek:thisWeek,
+      practicedToday:practicedToday,
+      isMe:currentAgent&&aid===currentAgent.id
+     });
+    }catch(e){}
+   }
+
+   // Sort by current streak descending, then total sessions
+   teamData.sort(function(a,b){return b.streak-a.streak||b.total-a.total});
+
+   if(teamData.length===0){
+    h+='<div style="text-align:center;color:var(--muted);padding:20px">No team members yet. Share the link to get started!</div>';
+   } else {
+    teamData.forEach(function(t,idx){
+     var rankClass=idx===0?'gold':idx===1?'silver':idx===2?'bronze':'';
+     var initials=t.name.split(' ').map(function(w){return w[0]}).join('').toUpperCase().substring(0,2);
+
+     h+='<div class="team-row'+(t.isMe?' style="border-left:3px solid var(--pri)"':'')+'\">';
+     h+='<div class="team-rank '+rankClass+'">'+(idx+1)+'</div>';
+     h+='<div class="team-avatar">'+initials+'</div>';
+     h+='<div class="team-info">';
+     h+='<div class="team-name">'+t.name+' <span class="today-dot '+(t.practicedToday?'yes':'no')+'" title="'+(t.practicedToday?'Practiced today':'Not yet today')+'"></span>'+(t.isMe?' <span style="font-size:9px;color:var(--muted)">(you)</span>':'')+'</div>';
+     h+='<div class="team-meta">'+t.thisWeek+' this week &middot; '+t.total+' total &middot; Best streak: '+t.longest+'</div>';
+     h+='</div>';
+     h+='<div class="team-streak"><div class="num">'+t.streak+'</div><div class="lbl">day streak</div></div>';
+     h+='</div>';
+    });
+   }
+  } else {
+   h+='<div style="text-align:center;color:var(--muted);padding:20px">No team members yet.</div>';
+  }
+ }catch(e){
+  h+='<div style="text-align:center;color:var(--muted);padding:20px">Could not load team data. Check connection.</div>';
+ }
+ h+='</div>';
+
+ // My Badges
+ h+='<div class="card"><h3>&#x1F396; Your Badges</h3>';
+ h+='<div class="badge-shelf">';
+ var earnedCount=0;
+ BADGES.forEach(function(b){
+  var earned=b.check(sessions,streak);
+  if(earned) earnedCount++;
+  h+='<div class="earned-badge" title="'+b.desc+'">';
+  h+='<div class="badge-icon'+(earned?'':' locked')+'">'+b.icon+'</div>';
+  h+='<div class="badge-name'+(earned?' earned':'')+'">'+b.name+'</div>';
+  h+='</div>';
+ });
+ h+='</div>';
+ h+='<div style="font-size:10px;color:var(--muted);margin-top:8px">'+earnedCount+' of '+BADGES.length+' earned</div>';
+ h+='</div>';
+
+ // Share link
+ h+='<div class="card" style="text-align:center">';
+ h+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Invite your team to practice together</div>';
+ h+='<button class="btn btn-sm btn-pri" onclick="copyShareLink()">Copy Invite Link</button>';
+ h+='</div>';
+
+ $1('#p3').innerHTML=h;
+}
+
+function copyShareLink(){
+ var url='https://duetbooksapp.github.io/duetcoach';
+ if(navigator.clipboard){
+  navigator.clipboard.writeText(url).then(function(){showToast('Link copied!')});
+ } else {
+  var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+  showToast('Link copied!');
+ }
 }
 
 // ── Settings Tab ──
