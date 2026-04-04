@@ -1561,17 +1561,10 @@ function speakText(text,personaId){
   return r.blob();
  }).then(function(blob){
   var url=URL.createObjectURL(blob);
-  if(currentAudio){currentAudio.pause();currentAudio=null}
+  if(currentAudio){try{currentAudio.pause()}catch(e){}}
   currentAudio=new Audio(url);
-  currentAudio.crossOrigin='anonymous';
-  // Route through recorder if recording
-  if(isRecording&&audioContext&&mixedDest){
-   try{
-    var source=audioContext.createMediaElementSource(currentAudio);
-    source.connect(mixedDest);
-    source.connect(audioContext.destination);
-   }catch(e){/* already connected, play normally */}
-  }
+  // Just play directly — don't route through AudioContext
+  // Recording will capture via mic feedback if needed
   return currentAudio.play();
  }).catch(function(e){
   console.error('Voice error:',e);
