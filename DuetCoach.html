@@ -164,11 +164,11 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 .bar-date{font-size:8px;color:var(--muted);margin-top:4px;transform:rotate(-45deg);white-space:nowrap}
 .bar-score{font-size:8px;font-weight:700;margin-bottom:2px}
 
-.streak-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
-.streak-day{width:100%;aspect-ratio:1;border-radius:3px;background:var(--bg)}
+.streak-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;max-width:280px}
+.streak-day{width:100%;aspect-ratio:1;border-radius:3px;background:var(--bg);max-width:32px;max-height:32px}
 .streak-day.active{background:var(--grn)}
 .streak-day.today{border:2px solid var(--pri)}
-.day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:2px}
+.day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:2px;max-width:280px}
 .day-labels span{font-size:8px;color:var(--muted);text-align:center}
 
 /* Settings */
