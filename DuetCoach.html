@@ -559,7 +559,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, iul:false, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, kidsiul:true, iul:false, banking:false};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -772,6 +772,64 @@ var LTC_CURVEBALLS=[
  {type:'objection',trigger:'What if the insurance company goes bankrupt? Then I lose everything.',recovery:['securian','rated','AM Best','A+','financial strength','regulated','state','guarantee']}
 ];
 
+// ── Kids IUL Script Framework (28 Checkpoints) ──
+var KIDSIUL_SCRIPT_STAGES=[
+ {name:'Connection',color:'#3498db',checkpoints:[
+  {id:1,desc:'Reference the booked appointment',keywords:['calendar','booked','appointment','getting back','time']},
+  {id:2,desc:'Ask: specific goals or exploring options?',keywords:['specific','looking for','options','start','kids','children']},
+  {id:3,desc:'Lower status — just seeing eligibility',keywords:['final say','my job','eligible','age and health','see what']},
+  {id:4,desc:'Ask permission to ask questions',keywords:['opposed','mind if','few questions','in place','good fit']}
+ ]},
+ {name:'Engagement',color:'#e67e22',checkpoints:[
+  {id:5,desc:'Walk me through what you have in place for the child',keywords:['walk me through','in place','financial','future','saving','529','account']},
+  {id:6,desc:'How long have you been saving?',keywords:['how long','been doing','since','years','born']},
+  {id:7,desc:'Do you like the returns on the bank account?',keywords:['returns','earning','nothing','inflation','getting','like','bank']},
+  {id:8,desc:'Impact on giving them a head start?',keywords:['head start','impact','secure','substantial','18','20','grow']},
+  {id:9,desc:'Why IUL vs 529 college plan?',keywords:['529','college','plan','iul','why','rationale','reason','instead','flexible','house','business']},
+  {id:10,desc:'Before today, looking for flexible growth?',keywords:['before','looking','strategies','flexibility','research','doing']},
+  {id:11,desc:'Paint the picture: tax-free, protected, any use',keywords:['tax-free','protected','market','crashes','college','house','business','anything','down payment','loans']},
+  {id:12,desc:'As a parent, what would that do for you?',keywords:['as a parent','personally','what would','mean','you','knowing']},
+  {id:13,desc:'What if inflation eats savings and child starts with debt?',keywords:['what happens','inflation','eaten','student loan','debt','18','behind','bank account']},
+  {id:14,desc:'Do you want to put them in that situation?',keywords:['want to put','situation','didn\'t have to','do you want']}
+ ]},
+ {name:'Transition',color:'#1abc9c',checkpoints:[
+  {id:15,desc:'Summarize: flexible nest egg + money stuck in bank',keywords:['based on what','you said','you told me','nest egg','stuck','bank','losing','inflation']},
+  {id:16,desc:'Acknowledge worry about debt/struggle',keywords:['worried','debt','struggle','concerned','starting','behind']},
+  {id:17,desc:'I have an option that fits',keywords:['option','fit','work for you','exactly','looking for']}
+ ]},
+ {name:'Presentation',color:'#c0392b',checkpoints:[
+  {id:18,desc:'Name it: Indexed Universal Life / IUL',keywords:['indexed universal life','iul','policy']},
+  {id:19,desc:'Structured for max cash accumulation — minimum death benefit',keywords:['cash','accumulation','minimum','death benefit','every dollar','growth','structured']},
+  {id:20,desc:'Growth tied to market index — upside',keywords:['market','index','tied','grows','up','returns','upside']},
+  {id:21,desc:'0% floor — no losses in crashes',keywords:['0%','floor','crash','lose','dime','protect','doesn\'t lose']},
+  {id:22,desc:'Unlike 529: tax-free loans for anything',keywords:['unlike','529','tax-free','loan','college','house','business','flexible','anything']},
+  {id:23,desc:'Money stays and keeps compounding',keywords:['stays','compounding','original','keeps','uninterrupted','account']},
+  {id:24,desc:'Does that make sense?',keywords:['does that make sense','make sense','follow','with me']}
+ ]},
+ {name:'Commitment',color:'var(--grn)',checkpoints:[
+  {id:25,desc:'Could this give them that head start?',keywords:['feel','head start','answer','right','could be']},
+  {id:26,desc:'Why do you feel like it is though?',keywords:['why do you','why is that','feel like it is','tell me why']},
+  {id:27,desc:'Next steps: application to lock in insurability while young',keywords:['application','insurability','young','healthy','lock in','approved','submit']},
+  {id:28,desc:'Start collecting info',keywords:['first name','spelled','correct','pulled up','computer']}
+ ]}
+];
+
+// ── Kids IUL Curveballs ──
+var KIDSIUL_CURVEBALLS=[
+ {type:'tangent',trigger:'What about a Roth IRA for kids? My coworker said that\'s the way to go.',recovery:['roth','option','but','income','restrictions','iul','flexible','tax-free','compare']},
+ {type:'tangent',trigger:'My parents just did a regular savings account for me and I turned out fine.',recovery:['different time','inflation','rates','today','dollar','less','head start','imagine']},
+ {type:'tangent',trigger:'I was also thinking about buying some stocks in his name. Maybe some Disney or Apple.',recovery:['stocks','option','but','market','risk','crash','lose','iul','floor','0%','protected']},
+ {type:'tangent',trigger:'My wife wants to just save for a 529 plan. She\'s pretty set on that.',recovery:['529','great','but','only college','what if','house','business','flexible','restrictions','penalty']},
+ {type:'emotional',trigger:'I just don\'t want my son to go through what I went through. I had nothing when I turned 18.',recovery:['understand','exactly','that\'s why','head start','different','set him up','won\'t have to']},
+ {type:'emotional',trigger:'This seems like a lot of money to put away for a kid. We have other bills too.',recovery:['understand','budget','but','small amount','grows','time','18 years','compound','even $100']},
+ {type:'emotional',trigger:'What if we can\'t keep up with the payments? Life happens.',recovery:['flexible','premiums','adjust','skip','policy','won\'t lapse','options','built in']},
+ {type:'objection',trigger:'I read online that IULs are a scam and the fees eat up all the returns.',recovery:['read','online','variable','different','structured','properly','cash accumulation','minimum','death benefit','fees']},
+ {type:'objection',trigger:'Why can\'t I just open a custodial brokerage account? No fees.',recovery:['brokerage','taxable','capital gains','market risk','crash','iul','tax-free','0% floor','protected']},
+ {type:'objection',trigger:'He\'s only 4 years old. We have plenty of time to figure this out later.',recovery:['time','exactly','advantage','younger','cheaper','compound','14 years','locked in','healthy','insurability']},
+ {type:'objection',trigger:'Let me talk to my financial advisor first.',recovery:['absolutely','advisor','but','ask them','tax-free','0% floor','flexibility','numbers','information','take this']},
+ {type:'objection',trigger:'What\'s the actual rate of return? I need real numbers, not hypotheticals.',recovery:['historical','index','cap','floor','0%','illustration','conservative','guaranteed','show you','actual']}
+];
+
 // Curveball triggers — injected randomly during script mode
 var CURVEBALLS=[
  // Tangents
@@ -906,6 +964,28 @@ var PERSONAS=[
   resistTriggers:'Implying he\'s old or frail, or that he can\'t handle things himself',
   successClose:'Agrees to apply after you show the cash indemnity gives HIM control of his care decisions'},
 
+ // Kids IUL
+ {id:'jess',name:'Jessica & Ryan Moore',age:34,avatar:'&#x1F469;',category:'kidsiul',difficulty:'easy',
+  personality:'agreeable',situation:'Young couple, son Ethan age 4. Putting $100/month in a savings account since he was born. Heard about IUL from a friend. Want flexibility — not sure if Ethan will go to college. Combined income $110K.',
+  primaryObjection:'think-about-it',hiddenObjection:'Worried about affording premiums alongside daycare costs',
+  openTriggers:'When you show how $100/month grows tax-free over 14 years',
+  resistTriggers:'Too much jargon or complexity',
+  successClose:'Opens IUL for Ethan funded at $150/month'},
+
+ {id:'andre',name:'Andre Washington',age:38,avatar:'&#x1F468;',category:'kidsiul',difficulty:'medium',
+  personality:'analytical',situation:'Single dad, daughter Maya age 7. Makes $85K. Has a 529 plan but worried Maya might not go to college — she wants to be an entrepreneur. Wants real numbers, not sales pitches. Has done online research and is skeptical of IUL fees.',
+  primaryObjection:'fees',hiddenObjection:'Had a bad experience with whole life insurance his parents bought — felt ripped off',
+  openTriggers:'When you show the structured-for-cash approach with minimum death benefit',
+  resistTriggers:'Glossing over fees or not explaining the actual mechanics',
+  successClose:'Moves $200/month from 529 to IUL for Maya'},
+
+ {id:'kim',name:'Kim & David Park',age:31,avatar:'&#x1F469;',category:'kidsiul',difficulty:'hard',
+  personality:'skeptical',situation:'Dual income couple ($180K), twin daughters age 2. Kim\'s coworker told her IULs are scams. David wants to just buy index funds in a custodial account. They came in to be convinced otherwise. Very research-driven.',
+  primaryObjection:'just-buy-index-funds',hiddenObjection:'Kim\'s coworker lost money in a variable UL and warned her off all insurance products',
+  openTriggers:'When you clearly distinguish IUL from variable UL and show the 0% floor',
+  resistTriggers:'Any perceived similarity to variable life insurance or pushy tactics',
+  successClose:'Opens IUL for one twin as a test, keeps index fund for the other to compare'},
+
  // Banking/CD
  {id:'ellen',name:'Ellen Park',age:75,avatar:'&#x1F475;',category:'banking',difficulty:'easy',
   personality:'agreeable',situation:'Widow, $80K in savings account earning 0.5%. Doesn\'t know about CDs. Very loyal to her local bank branch. Fixed income from Social Security + small pension.',
@@ -945,6 +1025,7 @@ var OBJECTIONS={
  'online-rates':{label:'Online banks pay more',idealResponse:'Some do — and if rate is the only factor, that makes sense. But with $300K, you\'re over the FDIC limit at any single bank. Here we can structure across products to keep everything fully insured. Also, try getting someone on the phone at an online bank when you need something.',keywords:['fdic','limit','$250','over','structure','insured','phone','someone','service']},
  'lock-up-money':{label:'Don\'t want to lock up money',idealResponse:'I hear that. A 12-month CD means your money is only committed for one year, and the rate is significantly better than savings. If something comes up, the early withdrawal penalty is just a few months of interest — not the principal.',keywords:['12 month','one year','committed','better than savings','penalty','few months','interest','principal safe']},
  'shop-around':{label:'Let me shop around first',idealResponse:'Absolutely, you should compare. But here\'s what changes while you shop: your age. Every month you wait, rates go up because you\'re older. And if anything changes with your health, you might not qualify at all. The rate I can lock in today is based on your current age and health — that\'s the best it will ever be.',keywords:['compare','shop','but','age','health','today','locked in','changes','waiting','best','qualify','rate']},
+ 'just-buy-index-funds':{label:'Just buy index funds',idealResponse:'Index funds are great for long-term growth. But here\'s the difference — if the market drops 30% when your daughter is 17, her college fund drops 30%. With the IUL, the 0% floor means she doesn\'t lose a dime. AND the growth is tax-free, unlike a taxable brokerage account where you\'re paying capital gains. It\'s not replacing index funds — it\'s a different bucket with different rules.',keywords:['index','but','0%','floor','drop','30%','crash','tax-free','capital gains','taxable','bucket','different','rules','doesn\'t lose']},
  'self-insure':{label:'I\'ll just save the money myself',idealResponse:'Let\'s do the math. At $629/month, it takes you over 26 years to save $200,000. If you need care in 5 years, you\'d have about $38,000 saved. A nursing home costs $8,000-$10,000 a month. You\'d burn through your savings in 4-5 months. The policy gives you $200,000 in protection from day one.',keywords:['math','save','years','$200,000','nursing home','costs','burn','day one','compare','decades']},
  'never-need-it':{label:'I\'ll never need long-term care',idealResponse:'I hope you\'re right. But the statistics say 70% of people over 65 will need some form of long-term care. And here\'s the thing — even if you never use the LTC benefit, the $200,000 death benefit still goes to your family tax-free. Either way, the money goes somewhere useful. It\'s not wasted.',keywords:['70%','statistics','hope','but','death benefit','family','tax-free','either way','not wasted','still']},
  'cancel-everything':{label:'Just cancel it all',idealResponse:'I get the frustration with the rate hike. But think about this — you got this policy because of your family. Your mortgage, your wife, your kid. If you cancel and something happens, what does your family do tomorrow? The answer isn\'t to drop coverage — it\'s to fix the structure so you\'re not getting gouged every 5 years.',keywords:['family','mortgage','wife','kid','cancel','drop','coverage','fix','structure','gouged','something happens']},
@@ -1037,7 +1118,10 @@ function getOpening(p){
   davis:'Yeah, so I got this letter saying my rates are going up. Honestly, I\'m thinking about just canceling the whole thing. I don\'t even know if I need life insurance. What are you going to tell me that\'s different?',
   dorothy:'Hi there. My friend Betty just went into a nursing home and it really shook me. I realized I don\'t have anything set up if that happened to me. I just want to make sure my daughter doesn\'t get stuck with the bills.',
   gene:'We\'ve been talking about this for a while. My mother had Alzheimer\'s for 8 years and it wiped out everything she had. I don\'t want that to happen to our kids. Patricia thinks we\'re overthinking it, but I want to see the numbers.',
-  howard:'Yeah, so my buddy Jim sent me in here. He said you helped him with something. Look, I\'m going to be honest — I don\'t think I need long-term care insurance. I\'m healthy, I\'m still working. But Jim insisted, so here I am.'
+  howard:'Yeah, so my buddy Jim sent me in here. He said you helped him with something. Look, I\'m going to be honest — I don\'t think I need long-term care insurance. I\'m healthy, I\'m still working. But Jim insisted, so here I am.',
+  jess:'Hi! We booked this appointment because our friend told us about setting up an IUL for her daughter. We have a 4-year-old son, Ethan, and we\'ve been putting $100 a month into a savings account for him but it\'s barely earning anything. We just want to give him a head start.',
+  andre:'Hey, so I booked this to learn about IULs for my daughter Maya. She\'s 7. I have a 529 for her right now but honestly, I\'m not sure she\'ll go to college — she already talks about starting her own business. I need something more flexible. But I\'ve read mixed things about IULs online.',
+  kim:'We\'re here because David\'s coworker keeps talking about this IUL thing for kids. I\'ll be honest, my friend at work had a variable universal life policy and got burned, so I\'m skeptical. We have twin daughters, they\'re 2. Convince us why we shouldn\'t just buy index funds in a custodial account.'
  };
  return openers[p.id]||'Hi, I\'m here to discuss my financial options.';
 }
@@ -1061,7 +1145,10 @@ function getSituationResponse(p){
   davis:'I have a $500,000 term. Got it when my son was born, so about 3 years ago. I\'m self-employed, run a contracting business. My wife doesn\'t work — she stays home with our boy. I just went with the 5-year because it was cheap.',
   dorothy:'I don\'t really have anything. Just Medicare and my pension — about $2,400 a month. I have maybe $15,000 in savings. My daughter Sarah lives about 20 minutes away, she works full time as a teacher. I definitely don\'t have $200,000 saved up for a nursing home.',
   gene:'We have about $180,000 in savings between us. I have Medicare and Patricia has Medicare too. No long-term care policy. We thought about it years ago but never pulled the trigger. My mother\'s care cost the family over $300,000 over 8 years. It was devastating.',
-  howard:'I\'ve got Medicare, that\'s about it. I make about $95K at my job. I have maybe $60,000 in a 401K. I don\'t have kids who are around much — they\'re both out of state. I figure if something happens, I\'ll figure it out. I always have.'
+  howard:'I\'ve got Medicare, that\'s about it. I make about $95K at my job. I have maybe $60,000 in a 401K. I don\'t have kids who are around much — they\'re both out of state. I figure if something happens, I\'ll figure it out. I always have.',
+  jess:'We just have a regular savings account at Chase. We put in $100 a month since he was born — so about 4 years. It\'s got maybe $5,000 in there. The interest rate is terrible, like 0.3%. We want it to actually grow into something he can use.',
+  andre:'I have a 529 with about $12,000 in it. Been contributing $200 a month for 3 years. The returns have been OK but I\'m worried about the restrictions. If Maya doesn\'t go to college, I get hit with penalties pulling it out. That doesn\'t sit right with me.',
+  kim:'We each put $250 a month into a custodial brokerage at Fidelity for each twin. It\'s in a total market index fund. We\'ve been doing it since they were born. So about $6,000 each so far. The returns are fine when the market is up, but last year we lost about 15% and it freaked me out.'
  };
  return resps[p.id]||'I have some savings I\'m looking to do something with.';
 }
@@ -1085,7 +1172,10 @@ function getProblemResponse(p){
   davis:'Honestly? It makes me want to just cancel the whole thing. I\'m paying for something I\'ll probably never use, and now they want more money? My business is slow right now and every dollar counts.',
   dorothy:'It scares me, honestly. I watched Betty go from living on her own to needing full-time care in about 6 months. Her daughter had to quit her job to help. I could never do that to Sarah — she has her own family to worry about.',
   gene:'Patricia thinks we\'re fine because we have savings. But I know the numbers. Mom\'s care was $8,000 a month and she was in the facility for 8 years. We don\'t have $800,000. Not even close. I\'m tired of worrying about it.',
-  howard:'Look, I appreciate the concern, but I\'m not the kind of person who plans for getting sick. I\'m 63 and I can still outwork guys half my age. What makes you think I\'m going to need a nursing home?'
+  howard:'Look, I appreciate the concern, but I\'m not the kind of person who plans for getting sick. I\'m 63 and I can still outwork guys half my age. What makes you think I\'m going to need a nursing home?',
+  jess:'No, the bank returns are basically nothing. With inflation, we\'re probably losing money. I want Ethan to have real money when he turns 18 — enough for college or a down payment on a house. $5,000 isn\'t going to cut it.',
+  andre:'The 529 is my biggest frustration. Maya is already talking about wanting to open a bakery someday. If I tell her she can only use her money for college, that defeats the whole purpose. I need flexibility. But I also don\'t want to lose what I\'ve saved.',
+  kim:'We lost 15% last year in the brokerage. David says just wait it out, the market always comes back. But what if it crashes when the girls are 17 and we need the money? That\'s my biggest fear. Also, we\'re paying capital gains taxes on the dividends every year which is annoying.'
  };
  return resps[p.id]||'Hmm, I hadn\'t really thought about it that way.';
 }
@@ -1109,7 +1199,10 @@ function getSolutionResponse(p){
   davis:'Look, I hear what you\'re saying about my family. And yeah, if something happened to me, my wife and kid would be in trouble. The mortgage alone is $2,800 a month. But I just don\'t trust insurance companies. They always find a way to take your money.',
   dorothy:'$4,100 a month? And I could use it to pay Sarah to take care of me instead of a stranger? That would be incredible. She wouldn\'t have to quit her teaching job — she could help me on her schedule. That changes everything.',
   gene:'OK, so let me make sure I understand the math. $200,000 in protection from day one. $4,167 a month if either of us needs care. And we can use it however we want — even to pay our kids to help. Patricia, are you hearing this? This is exactly what I\'ve been worried about.',
-  howard:'Alright, I hear you on the statistics. And I guess... yeah, I don\'t want to end up like some of the guys I know, depending on everyone else. If this thing lets me stay in control of how I get taken care of — pay for what I want, where I want — that\'s different than what I thought.'
+  howard:'Alright, I hear you on the statistics. And I guess... yeah, I don\'t want to end up like some of the guys I know, depending on everyone else. If this thing lets me stay in control of how I get taken care of — pay for what I want, where I want — that\'s different than what I thought.',
+  jess:'Tax-free growth AND he can\'t lose money if the market crashes? And he can use it for anything — not just college? Ryan, are you hearing this? This is exactly what we\'ve been looking for. How much would we need to put in?',
+  andre:'OK, so the minimum death benefit structure means most of my premium goes to cash growth, not insurance cost. And the 0% floor means Maya can\'t lose her gains. And she can take a tax-free loan for her bakery someday. That\'s genuinely different from the 529. Show me an illustration.',
+  kim:'Wait — so you\'re saying the 0% floor means if the market drops 30%, the girls\' money stays flat instead of losing 30%? And the growth is tax-free unlike our Fidelity account? OK, that\'s actually a meaningful difference. But what about the fees? What does this actually cost compared to what we\'re doing?'
  };
  return resps[p.id]||'That\'s interesting. Tell me more about how that would work.';
 }
@@ -1133,7 +1226,10 @@ function getPostObjectionResponse(p){
   davis:'Alright, fine. The 20-year fixed term makes sense. It\'s about the same monthly cost and at least I know it won\'t go up. But if the rate is higher than what I\'m paying now, I\'m walking. Show me the numbers.',
   dorothy:'I think this is the right thing to do. The $629 a month is tight on my budget, but knowing Sarah won\'t have to go through what Betty\'s daughter went through... I need to do this. Let\'s get started.',
   gene:'Patricia and I talked it over right here. We both want to apply. I\'ve been carrying this worry since what happened with my mother. Knowing our kids won\'t have to go through that — it\'s worth every penny. Let\'s do it.',
-  howard:'OK. You got me. The control part is what sold me. I don\'t want someone else deciding where I go or how I get taken care of. If this gives me $4,100 a month to call the shots, I\'m in. What do you need from me?'
+  howard:'OK. You got me. The control part is what sold me. I don\'t want someone else deciding where I go or how I get taken care of. If this gives me $4,100 a month to call the shots, I\'m in. What do you need from me?',
+  jess:'This is perfect. Let\'s get Ethan set up. Can we start with $150 a month? That\'s what we can comfortably do right now. I love that we\'re locking in his insurability while he\'s young and healthy.',
+  andre:'I\'m sold on moving the $200 a month from the 529 into this. The flexibility is worth it. Maya deserves options, not restrictions. Let\'s get the application going.',
+  kim:'OK, here\'s what I want to do. Let\'s open an IUL for one twin, and keep the index fund for the other. In 5 years we\'ll compare. If the IUL performs like you\'re showing me, we\'ll move both. Fair enough?'
  };
  return resps[p.id]||'OK, I\'m listening. What would you recommend?';
 }
@@ -1157,7 +1253,10 @@ function getCommitmentResponse(p){
   davis:'Because I can\'t afford to NOT have coverage with a wife and a 3-year-old. And at least with the fixed rate I know exactly what I\'m paying. No more surprises. Let\'s get it done before I change my mind.',
   dorothy:'Because I saw what happened to Betty\'s family when she didn\'t have a plan. Sarah is everything to me, and I refuse to put that on her. The $4,100 a month means she can still live her life while knowing I\'m taken care of.',
   gene:'Because I lived through it with my mother. I know exactly how bad it gets. $180,000 in savings sounds like a lot until you\'re spending $8,000 a month. This policy solves the problem Patricia and I have been avoiding for years.',
-  howard:'Because I want to be in control. Period. If something happens to me, I want to decide where I go and who takes care of me. The cash indemnity means nobody else is making those decisions for me. That\'s worth $629 a month.'
+  howard:'Because I want to be in control. Period. If something happens to me, I want to decide where I go and who takes care of me. The cash indemnity means nobody else is making those decisions for me. That\'s worth $629 a month.',
+  jess:'Because Ethan deserves a real head start, not a savings account that loses to inflation. The tax-free growth and the fact that he can use it for anything — college, a house, a business — that\'s exactly what we wanted. And he can\'t lose money if the market crashes. It\'s a no-brainer.',
+  andre:'Because Maya needs flexibility, not restrictions. The 529 was handcuffs. This lets her money grow tax-free and she can use it for her bakery or whatever she dreams up. And the 0% floor means I sleep at night knowing her money is safe.',
+  kim:'Because we just proved the index fund has a flaw — no floor protection and it\'s taxable. If the IUL gives us tax-free growth with downside protection, that\'s objectively better for money we need at a specific time. Let\'s test it and let the numbers speak.'
  };
  return resps[p.id]||'OK, let\'s move forward. What do I need to do?';
 }
@@ -1216,6 +1315,7 @@ function getScriptForCategory(cat){
  if(cat==='life') return {stages:LIFE_SCRIPT_STAGES,curveballs:LIFE_CURVEBALLS};
  if(cat==='conversion') return {stages:CONVERSION_SCRIPT_STAGES,curveballs:CONVERSION_CURVEBALLS};
  if(cat==='ltc') return {stages:LTC_SCRIPT_STAGES,curveballs:LTC_CURVEBALLS};
+ if(cat==='kidsiul') return {stages:KIDSIUL_SCRIPT_STAGES,curveballs:KIDSIUL_CURVEBALLS};
  return {stages:SCRIPT_STAGES,curveballs:CURVEBALLS};
 }
 
@@ -1266,6 +1366,8 @@ function startSession(personaId){
  } else if(mode==='script'&&persona.category==='conversion'){
   firstMsg='Hello? Yeah, this is '+persona.name.split(' ')[0]+'. I got a card in the mail about my life insurance rates going up. I\'ve got a 5-year term policy and it looks like it\'s about to renew at a higher rate. I wanted to see what my options are.';
  } else if(mode==='script'&&persona.category==='ltc'){
+  firstMsg=getOpening(persona);
+ } else if(mode==='script'&&persona.category==='kidsiul'){
   firstMsg=getOpening(persona);
  } else {
   firstMsg=tree[0].clientMsg;
@@ -1517,6 +1619,17 @@ function handleScriptResponse(agentText){
    +'- When asked if you want them to go through that: "No, absolutely not. I need to get this done"\n'
    +'- When presented options: lean toward the middle option\n'
    +'- When asked why: "Because it\'s affordable and it makes sure they won\'t have to pay for anything"\n\n';
+ } else if(p.category==='kidsiul'){
+  scenarioText='SCENARIO: You are a parent looking into wealth-building and life insurance options for your young child. You may currently have a savings account, 529 plan, or custodial brokerage. You want your child to have a financial head start but are unsure about the best vehicle.\n\n'
+   +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
+   +'- When asked about current savings: describe what you\'re doing (savings acct, 529, brokerage)\n'
+   +'- When asked about returns: dissatisfied — bank earns nothing, or worried about market risk\n'
+   +'- When asked why not 529: concerned about restrictions, child may not go to college\n'
+   +'- When shown tax-free growth + 0% floor + flexibility: very interested, ask about cost\n'
+   +'- As a parent, what it means: emotional — "I don\'t want them to struggle like I did"\n'
+   +'- When asked about consequences of doing nothing: worried about debt/inflation\n'
+   +'- When presented the IUL structure: impressed by cash accumulation approach\n'
+   +'- When asked why they want it: defend the tax-free growth, flexibility, and protection\n\n';
  } else if(p.category==='ltc'){
   scenarioText='SCENARIO: You came into the AAA office to ask about long-term care and life insurance options. You don\'t have any LTC coverage. You may have Medicare but you don\'t realize it doesn\'t cover long-term care. You don\'t have $150-200K saved for a nursing home. Your main concern is not being a burden to your family.\n\n'
    +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
@@ -2018,6 +2131,7 @@ function renderScenarioPicker(){
  h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.life?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'life\')">Life Insurance'+(isScript?(SCRIPT_AVAILABLE.life?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='conversion'?' active':'')+'" onclick="setFilter(\'cat\',\'conversion\')">Life Conversion'+(isScript?(SCRIPT_AVAILABLE.conversion?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='ltc'?' active':'')+'" onclick="setFilter(\'cat\',\'ltc\')">Long-Term Care'+(isScript?(SCRIPT_AVAILABLE.ltc?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill'+(filterCat==='kidsiul'?' active':'')+'" onclick="setFilter(\'cat\',\'kidsiul\')">Kids IUL'+(isScript?(SCRIPT_AVAILABLE.kidsiul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.iul?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  if(!isScript){
   h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
@@ -2048,8 +2162,8 @@ function renderScenarioPicker(){
 
  h+='<div class="persona-grid">';
  filtered.forEach(function(p){
-  var catColors={annuity:'grn',life:'red',conversion:'pri',ltc:'amb',iul:'amb',banking:'pri'};
-  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',iul:'IUL',banking:'Banking/CD'};
+  var catColors={annuity:'grn',life:'red',conversion:'pri',ltc:'amb',kidsiul:'grn',iul:'amb',banking:'pri'};
+  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD'};
   var bestScore=0;
   sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
 
@@ -2303,9 +2417,9 @@ function renderStats(){
 
  // Category breakdown
  h+='<div class="card"><h3>By Category</h3>';
- var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',iul:'IUL',banking:'Banking/CD'};
- var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',iul:'var(--amb)',banking:'var(--pri)'};
- ['annuity','life','conversion','ltc','iul','banking'].forEach(function(cat){
+ var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD'};
+ var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',kidsiul:'var(--grn)',iul:'var(--amb)',banking:'var(--pri)'};
+ ['annuity','life','conversion','ltc','kidsiul','iul','banking'].forEach(function(cat){
   var catSessions=sessions.filter(function(s){return s.category===cat});
   if(catSessions.length===0) return;
   var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
