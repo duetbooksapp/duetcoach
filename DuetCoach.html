@@ -558,6 +558,9 @@ var OPEN_QUESTION_WORDS=['how','what','tell me','walk me through','describe','ex
 var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate','absolutely','of course','great point','good question','completely','fair enough','no pressure','take your time'];
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
+// ── Script Availability — which categories have scripts built ──
+var SCRIPT_AVAILABLE={annuity:true, life:false, iul:false, banking:false};
+
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
  {name:'Connection',color:'#3498db',checkpoints:[
@@ -1651,10 +1654,13 @@ function renderScenarioPicker(){
  // Category filter
  h+='<div style="margin-bottom:6px;font-size:11px;color:var(--muted);font-weight:600">CATEGORY</div>';
  h+='<div class="pill-row">';
- h+='<span class="pill cat-annuity'+(filterCat==='annuity'?' active':'')+'" onclick="setFilter(\'cat\',\'annuity\')">CD-to-Annuity</span>';
- h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'" onclick="setFilter(\'cat\',\'life\')">Life Insurance</span>';
- h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'" onclick="setFilter(\'cat\',\'iul\')">IUL</span>';
- h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
+ var isScript=settings.mode==='script';
+ h+='<span class="pill cat-annuity'+(filterCat==='annuity'?' active':'')+'" onclick="setFilter(\'cat\',\'annuity\')">CD-to-Annuity'+(isScript?' &#x2705;':'')+'</span>';
+ h+='<span class="pill cat-life'+(filterCat==='life'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.life?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'life\')">Life Insurance'+(isScript?(SCRIPT_AVAILABLE.life?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'"'+(isScript&&!SCRIPT_AVAILABLE.iul?' style="opacity:.4"':'')+' onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ if(!isScript){
+  h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
+ }
  h+='</div>';
 
  // Difficulty filter
@@ -1665,10 +1671,17 @@ function renderScenarioPicker(){
  h+='<span class="pill'+(filterDiff==='hard'?' active':'')+'" onclick="setFilter(\'diff\',\'hard\')">Hard</span>';
  h+='</div>';
 
+ // In Script Training mode, only show categories with scripts available
+ if(settings.mode==='script'){
+  h+='<div style="font-size:11px;color:var(--grn);margin-bottom:12px;font-weight:600">Script Training shows categories with scripts loaded. Provide scripts for Life and IUL to unlock those.</div>';
+ }
+
  // Persona cards
  var filtered=PERSONAS.filter(function(p){
   if(filterCat!=='all'&&p.category!==filterCat) return false;
   if(filterDiff!=='all'&&p.difficulty!==filterDiff) return false;
+  // In script mode, only show categories with scripts
+  if(settings.mode==='script'&&!SCRIPT_AVAILABLE[p.category]) return false;
   return true;
  });
 
