@@ -232,6 +232,30 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 .challenge-fill{height:100%;background:var(--pri);border-radius:3px;transition:width .3s}
 .challenge-pct{font-size:11px;font-weight:700;color:var(--pri)}
 
+/* Onboarding Overlay */
+.onboarding-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:2000;padding:20px}
+.onboarding-overlay.show{display:flex}
+.onboarding-card{max-width:520px;width:100%;background:#fff;border-radius:16px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;max-height:90vh;overflow-y:auto}
+.onboarding-card h2{color:var(--pri);font-size:22px;margin-bottom:6px}
+.onboarding-card .ob-subtitle{color:var(--muted);font-size:13px;margin-bottom:24px}
+.ob-progress{display:flex;justify-content:center;gap:8px;margin-bottom:24px}
+.ob-dot{width:10px;height:10px;border-radius:50%;background:#E0E0E0;transition:all .3s}
+.ob-dot.active{background:var(--pri);transform:scale(1.2)}
+.ob-dot.done{background:var(--grn)}
+.ob-step{min-height:180px;text-align:left;padding:0 4px}
+.ob-step p{font-size:13px;line-height:1.6;color:var(--txt);margin-bottom:10px}
+.ob-step .ob-highlight{background:var(--ptint);border-radius:var(--radius);padding:12px 16px;margin:12px 0;font-size:12px}
+.ob-step input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;margin-top:6px;box-sizing:border-box}
+.ob-actions{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0}
+.ob-actions .btn{min-width:100px}
+.ob-skip{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.ob-skip:hover{color:var(--pri)}
+.ob-mode-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px;margin:8px 0;text-align:left;cursor:pointer;transition:border-color .2s}
+.ob-mode-card:hover{border-color:var(--pri)}
+.ob-mode-card.selected{border-color:var(--pri);background:var(--ptint)}
+.ob-mode-card h4{font-size:13px;margin-bottom:4px}
+.ob-mode-card p{font-size:11px;color:var(--muted);margin:0;line-height:1.4}
+
 /* Responsive */
 @media(max-width:768px){
  .tabs{display:none}
@@ -243,6 +267,10 @@ td{padding:8px;border-bottom:1px solid var(--border)}
  .login-screen{padding:12px}
  .login-card{padding:28px 20px;max-width:100%}
  .login-card h1{font-size:24px}
+ .onboarding-card{padding:24px 16px;max-width:95%}
+ .ob-step{min-height:120px}
+ .ob-step p{font-size:12px}
+ .onboarding-card h2{font-size:18px}
  .chat-wrapper{height:calc(100vh - 130px)}
  body.in-session .mobile-nav{display:none}
  body.in-session .panel{padding-bottom:70px}
@@ -324,6 +352,11 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 <div class="modal-overlay" id="scoreModal"><div class="modal" id="scoreModalContent"></div></div>
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Onboarding Overlay -->
+<div class="onboarding-overlay" id="onboardingOverlay">
+ <div class="onboarding-card" id="onboardingCard"></div>
+</div>
+
 </div><!-- /appShell -->
 
 <script>
@@ -393,7 +426,7 @@ async function doRegister(){
  }
 
  enterApp();
- showToast('Welcome to DuetCoach, '+name.split(' ')[0]+'!');
+ showOnboarding();
 }
 
 async function doLogin(){
@@ -1736,6 +1769,7 @@ function renderSettings(){
  h+='</div>';
  var bytes=JSON.stringify(sessions).length+JSON.stringify(settings).length+JSON.stringify(streak).length;
  h+='<div style="font-size:10px;color:var(--muted);margin-top:8px">Storage: '+(bytes/1024).toFixed(1)+' KB used</div>';
+ h+='<div style="margin-top:12px"><a style="font-size:11px;color:var(--pri);cursor:pointer;text-decoration:underline" onclick="localStorage.removeItem(\'dc_onboarding_done_\'+currentAgent.id);showOnboarding()">Re-run setup wizard</a></div>';
  h+='</div>';
 
  // Logout
@@ -1819,6 +1853,178 @@ function clearAllData(){
  renderStreakDisplay();
  showTab(currentTab);
  showToast('All data cleared');
+}
+
+// ── Onboarding ──
+var onboardingStep=0;
+
+var ONBOARDING_STEPS=[
+ {title:'Welcome to DuetCoach',content:function(){
+  return '<p>Your daily sales practice tool — built to sharpen your skills in 10-15 minutes a day.</p>'
+   +'<div class="ob-highlight">'
+   +'<strong>Why practice daily?</strong><br>'
+   +'<ul style="text-align:left;margin:8px 0 0 16px;font-size:12px;line-height:1.8">'
+   +'<li><strong>Confidence</strong> — Walk into every client meeting prepared</li>'
+   +'<li><strong>Consistency</strong> — Build a repeatable process that closes</li>'
+   +'<li><strong>Objection handling</strong> — Practice tough pushback in a safe space</li>'
+   +'<li><strong>Accountability</strong> — Track your streak and compete with your team</li>'
+   +'</ul></div>';
+ }},
+ {title:'How It Works',content:function(){
+  return '<p>You\'ll practice with 12 realistic client personas across 4 product categories:</p>'
+   +'<div class="ob-highlight">'
+   +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;font-size:12px">'
+   +'<div><span style="color:var(--grn);font-weight:700">&#x25CF;</span> CD-to-Annuity</div>'
+   +'<div><span style="color:var(--red);font-weight:700">&#x25CF;</span> Life Insurance</div>'
+   +'<div><span style="color:var(--amb);font-weight:700">&#x25CF;</span> IUL / Universal Life</div>'
+   +'<div><span style="color:var(--pri);font-weight:700">&#x25CF;</span> Banking / CD</div>'
+   +'</div></div>'
+   +'<p>Each persona has a backstory, personality, and real objections they\'ll raise. Your job: guide the conversation through <strong>5 sales framework phases</strong> and close.</p>'
+   +'<div class="ob-highlight">'
+   +'<strong>The 5 Phases:</strong><br>'
+   +'<div style="text-align:left;font-size:12px;line-height:1.8;margin-top:4px">'
+   +'1. <strong>Situation</strong> — Understand their current position<br>'
+   +'2. <strong>Problem Awareness</strong> — Surface pain points<br>'
+   +'3. <strong>Solution Awareness</strong> — Introduce alternatives naturally<br>'
+   +'4. <strong>Consequence</strong> — Cost of inaction<br>'
+   +'5. <strong>Commitment</strong> — Close with an assumptive choice'
+   +'</div></div>';
+ }},
+ {title:'Choose Your Mode',content:function(){
+  var hasKey=getApiKey()?true:false;
+  return '<p>DuetCoach has two practice modes. You can switch anytime.</p>'
+   +'<div class="ob-mode-card'+(settings.mode==='scripted'?' selected':'')+'" onclick="obSelectMode(\'scripted\')" id="ob_mode_scripted">'
+   +'<h4>&#x1F4DD; Scripted Mode <span class="badge badge-grn" style="font-size:9px">Free</span></h4>'
+   +'<p>Pre-built conversation paths. The client follows a script based on your keywords. Good for learning the framework. No API key needed.</p>'
+   +'</div>'
+   +'<div class="ob-mode-card'+(settings.mode==='api'?' selected':'')+'" onclick="obSelectMode(\'api\')" id="ob_mode_api">'
+   +'<h4>&#x1F916; Claude AI Mode <span class="badge badge-amb" style="font-size:9px">~$0.02/session</span></h4>'
+   +'<p>Claude plays the client in real-time. Fully dynamic — responds to exactly what you say. Feels like a real conversation. Requires an Anthropic API key.</p>'
+   +'</div>'
+   +'<div style="margin-top:16px">'
+   +'<label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px">API Key (optional — can add later in Settings)</label>'
+   +'<input id="ob_apikey" type="password" placeholder="sk-ant-..." value="'+(getApiKey()||'')+'">'
+   +(hasKey?'<div style="color:var(--grn);font-size:11px;margin-top:4px">&#x2713; API key is saved</div>':'')
+   +'<button class="btn btn-grn btn-sm" style="margin-top:8px" onclick="saveObApiKey()">Save Key</button>'
+   +'</div>';
+ }},
+ {title:'Scoring & Badges',content:function(){
+  return '<p>After each session, you\'re scored on <strong>5 dimensions</strong> (20 points each, 100 total):</p>'
+   +'<div class="ob-highlight">'
+   +'<ul style="text-align:left;margin:4px 0 0 16px;font-size:12px;line-height:1.8">'
+   +'<li><strong>Framework Completion</strong> — Did you follow all 5 phases?</li>'
+   +'<li><strong>Question Quality</strong> — Open-ended and client-focused?</li>'
+   +'<li><strong>Objection Handling</strong> — Acknowledged and reframed?</li>'
+   +'<li><strong>Empathy & Rapport</strong> — Active listening?</li>'
+   +'<li><strong>Close Technique</strong> — Assumptive close tied to their timeline?</li>'
+   +'</ul></div>'
+   +'<p><strong>Earn badges</strong> for consistency and achievement:</p>'
+   +'<div class="ob-highlight" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:20px">'
+   +'<span title="First Steps">&#x1F31F;</span>'
+   +'<span title="On Fire (3-day streak)">&#x1F525;</span>'
+   +'<span title="Iron Will (7-day streak)">&#x1F4AA;</span>'
+   +'<span title="Unstoppable (14-day streak)">&#x1F3C6;</span>'
+   +'<span title="Elite (Score 90+)">&#x1F48E;</span>'
+   +'<span title="Heavyweight (Hard mode 75+)">&#x1F94A;</span>'
+   +'<span title="Master (50 sessions)">&#x1F947;</span>'
+   +'</div>';
+ }},
+ {title:'Team & Accountability',content:function(){
+  return '<p>The <strong>Team</strong> tab shows everyone who\'s practicing:</p>'
+   +'<div class="ob-highlight">'
+   +'<ul style="text-align:left;margin:4px 0 0 16px;font-size:12px;line-height:1.8">'
+   +'<li><strong>Green dot</strong> = practiced today</li>'
+   +'<li><strong>Streak counter</strong> = consecutive days practicing</li>'
+   +'<li><strong>Weekly challenges</strong> rotate automatically</li>'
+   +'<li><strong>Scores are private</strong> — only you see yours</li>'
+   +'<li><strong>Effort is public</strong> — streaks and session counts are visible</li>'
+   +'</ul></div>'
+   +'<p>Share this link with your team to get started together:</p>'
+   +'<div class="ob-highlight" style="text-align:center">'
+   +'<code style="font-size:13px;color:var(--pri);word-break:break-all">duetbooksapp.github.io/duetcoach</code>'
+   +'</div>';
+ }},
+ {title:'Ready to Practice!',content:function(){
+  return '<p>You\'re all set. Here\'s how to get the most out of DuetCoach:</p>'
+   +'<div class="ob-highlight">'
+   +'<ul style="text-align:left;margin:4px 0 0 16px;font-size:12px;line-height:1.8">'
+   +'<li><strong>10-15 minutes a day</strong> — one or two sessions</li>'
+   +'<li><strong>Start with Easy</strong> personas to learn the flow</li>'
+   +'<li><strong>Move to Hard</strong> when you\'re scoring 70+ consistently</li>'
+   +'<li><strong>Check your Stats</strong> to find your weakest area</li>'
+   +'<li><strong>Try Claude AI mode</strong> when you want a real challenge</li>'
+   +'</ul></div>'
+   +'<p style="font-weight:600;color:var(--pri)">Tip: The agents who practice daily outsell the ones who don\'t. Build the streak.</p>';
+ }}
+];
+
+function showOnboarding(){
+ if(localStorage.getItem('dc_onboarding_done_'+currentAgent.id)) return;
+ onboardingStep=0;
+ $1('#onboardingOverlay').classList.add('show');
+ renderOnboardingStep();
+}
+
+function renderOnboardingStep(){
+ var step=ONBOARDING_STEPS[onboardingStep];
+ var total=ONBOARDING_STEPS.length;
+ var isFirst=onboardingStep===0;
+ var isLast=onboardingStep===total-1;
+
+ var h='';
+ h+='<div class="ob-progress">';
+ for(var d=0;d<total;d++){
+  var cls=d<onboardingStep?'done':d===onboardingStep?'active':'';
+  h+='<div class="ob-dot '+cls+'"></div>';
+ }
+ h+='</div>';
+
+ h+='<h2>'+step.title+'</h2>';
+ h+='<div class="ob-subtitle">Step '+(onboardingStep+1)+' of '+total+'</div>';
+ h+='<div class="ob-step">'+step.content()+'</div>';
+
+ h+='<div class="ob-actions">';
+ if(isFirst){
+  h+='<span class="ob-skip" onclick="completeOnboarding()">Skip setup</span>';
+ } else {
+  h+='<button class="btn btn-outline" onclick="prevOnboardingStep()">Back</button>';
+ }
+ if(isLast){
+  h+='<button class="btn btn-grn" onclick="completeOnboarding()">Start Practicing</button>';
+ } else {
+  h+='<button class="btn btn-pri" onclick="nextOnboardingStep()">Next</button>';
+ }
+ h+='</div>';
+
+ $1('#onboardingCard').innerHTML=h;
+}
+
+function nextOnboardingStep(){
+ if(onboardingStep<ONBOARDING_STEPS.length-1){onboardingStep++;renderOnboardingStep()}
+}
+function prevOnboardingStep(){
+ if(onboardingStep>0){onboardingStep--;renderOnboardingStep()}
+}
+function completeOnboarding(){
+ localStorage.setItem('dc_onboarding_done_'+currentAgent.id,'true');
+ $1('#onboardingOverlay').classList.remove('show');
+}
+
+function obSelectMode(mode){
+ settings.mode=mode;
+ saveSettings();
+ var s=$1('#ob_mode_scripted'),a=$1('#ob_mode_api');
+ if(s){s.classList.toggle('selected',mode==='scripted')}
+ if(a){a.classList.toggle('selected',mode==='api')}
+}
+
+function saveObApiKey(){
+ var key=($1('#ob_apikey')||{}).value||'';
+ if(key.trim()){
+  setApiKey(key.trim());
+  showToast('API key saved!');
+  renderOnboardingStep();
+ }
 }
 
 // ── Init ──
