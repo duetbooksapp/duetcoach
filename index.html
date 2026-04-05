@@ -566,9 +566,9 @@ var settings=loadJSON('db_coach_settings',{difficulty:'all',dailyGoal:1,categori
 var streak=loadJSON('db_coach_streak',{current:0,longest:0,lastDate:null,practiceDates:[]});
 
 function saveSessions(){
- // Strip recordings from older sessions to save storage (keep last 10)
- var toSave=sessions.map(function(s,i){
-  if(i>=10&&s.recording){var c=Object.assign({},s);delete c.recording;return c}
+ // Strip ALL recording data from storage — recordings are download-only
+ var toSave=sessions.map(function(s){
+  if(s.recording&&s.recording.data){var c=Object.assign({},s);c.recording={size:s.recording.size,type:s.recording.type,available:false};return c}
   return s;
  });
  saveJSON('db_coach_sessions',toSave);
@@ -1766,9 +1766,16 @@ function endSession(){
       var reader=new FileReader();
       reader.onloadend=function(){
        // Save recording to most recent session after scoring already ran
-       if(sessions.length>0&&!sessions[0].recording){
-        sessions[0].recording={data:reader.result,type:blob.type,size:blob.size};
-        saveSessions();
+       // Don't save to localStorage — too large. Offer download instead.
+       if(sessions.length>0){
+        sessions[0].recording={size:blob.size,type:blob.type,available:false};
+        // Auto-download the recording
+        var a=document.createElement('a');
+        a.href=reader.result;
+        var ext=blob.type.indexOf('mp4')>=0?'mp4':'webm';
+        a.download='DuetCoach_'+new Date().toISOString().substring(0,10)+'_recording.'+ext;
+        a.click();
+        showToast('Recording downloaded!');
        }
       };
       reader.readAsDataURL(blob);
@@ -3038,15 +3045,10 @@ function renderHistory(){
    h+='<div class="score-bar"><div class="score-fill" style="width:'+(v/20*100)+'%;background:'+bc+'"></div></div></div>';
   });
   if(s.feedback) h+='<div class="coaching-tip" style="margin-top:8px"><b>Coach:</b> '+s.feedback+'</div>';
-  // Audio playback
+  // Audio recording indicator
   if(s.recording){
-   h+='<div style="margin-top:8px;padding:8px;background:var(--ptint);border-radius:var(--radius)">';
-   h+='<div style="font-size:9px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#x1F3A7; Session Recording</div>';
-   h+='<div style="display:flex;gap:6px;align-items:center">';
-   h+='<audio id="audio_'+idx+'" src="'+s.recording.data+'" style="flex:1;height:32px" controls></audio>';
-   h+='<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();downloadRecording('+idx+')" title="Download">&#x2B07;</button>';
-   h+='</div>';
-   h+='<div style="font-size:9px;color:var(--muted);margin-top:3px">'+(s.recording.size/1024).toFixed(0)+' KB</div>';
+   h+='<div style="margin-top:8px;padding:6px 8px;background:var(--ptint);border-radius:var(--radius);font-size:10px;color:var(--pri)">';
+   h+='&#x1F3A7; Recording was auto-downloaded ('+(s.recording.size/1024).toFixed(0)+' KB)';
    h+='</div>';
   }
 
@@ -3920,6 +3922,19 @@ function saveObApiKey(){
 }
 
 // ── Init ──
+// Clean up any bloated recording data on startup
+(function cleanupStorage(){
+ try{
+  var raw=localStorage.getItem('db_coach_sessions');
+  if(raw&&raw.length>500000){ // over 500KB = recordings are bloating it
+   var s=JSON.parse(raw);
+   s.forEach(function(x){if(x.recording&&x.recording.data) x.recording={size:x.recording.size,type:x.recording.type,available:false}});
+   localStorage.setItem('db_coach_sessions',JSON.stringify(s));
+   sessions=s;
+  }
+ }catch(e){}
+})();
+
 (function(){
  var saved=sessionStorage.getItem('dc_agent');
  if(saved){
