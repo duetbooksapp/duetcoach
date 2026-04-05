@@ -2007,7 +2007,7 @@ function handleScriptResponse(agentText){
 
  // Decide if we throw a curveball
  var throwCurveball=false;
- if(turnCount>2&&turnCount-activeSession.lastCurveball>=3&&!activeSession.inCurveball&&Math.random()<0.3){
+ if(turnCount>1&&turnCount-activeSession.lastCurveball>=2&&!activeSession.inCurveball&&Math.random()<0.4){
   throwCurveball=true;
  }
 
@@ -2151,13 +2151,20 @@ function scoreScriptSession(){
  var pctCheckpoints=checkpointsDone/totalCheckpoints;
  var recoveryAvg=activeSession.scriptRecoveries.length>0?
   activeSession.scriptRecoveries.reduce(function(a,b){return a+b},0)/activeSession.scriptRecoveries.length:0;
- var recoveryScore=activeSession.curveBallsThrown===0?20:
-  Math.min(20,Math.round((activeSession.curveBallsRecovered/activeSession.curveBallsThrown)*20*(recoveryAvg<=3?1:recoveryAvg<=5?0.7:0.4)));
 
- // Score calculation
+ // Curveball scoring — NO free points when no curveballs thrown
+ var recoveryScore;
+ var noCurveballs=activeSession.curveBallsThrown===0;
+ if(noCurveballs){
+  recoveryScore=0; // No curveballs = no recovery points, redistribute to checkpoints
+ } else {
+  recoveryScore=Math.min(20,Math.round((activeSession.curveBallsRecovered/activeSession.curveBallsThrown)*20*(recoveryAvg<=3?1:recoveryAvg<=5?0.7:0.4)));
+ }
+
+ // Score calculation — if no curveballs, checkpoints get 50 instead of 30
+ var checkpointMax=noCurveballs?50:30;
  var scores={
-  checkpoints:Math.round(pctCheckpoints*30), // out of 30
-  sequence:Math.round(getSequenceScore()*20), // out of 20 — did they hit them in order?
+  checkpoints:Math.round(pctCheckpoints*checkpointMax), // out of 30 (or 50 if no curveballs)
   keyPhrases:Math.round(getKeyPhraseScore()*20), // out of 20
   recovery:recoveryScore, // out of 20
   tone:Math.round(getToneScore()*10) // out of 10
@@ -2197,33 +2204,44 @@ function getSequenceScore(){
 }
 
 function getKeyPhraseScore(){
- // Check for specific high-value phrases from the script
+ // Check for key phrases — use partial matching (match any 3+ word segment)
  var allText=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
  var keyPhrases=[
-  'before we just set that up','hidden gaps','would it be appropriate',
-  'walk me through','what caused you','how do you mean exactly',
-  'has that had an impact','just so I can see the rationale',
-  'what\'s prevented you','100% protected','tax-deferred','compound',
-  'what happens if you don\'t','willing to settle',
-  'based on what you\'ve told me','exactly what you\'re looking for',
-  'does that make sense','do you see how that could help',
-  'do you feel','why do you feel','would that be appropriate'
+  'before we','set that up','hidden gaps','would it be appropriate','would you be opposed',
+  'walk me through','what caused you','how do you mean','tell me more',
+  'has that had an impact','rationale','what\'s prevented','what prevented',
+  '100% protected','tax-deferred','tax deferred','compound','locked in',
+  'what happens if you don\'t','what happens if you keep','willing to settle',
+  'based on what you','exactly what you','what you\'re looking for',
+  'does that make sense','do you see how','could help you',
+  'do you feel','why do you feel','how would you like to proceed',
+  'would that be appropriate','first step','medically approved','get started'
  ];
  var hits=keyPhrases.filter(function(p){return allText.indexOf(p)>=0}).length;
- return Math.min(1,hits/8); // 8 out of 21 = perfect score
+ return Math.min(1,hits/5); // 5 out of 33 = perfect score (more lenient matching)
 }
 
 function getToneScore(){
- // Analyze word patterns for appropriate tone
- var agentMsgs=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
- var score=0.5; // start neutral
- // Good tone indicators
- ['i understand','that makes sense','i hear you','great question','fair enough','no pressure','take your time','just to make sure','would you be opposed','i should probably ask'].forEach(function(p){
-  if(agentMsgs.indexOf(p)>=0) score+=0.07;
+ var agentMsgs=activeSession.transcript.filter(function(m){return m.role==='agent'});
+ var allText=agentMsgs.map(function(m){return m.text.toLowerCase()}).join(' ');
+ var score=0.3; // start lower — earn your way up
+
+ // Question-to-statement ratio (big factor)
+ var questions=0;var statements=0;
+ agentMsgs.forEach(function(m){
+  if(m.text.indexOf('?')>=0) questions++;
+  else statements++;
  });
- // Bad tone indicators
- ['you should','you need to','you have to','trust me','obviously','clearly','no-brainer','slam dunk','guaranteed returns'].forEach(function(p){
-  if(agentMsgs.indexOf(p)>=0) score-=0.1;
+ var qRatio=agentMsgs.length>0?questions/agentMsgs.length:0;
+ score+=qRatio*0.3; // up to +0.3 for mostly questions
+
+ // Good tone indicators (smaller increments)
+ ['i understand','that makes sense','i hear you','fair enough','no pressure','take your time','would you be opposed','i should probably ask','if i could ask','easy enough','good question'].forEach(function(p){
+  if(allText.indexOf(p)>=0) score+=0.04;
+ });
+ // Bad tone indicators (bigger penalties)
+ ['you should','you need to','you have to','trust me','obviously','clearly','no-brainer','slam dunk','guaranteed returns','to be honest','basically','just sign','hurry'].forEach(function(p){
+  if(allText.indexOf(p)>=0) score-=0.08;
  });
  return Math.max(0,Math.min(1,score));
 }
@@ -2276,12 +2294,14 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
 
  // Scoring breakdown
  var cats=[
-  {label:'Checkpoints Hit (30)',val:scores.checkpoints,max:30},
+  {label:'Checkpoints Hit ('+(noCurveballs?'50':'30')+')',val:scores.checkpoints,max:noCurveballs?50:30},
   {label:'Script Sequence (20)',val:scores.sequence,max:20},
   {label:'Key Phrases Used (20)',val:scores.keyPhrases,max:20},
-  {label:'Curveball Recovery (20)',val:scores.recovery,max:20},
+  {label:noCurveballs?'Curveball Recovery (N/A)':'Curveball Recovery (20)',val:scores.recovery,max:noCurveballs?0:20},
   {label:'Tone & Language (10)',val:scores.tone,max:10}
  ];
+ // Remove curveball row if N/A
+ if(noCurveballs) cats=cats.filter(function(c){return c.max>0});
  cats.forEach(function(c){
   var pct=(c.val/c.max)*100;
   var color=pct>=75?'var(--grn)':pct>=50?'var(--amb)':'var(--red)';
@@ -2331,15 +2351,100 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
 
 // ── Scoring ──
 function scoreSessionScripted(){
- var s=activeSession.scores;
- // Normalize to 0-20 per category
- var maxPossible={phase:20,question:16,objection:6,empathy:14,close:10};
+ var transcript=activeSession.transcript;
+ var agentMsgs=transcript.filter(function(m){return m.role==='agent'});
+ var clientMsgs=transcript.filter(function(m){return m.role==='client'});
+ var allAgentText=agentMsgs.map(function(m){return m.text.toLowerCase()}).join(' ');
+
+ // 1. PHASE COMPLETION — must hit phases IN ORDER
+ var phasesInOrder=0;
+ var lastPhaseHit=-1;
+ for(var pi=0;pi<5;pi++){
+  var phaseHit=false;
+  PHASE_KEYWORDS[pi].forEach(function(kw){
+   if(allAgentText.indexOf(kw)>=0) phaseHit=true;
+  });
+  if(phaseHit&&pi>lastPhaseHit){phasesInOrder++;lastPhaseHit=pi}
+ }
+ // Penalty: if agent pitched (phase 2-3 keywords) before asking situation questions (phase 0)
+ var firstPitchIdx=-1;var firstSitIdx=-1;
+ agentMsgs.forEach(function(m,i){
+  var lower=m.text.toLowerCase();
+  if(firstSitIdx<0){PHASE_KEYWORDS[0].forEach(function(kw){if(lower.indexOf(kw)>=0&&firstSitIdx<0) firstSitIdx=i})}
+  if(firstPitchIdx<0){PHASE_KEYWORDS[2].forEach(function(kw){if(lower.indexOf(kw)>=0&&firstPitchIdx<0) firstPitchIdx=i})}
+ });
+ var pitchedEarly=firstPitchIdx>=0&&(firstSitIdx<0||firstPitchIdx<firstSitIdx);
+ var phaseScore=Math.min(20,Math.round(phasesInOrder/5*20));
+ if(pitchedEarly) phaseScore=Math.min(phaseScore,8);
+
+ // 2. QUESTION QUALITY — count actual open-ended questions
+ var openQuestions=0;
+ agentMsgs.forEach(function(m){
+  var lower=m.text.toLowerCase();
+  OPEN_QUESTION_WORDS.forEach(function(w){
+   if(lower.indexOf(w)>=0&&m.text.indexOf('?')>=0) openQuestions++;
+  });
+ });
+ var questionScore=Math.min(20,openQuestions<=1?Math.min(5,openQuestions*3):openQuestions<=3?Math.round(openQuestions*4):Math.round(8+openQuestions*1.5));
+ if(openQuestions<3) questionScore=Math.min(questionScore,8);
+
+ // 3. OBJECTION HANDLING — did client object AND did agent address it?
+ var objectionRaised=false;var objectionHandled=false;
+ for(var oi=0;oi<transcript.length-1;oi++){
+  if(transcript[oi].role==='client'){
+   var cLower=transcript[oi].text.toLowerCase();
+   var isObjection=false;
+   ['but','don\'t want','not sure','worried','concerned','scared','what if','ties up','locked','surrender','think about it','need to talk','can\'t afford'].forEach(function(kw){
+    if(cLower.indexOf(kw)>=0) isObjection=true;
+   });
+   if(isObjection){
+    objectionRaised=true;
+    // Check next agent response for handling
+    if(oi+1<transcript.length&&transcript[oi+1].role==='agent'){
+     var aResp=transcript[oi+1].text.toLowerCase();
+     var acknowledged=false;var reframed=false;
+     EMPATHY_WORDS.forEach(function(w){if(aResp.indexOf(w)>=0) acknowledged=true});
+     ['but','however','the difference','actually','what that means','think of it this way','compare','on the other hand'].forEach(function(w){
+      if(aResp.indexOf(w)>=0) reframed=true;
+     });
+     if(acknowledged&&reframed) objectionHandled=true;
+    }
+   }
+  }
+ }
+ var objectionScore=!objectionRaised?10:objectionHandled?16:objectionRaised?4:10;
+
+ // 4. EMPATHY — only count empathy in RESPONSE to emotional client messages
+ var empathyCount=0;
+ for(var ei=0;ei<transcript.length-1;ei++){
+  if(transcript[ei].role==='client'&&ei+1<transcript.length&&transcript[ei+1].role==='agent'){
+   var aLower=transcript[ei+1].text.toLowerCase();
+   EMPATHY_WORDS.forEach(function(w){
+    if(aLower.indexOf(w)>=0) empathyCount++;
+   });
+  }
+ }
+ var empathyScore=Math.min(20,empathyCount<=0?2:empathyCount<=2?Math.round(empathyCount*4):Math.round(6+empathyCount*2));
+
+ // 5. CLOSE — must be in final 3 exchanges
+ var lastThreeAgent=agentMsgs.slice(-3);
+ var closeAttempted=false;
+ lastThreeAgent.forEach(function(m){
+  var lower=m.text.toLowerCase();
+  CLOSE_WORDS.forEach(function(w){
+   if(lower.indexOf(w)>=0) closeAttempted=true;
+  });
+ });
+ var closeScore=closeAttempted?14:0;
+ // Bonus if "why do you feel" was asked
+ if(allAgentText.indexOf('why do you feel')>=0||allAgentText.indexOf('why is that')>=0) closeScore=Math.min(20,closeScore+6);
+
  var normalized={
-  phase:Math.min(20,Math.round((s.phase||0)/maxPossible.phase*20)),
-  question:Math.min(20,Math.round((s.question||0)/maxPossible.question*20)),
-  objection:Math.min(20,Math.round((s.objection||0)/maxPossible.objection*20)),
-  empathy:Math.min(20,Math.round((s.empathy||0)/maxPossible.empathy*20)),
-  close:Math.min(20,Math.round((s.close||0)/maxPossible.close*20))
+  phase:phaseScore,
+  question:questionScore,
+  objection:objectionScore,
+  empathy:empathyScore,
+  close:closeScore
  };
  showScoreModal(normalized,null);
 }
@@ -2361,7 +2466,7 @@ function scoreSessionAPI(){
   body:JSON.stringify({
    model:'claude-sonnet-4-20250514',
    max_tokens:800,
-   messages:[{role:'user',content:'You are an expert Sales Framework sales coach evaluating a practice roleplay transcript.\n\nThe Sales Framework framework has 5 phases:\n1. Situation — understand current position\n2. Problem Awareness — surface pain points\n3. Solution Awareness — introduce alternatives\n4. Consequence — cost of inaction\n5. Commitment — close with assumptive choice\n\nScore the AGENT\'s performance in these 5 categories (0-20 each):\n1. Framework Completion — Did they progress through all 5 phases in order?\n2. Question Quality — Open-ended, client-focused, not leading?\n3. Objection Handling — Addressed concerns effectively?\n4. Empathy & Rapport — Active listening, reflective statements?\n5. Close Technique — Assumptive close, tied to timeline?\n\nReturn ONLY valid JSON in this exact format:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of coaching advice"}\n\nTRANSCRIPT:\n'+transcript}]
+   messages:[{role:'user',content:'You are a brutally honest sales coach scoring a practice roleplay. Be tough but fair. Most agents score 40-60. Only exceptional performance scores above 75.\n\nSCORING RUBRIC (0-20 each):\n\n1. PHASE COMPLETION:\n0-5: Jumped straight to pitching without asking about their situation\n6-10: Asked some situation questions but skipped problem awareness or consequence\n11-15: Hit most phases but rushed or skipped one\n16-20: Clear, deliberate progression through all 5 phases in correct order\nIMPORTANT: If the agent pitched the product before exploring the client\'s pain, cap this at 8.\n\n2. QUESTION QUALITY:\n0-5: Mostly made statements, told the client what to think\n6-10: Asked questions but they were leading or closed-ended (yes/no)\n11-15: Good open-ended questions but some were off-target or didn\'t build on answers\n16-20: Consistently asked open-ended, client-focused questions that built on previous answers\nIMPORTANT: Count the actual open-ended questions (how, what, tell me, walk me through). Less than 3 = cap at 8.\n\n3. OBJECTION HANDLING:\n0: Client never raised an objection, so this is NOT APPLICABLE — score 10 (neutral)\n1-5: Client raised an objection and agent ignored it or dismissed it\n6-10: Acknowledged the objection but gave a generic response\n11-15: Acknowledged, reframed, and addressed with specific reasoning\n16-20: Turned the objection into a reason to move forward\nIMPORTANT: If no objection was raised during the conversation, score exactly 10.\n\n4. EMPATHY & RAPPORT:\n0-5: Sounded robotic or like a sales script, no warmth\n6-10: Some acknowledgment but felt performative, not genuine\n11-15: Used reflective statements ("I hear you", "that makes sense") and paused to let client speak\n16-20: Client visibly opened up because of empathy — tone shifted from guarded to trusting\nIMPORTANT: Saying "I understand" once is worth 2 points, not 10. Look for consistent empathetic behavior throughout.\n\n5. CLOSE TECHNIQUE:\n0: Never attempted to close or suggest next steps\n1-5: Vague close ("let me know", "think about it") or closed too early\n6-10: Asked for the close but too aggressive or not tied to client\'s specific situation\n11-15: Good assumptive close tied to their timeline or situation\n16-20: Got the client to defend why they want to proceed ("why do you feel it is?") and transitioned to application\nIMPORTANT: If the conversation ended without any close attempt, score 0.\n\nCALIBRATION: A new agent\'s first session should score 30-50. A competent agent scores 55-70. Only a polished professional scores above 80. Do NOT be generous.\n\nReturn ONLY valid JSON:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of specific, actionable coaching advice. Name the exact moment where they went wrong."}\n\nTRANSCRIPT:\n'+transcript}]
   })
  }).then(function(r){return r.json()}).then(function(data){
   activeSession.typing=false;
