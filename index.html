@@ -2203,22 +2203,101 @@ function getSequenceScore(){
  return 1-(inversions/maxInversions);
 }
 
-function getKeyPhraseScore(){
- // Check for key phrases — use partial matching (match any 3+ word segment)
- var allText=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
- var keyPhrases=[
+// Category-specific key phrases from YOUR scripts
+var SCRIPT_KEY_PHRASES={
+ annuity:[
   'before we','set that up','hidden gaps','would it be appropriate','would you be opposed',
   'walk me through','what caused you','how do you mean','tell me more',
   'has that had an impact','rationale','what\'s prevented','what prevented',
   '100% protected','tax-deferred','tax deferred','compound','locked in',
   'what happens if you don\'t','what happens if you keep','willing to settle',
   'based on what you','exactly what you','what you\'re looking for',
-  'does that make sense','do you see how','could help you',
-  'do you feel','why do you feel','how would you like to proceed',
+  'does that make sense','do you see how','do you feel','why do you feel',
   'would that be appropriate','first step','medically approved','get started'
- ];
+ ],
+ life:[
+  'trip-tik','towing','final expense','member','eligible','age and health',
+  'funeral','cremation','leave behind','kids','grandkids',
+  'something happened','what do you have in place','savings','assets','cover',
+  'funeral director','responsible','play off emotions','casket',
+  'scrounge','loan','interest','pocket','burden',
+  'wouldn\'t have to stress','grieving','what would that do',
+  'walk out','without coverage','pass away','sooner',
+  'based on what you','state-regulated','locked in','rate hikes','consistent',
+  'three options','middle option','covers the funeral','inflation',
+  'burden off','why do you feel','medically approved','first step'
+ ],
+ conversion:[
+  'card','rate increase','notice','assigned','account lead',
+  'stop','rate hikes','options','eligible','final say',
+  'what do you have','how long','family','protecting',
+  'what caused you','cheapest','5-year','renewable',
+  'hiking','rates','how do you mean','frustrating',
+  'every 5 years','force','higher rate','out of hand',
+  'lock in','permanently','100% locked','never force','what would that do',
+  'what happens','can\'t afford','drop it','mortgage',
+  'want to put','situation','based on what you',
+  'fixed term','15','20','stays the same','universal life','forever','lasts',
+  'which one','makes sense','why do you feel','medically approved','first step'
+ ],
+ ltc:[
+  'great to meet','came in','office','long-term care',
+  'eligible','age and health','few questions','in place',
+  'something happened','nursing','in-home','care','walk me through',
+  'medicare','short-term','rehabilitation','150','200','set aside',
+  'who','responsible','take care','pay','facility',
+  'quit','job','scrounge','loan','burden','stress','kids',
+  'some people','don\'t mind','what would that do',
+  '4,100','4,167','every month','check','caregiver','home',
+  'walk out','drain','savings','want to put','situation',
+  'eclipse','protector','long-term care agreement',
+  'death benefit','200','tax-free','living benefits','chronically ill',
+  'cash indemnity','freedom','nursing facility','pay','caregiver',
+  'no lapse','guarantee','locked in','does that make sense',
+  'do you feel','why do you feel','application','health questionnaire','first step'
+ ],
+ kidsiul:[
+  'calendar','appointment','specific','options','eligible','good fit',
+  'walk me through','financial','future','saving','529',
+  'how long','been doing','returns','earning','nothing','inflation',
+  'head start','substantial','18','20','grow',
+  '529','college','plan','flexible','house','business',
+  'before','looking','strategies','research',
+  'tax-free','protected','crashes','college','house','business','anything',
+  'as a parent','personally','knowing','what would',
+  'what happens','inflation','student loan','debt',
+  'want to put','situation','based on what you','nest egg',
+  'indexed universal life','iul','cash','accumulation','minimum','death benefit',
+  'market','index','0%','floor','crash','doesn\'t lose',
+  '529','tax-free','loan','compounding','does that make sense',
+  'do you feel','head start','why do you feel','insurability','young','healthy','first step'
+ ],
+ iul:[
+  'request','appointment','office','options','eligible',
+  'retirement','tax-free','bank','banking','income','rider','living benefits',
+  'walk me through','retirement','strategy','401k','ira',
+  'how long','contributing','taxed','taxes','retire','hate',
+  'how do you mean','crash','30%','40%','2008','market','lose',
+  'willing to settle','work another',
+  'before','looking','strategies','research','crash','tax-free',
+  'protected','crashes','liquidity','access','penalty','peace of mind',
+  'what happens','don\'t do anything','taxes','roof','correction','wipes','nest egg',
+  'want to put','situation','based on what you',
+  'indexed universal life','iul','cash','accumulation','minimum','death benefit',
+  'market','index','0%','floor','crash','doesn\'t lose',
+  'tax-free','loan','bank','real estate','business','compounding',
+  'lifetime','income','rider','guaranteed','monthly','rest of your life','outlive',
+  'does that make sense','do you feel','why do you feel','medically approved','first step'
+ ]
+};
+
+function getKeyPhraseScore(){
+ var allText=activeSession.transcript.filter(function(m){return m.role==='agent'}).map(function(m){return m.text.toLowerCase()}).join(' ');
+ // Use category-specific key phrases from the actual scripts
+ var cat=activeSession.persona?activeSession.persona.category:'annuity';
+ var keyPhrases=SCRIPT_KEY_PHRASES[cat]||SCRIPT_KEY_PHRASES.annuity;
  var hits=keyPhrases.filter(function(p){return allText.indexOf(p)>=0}).length;
- return Math.min(1,hits/5); // 5 out of 33 = perfect score (more lenient matching)
+ return Math.min(1,hits/Math.max(5,Math.round(keyPhrases.length*0.15))); // 15% of phrases = perfect score
 }
 
 function getToneScore(){
