@@ -560,7 +560,7 @@ function showTab(n){
 
 // ── localStorage ──
 function loadJSON(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def}catch(e){return def}}
-function saveJSON(key,val){localStorage.setItem(key,JSON.stringify(val))}
+function saveJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){console.error('Storage full:',e);showToast('Storage full — clearing old recordings');try{var s=JSON.parse(localStorage.getItem(key)||'[]');s.forEach(function(x){delete x.recording});localStorage.setItem(key,JSON.stringify(s))}catch(e2){}}}
 var sessions=loadJSON('db_coach_sessions',[]);
 var settings=loadJSON('db_coach_settings',{difficulty:'all',dailyGoal:1,categories:['annuity','life','iul','banking'],mode:'scripted'});
 var streak=loadJSON('db_coach_streak',{current:0,longest:0,lastDate:null,practiceDates:[]});
@@ -2319,8 +2319,8 @@ function showScriptScoreModal(scores,total,stageResults,checkpointsDone,totalChe
  h+='<textarea id="sessionNotes" placeholder="How did that feel? Where did you struggle? What will you do differently next time?" style="width:100%;min-height:70px;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>';
 
  h+='<div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">';
- h+='<button class="btn btn-pri" onclick="saveSessionNotes();closeScoreModal();startSession(\''+p.id+'\')">Save & Practice Again</button>';
- h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal()">Save & New Scenario</button>';
+ h+='<button class="btn btn-pri" onclick="saveAndPractice(\''+p.id+'\')">Save & Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="saveAndClose()">Save & New Scenario</button>';
  h+='</div>';
 
  $1('#scoreModalContent').innerHTML=h;
@@ -2467,9 +2467,9 @@ function showScoreModal(scores,feedback){
  h+='<textarea id="sessionNotes" placeholder="How did that feel? Where did you struggle? What will you do differently next time?" style="width:100%;min-height:70px;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>';
 
  h+='<div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">';
- h+='<button class="btn btn-pri" onclick="saveSessionNotes();closeScoreModal();startSession(\''+p.id+'\')">Save & Practice Again</button>';
- h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal()">Save & New Scenario</button>';
- h+='<button class="btn btn-outline" onclick="saveSessionNotes();closeScoreModal();showTab(1)">Save & View History</button>';
+ h+='<button class="btn btn-pri" onclick="saveAndPractice(\''+p.id+'\')">Save & Practice Again</button>';
+ h+='<button class="btn btn-outline" onclick="saveAndClose()">Save & New Scenario</button>';
+ h+='<button class="btn btn-outline" onclick="saveAndHistory()">Save & View History</button>';
  h+='</div>';
 
  $1('#scoreModalContent').innerHTML=h;
@@ -2481,11 +2481,28 @@ function showScoreModal(scores,feedback){
 function saveSessionNotes(){
  var ta=$1('#sessionNotes');
  var notes=(ta?ta.value:'').trim();
- if(notes&&sessions.length>0){
-  sessions[0].notes=notes;
+ if(sessions.length>0){
+  sessions[0].notes=notes||'';
   saveSessions();
-  showToast('Notes saved!');
+  showToast(notes?'Notes saved!':'Session saved!');
  }
+}
+
+function saveAndClose(){
+ saveSessionNotes();
+ closeScoreModal();
+}
+
+function saveAndPractice(pid){
+ saveSessionNotes();
+ closeScoreModal();
+ startSession(pid);
+}
+
+function saveAndHistory(){
+ saveSessionNotes();
+ closeScoreModal();
+ showTab(1);
 }
 
 function closeScoreModal(){
