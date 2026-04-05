@@ -1802,12 +1802,19 @@ function runScoring(){
  if(voiceRec){try{voiceRec.stop()}catch(e){}}
  micHeld=false;
 
- if(activeSession.mode==='script'){
-  scoreScriptSession();
- } else if(activeSession.mode==='api'){
-  scoreSessionAPI();
- } else {
-  scoreSessionScripted();
+ try{
+  if(activeSession.mode==='script'){
+   scoreScriptSession();
+  } else if(activeSession.mode==='api'){
+   scoreSessionAPI();
+  } else {
+   scoreSessionScripted();
+  }
+ }catch(e){
+  console.error('Scoring error:',e);
+  // Fallback: show a basic score modal so the session isn't lost
+  var fallbackScores={phase:10,question:10,objection:10,empathy:10,close:10};
+  showScoreModal(fallbackScores,'Scoring encountered an error. Session saved with default scores.');
  }
 }
 
@@ -2172,6 +2179,7 @@ function scoreScriptSession(){
  var checkpointMax=noCurveballs?50:30;
  var scores={
   checkpoints:Math.round(pctCheckpoints*checkpointMax), // out of 30 (or 50 if no curveballs)
+  sequence:Math.round(getSequenceScore()*20), // out of 20
   keyPhrases:Math.round(getKeyPhraseScore()*20), // out of 20
   recovery:recoveryScore, // out of 20
   tone:Math.round(getToneScore()*10) // out of 10
