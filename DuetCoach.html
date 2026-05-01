@@ -329,6 +329,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
    <input id="login_pin" type="password" placeholder="4-6 digit PIN" maxlength="6" inputmode="numeric">
    <button class="login-btn" onclick="doLogin()">Sign In</button>
    <div class="login-toggle">New here? <a onclick="toggleLoginMode()">Create Account</a></div>
+   <div class="login-toggle" style="margin-top:6px"><a onclick="showForgotPin()" style="color:var(--muted);font-size:12px">Forgot PIN?</a></div>
    <div id="loginError" class="login-error"></div>
   </div>
 
@@ -336,13 +337,34 @@ td{padding:8px;border-bottom:1px solid var(--border)}
   <div id="registerMode" style="display:none">
    <label>Your Full Name</label>
    <input id="reg_name" type="text" placeholder="First Last" autocomplete="name">
+   <label>Email</label>
+   <input id="reg_email" type="email" placeholder="you@example.com" autocomplete="email">
    <label>Create a PIN (4-6 digits)</label>
    <input id="reg_pin" type="password" placeholder="PIN" maxlength="6" inputmode="numeric">
    <label>Confirm PIN</label>
    <input id="reg_pin2" type="password" placeholder="Confirm PIN" maxlength="6" inputmode="numeric">
+   <div style="margin-top:14px;font-size:12px;line-height:1.5;color:var(--muted)">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted);margin:0">
+     <input id="reg_terms" type="checkbox" style="width:16px;height:16px;margin-top:2px;flex-shrink:0">
+     <span>I agree to the <a href="terms.html" target="_blank">Terms of Service</a>, <a href="privacy.html" target="_blank">Privacy Policy</a>, and <a href="refund.html" target="_blank">Refund Policy</a>.</span>
+    </label>
+   </div>
    <button class="login-btn" onclick="doRegister()">Create Account</button>
    <div class="login-toggle">Already have an account? <a onclick="toggleLoginMode()">Sign In</a></div>
    <div id="regError" class="login-error"></div>
+  </div>
+
+  <!-- Forgot PIN Mode -->
+  <div id="forgotMode" style="display:none">
+   <h3 style="font-size:18px;color:var(--pri);margin-bottom:8px">Forgot Your PIN?</h3>
+   <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px">Enter your name and email. We'll review your request and send you a temporary PIN within 24 hours.</div>
+   <label>Your Full Name</label>
+   <input id="fp_name" type="text" placeholder="First Last" autocomplete="name">
+   <label>Email</label>
+   <input id="fp_email" type="email" placeholder="you@example.com" autocomplete="email">
+   <button class="login-btn" onclick="doForgotPin()">Submit Request</button>
+   <div class="login-toggle"><a onclick="toggleLoginMode()">Back to Sign In</a></div>
+   <div id="fpError" class="login-error"></div>
   </div>
  </div>
 </div>
@@ -352,7 +374,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 
 <div class="topbar">
  <div><span class="brand">DuetCoach</span><span class="sub">Sales Practice</span></div>
- <div class="topbar-right"><span id="agentName"></span> <span id="streakDisplay"></span> <button onclick="openHelp()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:14px;font-weight:700;width:26px;height:26px;border-radius:50%;cursor:pointer;margin-left:6px">?</button></div>
+ <div class="topbar-right"><span id="agentName"></span> <span id="streakDisplay"></span> <button onclick="openFeedback()" title="Send Feedback" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:14px;font-weight:700;width:26px;height:26px;border-radius:50%;cursor:pointer;margin-left:6px">&#x1F4AC;</button> <button onclick="openHelp()" title="Help" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:14px;font-weight:700;width:26px;height:26px;border-radius:50%;cursor:pointer;margin-left:6px">?</button></div>
 </div>
 
 <div class="tabs">
@@ -361,6 +383,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
  <div class="tab" onclick="showTab(2)">Stats</div>
  <div class="tab" onclick="showTab(3)">Team</div>
  <div class="tab" onclick="showTab(4)">Settings</div>
+ <div class="tab admin-only" id="tabAdmin" onclick="showTab(5)" style="display:none;color:var(--red)">Admin</div>
 </div>
 
 <div class="panel active" id="p0"></div>
@@ -368,6 +391,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
 <div class="panel" id="p2"></div>
 <div class="panel" id="p3"></div>
 <div class="panel" id="p4"></div>
+<div class="panel" id="p5"></div>
 
 <div class="mobile-nav">
  <div class="mobile-nav-inner">
@@ -376,6 +400,7 @@ td{padding:8px;border-bottom:1px solid var(--border)}
   <button class="mnav" onclick="showTab(2)"><span class="mnav-icon">&#x1F4CA;</span>Stats</button>
   <button class="mnav" onclick="showTab(3)"><span class="mnav-icon">&#x1F3C6;</span>Team</button>
   <button class="mnav" onclick="showTab(4)"><span class="mnav-icon">&#x2699;&#xFE0F;</span>Settings</button>
+  <button class="mnav admin-only" id="mnavAdmin" onclick="showTab(5)" style="display:none;color:var(--red)"><span class="mnav-icon">&#x1F511;</span>Admin</button>
  </div>
 </div>
 
@@ -430,22 +455,78 @@ function fbCoachLoad(key){
 
 // ── Authentication ──
 function toggleLoginMode(){
- var lm=$1('#loginMode'),rm=$1('#registerMode');
+ var lm=$1('#loginMode'),rm=$1('#registerMode'),fm=$1('#forgotMode');
+ if(fm) fm.style.display='none';
  if(lm.style.display==='none'){lm.style.display='block';rm.style.display='none'}
  else{lm.style.display='none';rm.style.display='block'}
  $1('#loginError').style.display='none';
  $1('#regError').style.display='none';
+ if($1('#fpError')) $1('#fpError').style.display='none';
+}
+
+function showForgotPin(){
+ $1('#loginMode').style.display='none';
+ $1('#registerMode').style.display='none';
+ $1('#forgotMode').style.display='block';
+ $1('#loginError').style.display='none';
+}
+
+async function doForgotPin(){
+ var name=$1('#fp_name').value.trim();
+ var email=$1('#fp_email').value.trim();
+ var errEl=$1('#fpError');
+
+ if(!name||name.split(' ').length<2){errEl.textContent='Please enter your full name';errEl.style.display='block';return}
+ if(!email||email.indexOf('@')<0){errEl.textContent='Please enter a valid email';errEl.style.display='block';return}
+
+ var agentId=makeAgentId(name);
+ try{
+  var profile=await fetch(FIREBASE_URL+'/'+agentId+'/profile.json').then(function(r){return r.json()});
+  if(!profile||!profile.name){errEl.textContent='No account found with that name. Check spelling or create a new account.';errEl.style.display='block';return}
+
+  // Save PIN reset request to Firebase
+  var resetRequest={
+   agentId:agentId,
+   name:name,
+   email:email,
+   profileEmail:profile.email||'',
+   requested:new Date().toISOString(),
+   status:'pending'
+  };
+  var requestKey='req_'+Date.now();
+  await fetch(FIREBASE_URL+'/_pin_resets/'+requestKey+'.json',{method:'PUT',body:JSON.stringify(resetRequest)});
+
+  // Open mailto so user emails Steve directly as backup
+  var subject=encodeURIComponent('DuetCoach PIN Reset Request');
+  var body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nAgent ID: '+agentId+'\n\nPlease reset my PIN.');
+  window.open('mailto:steve.maxim@gmail.com?subject='+subject+'&body='+body,'_blank');
+
+  errEl.style.color='var(--grn)';
+  errEl.textContent='Request submitted! You\'ll receive a temporary PIN within 24 hours.';
+  errEl.style.display='block';
+  setTimeout(function(){
+   toggleLoginMode();
+   errEl.style.color='';
+  },4000);
+ }catch(e){
+  errEl.textContent='Error submitting request. Please email steve.maxim@gmail.com directly.';
+  errEl.style.display='block';
+ }
 }
 
 async function doRegister(){
  var name=$1('#reg_name').value.trim();
+ var email=$1('#reg_email').value.trim();
  var pin=$1('#reg_pin').value.trim();
  var pin2=$1('#reg_pin2').value.trim();
+ var termsAccepted=$1('#reg_terms').checked;
  var errEl=$1('#regError');
 
  if(!name||name.split(' ').length<2){errEl.textContent='Please enter your full name (first and last)';errEl.style.display='block';return}
+ if(!email||email.indexOf('@')<0||email.indexOf('.')<0){errEl.textContent='Please enter a valid email address';errEl.style.display='block';return}
  if(!pin||pin.length<4){errEl.textContent='PIN must be at least 4 digits';errEl.style.display='block';return}
  if(pin!==pin2){errEl.textContent='PINs do not match';errEl.style.display='block';return}
+ if(!termsAccepted){errEl.textContent='Please accept the Terms of Service to continue';errEl.style.display='block';return}
 
  var agentId=makeAgentId(name);
  try{
@@ -454,10 +535,18 @@ async function doRegister(){
  }catch(e){}
 
  var pinHash=await sha256(pin);
- var profile={name:name,pin:pinHash,created:new Date().toISOString()};
+ var profile={
+  name:name,
+  email:email,
+  pin:pinHash,
+  termsAcceptedAt:new Date().toISOString(),
+  created:new Date().toISOString(),
+  paid:false,
+  trialStart:new Date().toISOString()
+ };
  await fetch(FIREBASE_URL+'/'+agentId+'/profile.json',{method:'PUT',body:JSON.stringify(profile)});
 
- currentAgent={id:agentId,name:name};
+ currentAgent={id:agentId,name:name,email:email};
  sessionStorage.setItem('dc_agent',JSON.stringify(currentAgent));
 
  var remembered=JSON.parse(localStorage.getItem('dc_remembered_agents')||'[]');
@@ -486,7 +575,7 @@ async function doLogin(){
   var pinHash=await sha256(pin);
   if(pinHash!==profile.pin){errEl.textContent='Incorrect PIN. Please try again.';errEl.style.display='block';return}
 
-  currentAgent={id:agentId,name:profile.name};
+  currentAgent={id:agentId,name:profile.name,email:profile.email||'',paid:!!profile.paid,trialStart:profile.trialStart||null,isAdmin:profile.name==='Steve Maxim'};
   sessionStorage.setItem('dc_agent',JSON.stringify(currentAgent));
 
   var remembered=JSON.parse(localStorage.getItem('dc_remembered_agents')||'[]');
@@ -510,6 +599,14 @@ async function loadCloudData(){
   var cloudSessions=await fbCoachLoad('sessions');
   var cloudSettings=await fbCoachLoad('settings');
   var cloudStreak=await fbCoachLoad('streak');
+  // Refresh paid status from profile (in case admin granted Pro)
+  var cloudProfile=await fbCoachLoad('profile');
+  if(cloudProfile&&currentAgent){
+   currentAgent.paid=!!cloudProfile.paid;
+   currentAgent.email=cloudProfile.email||currentAgent.email;
+   currentAgent.trialStart=cloudProfile.trialStart||currentAgent.trialStart;
+   sessionStorage.setItem('dc_agent',JSON.stringify(currentAgent));
+  }
   if(cloudSessions) sessions=cloudSessions;
   if(cloudSettings) settings=Object.assign({},settings,cloudSettings);
   if(cloudStreak) streak=Object.assign({},streak,cloudStreak);
@@ -520,6 +617,31 @@ function enterApp(){
  $1('#loginScreen').style.display='none';
  $1('#appShell').style.display='block';
  if(currentAgent&&$1('#agentName')) $1('#agentName').textContent=currentAgent.name.split(' ')[0];
+ // Show admin tab if user is Steve Maxim
+ if(currentAgent&&currentAgent.isAdmin){
+  if($1('#tabAdmin')) $1('#tabAdmin').style.display='';
+  if($1('#mnavAdmin')) $1('#mnavAdmin').style.display='';
+ }
+ // Check for Stripe success redirect
+ if(window.location.search.indexOf('paid=success')>=0){
+  showToast('&#x2728; Subscription started! Your Pro access will activate within 24 hours.',8000);
+  // Log pending payment to Firebase so admin can verify
+  if(currentAgent){
+   var paymentLog={
+    agentId:currentAgent.id,
+    name:currentAgent.name,
+    email:currentAgent.email||'',
+    timestamp:new Date().toISOString(),
+    status:'pending_verification'
+   };
+   try{
+    fetch(FIREBASE_URL+'/_payments/'+Date.now()+'.json',{method:'PUT',body:JSON.stringify(paymentLog)});
+   }catch(e){}
+  }
+  setTimeout(function(){
+   if(window.history&&window.history.replaceState) window.history.replaceState({},'',window.location.pathname);
+  },1000);
+ }
  renderStreakDisplay();
  renderPractice();
 }
@@ -545,7 +667,7 @@ function fmtDateShort(d){var dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getD
 var currentTab=0;
 function showTab(n){
  currentTab=n;
- for(var i=0;i<=4;i++){
+ for(var i=0;i<=5;i++){
   var panel=$1('#p'+i);
   if(panel) panel.classList.toggle('active',i===n);
  }
@@ -556,6 +678,7 @@ function showTab(n){
  if(n===2) renderStats();
  if(n===3) renderTeam();
  if(n===4) renderSettings();
+ if(n===5) renderAdmin();
 }
 
 // ── localStorage ──
@@ -1453,6 +1576,65 @@ var PERSONA_VOICES={
  nguyen:'TX3LPaxmHKxFdv7VOQHJ',    // Liam — energetic American male
  wright:'pqHfZKP75CvOlQylNhV4'      // Bill — older American male
 };
+
+// ── Paywall System ──
+// Stripe Payment Link — Steve will paste the live URL here once verified
+var STRIPE_PAYMENT_LINK='https://buy.stripe.com/PLACEHOLDER_LINK';
+var STRIPE_PORTAL_URL='https://billing.stripe.com/p/login/PLACEHOLDER';
+var TRIAL_DAYS=7;
+
+function isUserPaid(){
+ if(!currentAgent) return false;
+ if(currentAgent.isAdmin) return true; // Admin always has access
+ if(currentAgent.paid===true) return true;
+ // Check trial period
+ if(currentAgent.trialStart){
+  var trialEnd=new Date(currentAgent.trialStart);
+  trialEnd.setDate(trialEnd.getDate()+TRIAL_DAYS);
+  if(new Date()<trialEnd) return true; // Still in trial
+ }
+ return false;
+}
+
+function getTrialDaysLeft(){
+ if(!currentAgent||!currentAgent.trialStart) return 0;
+ var trialEnd=new Date(currentAgent.trialStart);
+ trialEnd.setDate(trialEnd.getDate()+TRIAL_DAYS);
+ var diff=trialEnd-new Date();
+ return Math.max(0,Math.ceil(diff/(1000*60*60*24)));
+}
+
+function showUpgradeModal(){
+ var trialDays=getTrialDaysLeft();
+ var trialMsg=trialDays>0?'You have <b>'+trialDays+' day'+(trialDays!==1?'s':'')+' left</b> in your free trial. ':'';
+ var h='<h2 style="font-size:22px;color:var(--pri);text-align:center;margin-bottom:8px">&#x2728; Upgrade to Pro</h2>';
+ h+='<div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:20px">'+trialMsg+'Get unlimited access to Claude AI mode, Script Training with curveballs, voice mode, and session recording.</div>';
+ h+='<div style="background:var(--ptint);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px">';
+ h+='<div style="font-size:38px;font-weight:800;color:var(--pri)"><span style="font-size:20px;vertical-align:top">$</span>19<span style="font-size:14px;color:var(--muted);font-weight:400">/month</span></div>';
+ h+='<div style="font-size:11px;color:var(--muted);margin-top:4px">7-day free trial &middot; Cancel anytime</div></div>';
+ h+='<ul style="list-style:none;padding:0;margin:0 0 20px;font-size:13px">';
+ h+='<li style="padding:5px 0">&#x2713; Claude AI dynamic mode</li>';
+ h+='<li style="padding:5px 0">&#x2713; Script Training with curveballs</li>';
+ h+='<li style="padding:5px 0">&#x2713; Voice mode (realistic AI voices)</li>';
+ h+='<li style="padding:5px 0">&#x2713; Session recording</li>';
+ h+='<li style="padding:5px 0">&#x2713; Progressive unlock system</li>';
+ h+='<li style="padding:5px 0">&#x2713; Team leaderboard &amp; badges</li>';
+ h+='</ul>';
+ var paymentUrl=STRIPE_PAYMENT_LINK;
+ if(currentAgent&&currentAgent.email){
+  paymentUrl+=(paymentUrl.indexOf('?')>=0?'&':'?')+'prefilled_email='+encodeURIComponent(currentAgent.email)+'&client_reference_id='+currentAgent.id;
+ }
+ h+='<div style="display:flex;gap:8px;justify-content:center">';
+ if(STRIPE_PAYMENT_LINK.indexOf('PLACEHOLDER')>=0){
+  h+='<button class="btn btn-pri" disabled style="opacity:.6">Stripe Setup In Progress</button>';
+  h+='</div><div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">Subscriptions launching soon. Currently in admin verification.</div>';
+ } else {
+  h+='<a href="'+paymentUrl+'" target="_blank" class="btn btn-pri">Start 7-Day Free Trial</a>';
+  h+='<button class="btn btn-outline" onclick="closeScoreModal()">Maybe Later</button></div>';
+ }
+ $1('#scoreModalContent').innerHTML=h;
+ $1('#scoreModal').classList.add('show');
+}
 
 function getElevenLabsKey(){return localStorage.getItem('dc_elevenlabs_key')||''}
 function setElevenLabsKey(k){localStorage.setItem('dc_elevenlabs_key',k)}
@@ -2787,7 +2969,15 @@ function renderScenarioPicker(){
  h+='<div class="card"><div style="font-size:12px;font-weight:700;color:var(--pri);margin-bottom:10px;text-align:center">Choose Your Practice Mode</div>';
  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
 
- // Scripted
+ var paid=isUserPaid();
+ var trialDays=getTrialDaysLeft();
+
+ // Trial banner if applicable
+ if(!currentAgent.paid&&trialDays>0&&!currentAgent.isAdmin){
+  h+='<div style="background:linear-gradient(135deg,var(--ptint),var(--gtint));border-radius:8px;padding:10px 14px;margin-bottom:12px;text-align:center;font-size:12px"><b>&#x2728; Free Trial:</b> '+trialDays+' day'+(trialDays!==1?'s':'')+' remaining of full Pro access. <a onclick="showUpgradeModal()" style="color:var(--pri);text-decoration:underline;cursor:pointer">Upgrade now</a></div>';
+ }
+
+ // Scripted (always free)
  h+='<div onclick="settings.mode=\'scripted\';saveSettings();renderPractice()" style="border:2px solid '+(sAct?'var(--pri)':'var(--border)')+';background:'+(sAct?'var(--ptint)':'var(--card)')+';border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s">';
  h+='<div style="font-size:28px;margin-bottom:6px">&#x1F4DD;</div>';
  h+='<div style="font-weight:700;font-size:13px;color:'+(sAct?'var(--pri)':'var(--txt)')+'">Scripted</div>';
@@ -2795,20 +2985,50 @@ function renderScenarioPicker(){
  h+='<div style="margin-top:8px"><span class="badge badge-grn" style="font-size:9px">Free</span></div>';
  h+='</div>';
 
- // Claude API
- h+='<div onclick="'+(hasKey?'settings.mode=\'api\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'" style="border:2px solid '+(aAct?'var(--pri)':'var(--border)')+';background:'+(aAct?'var(--ptint)':'var(--card)')+';border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s;'+(hasKey?'':'opacity:.5')+'">';
+ // Claude API (paywalled)
+ var apiClick;
+ var apiOpacity='';
+ var apiBadge;
+ if(!paid){
+  apiClick='showUpgradeModal()';
+  apiOpacity='opacity:.65;';
+  apiBadge='<span class="badge badge-pri" style="font-size:9px">&#x1F512; PRO</span>';
+ } else if(!hasKey){
+  apiClick='showToast(\'Add API key in Settings first\')';
+  apiOpacity='opacity:.5;';
+  apiBadge='<span class="badge badge-amb" style="font-size:9px">Needs API Key</span>';
+ } else {
+  apiClick='settings.mode=\'api\';saveSettings();renderPractice()';
+  apiBadge='<span class="badge badge-amb" style="font-size:9px">~$0.02/session</span>';
+ }
+ h+='<div onclick="'+apiClick+'" style="border:2px solid '+(aAct?'var(--pri)':'var(--border)')+';background:'+(aAct?'var(--ptint)':'var(--card)')+';border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s;'+apiOpacity+'">';
  h+='<div style="font-size:28px;margin-bottom:6px">&#x1F916;</div>';
  h+='<div style="font-weight:700;font-size:13px;color:'+(aAct?'var(--pri)':'var(--txt)')+'">Claude AI</div>';
  h+='<div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:6px">AI plays the client live. Dynamic responses to what you say. Feels like a real conversation.</div>';
- h+='<div style="margin-top:8px"><span class="badge badge-amb" style="font-size:9px">'+(hasKey?'~$0.02/session':'Needs API Key')+'</span></div>';
+ h+='<div style="margin-top:8px">'+apiBadge+'</div>';
  h+='</div>';
 
- // Script Training
- h+='<div onclick="'+(hasKey?'settings.mode=\'script\';saveSettings();renderPractice()':'showToast(\'Add API key in Settings first\')')+'" style="border:2px solid '+(tAct?'var(--grn)':'var(--border)')+';background:'+(tAct?'var(--gtint)':'var(--card)')+';border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s;'+(hasKey?'':'opacity:.5')+'">';
+ // Script Training (paywalled)
+ var stClick;
+ var stOpacity='';
+ var stBadge;
+ if(!paid){
+  stClick='showUpgradeModal()';
+  stOpacity='opacity:.65;';
+  stBadge='<span class="badge badge-pri" style="font-size:9px">&#x1F512; PRO</span>';
+ } else if(!hasKey){
+  stClick='showToast(\'Add API key in Settings first\')';
+  stOpacity='opacity:.5;';
+  stBadge='<span class="badge badge-amb" style="font-size:9px">Needs API Key</span>';
+ } else {
+  stClick='settings.mode=\'script\';saveSettings();renderPractice()';
+  stBadge='<span class="badge badge-amb" style="font-size:9px">~$0.02/session</span>';
+ }
+ h+='<div onclick="'+stClick+'" style="border:2px solid '+(tAct?'var(--grn)':'var(--border)')+';background:'+(tAct?'var(--gtint)':'var(--card)')+';border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s;'+stOpacity+'">';
  h+='<div style="font-size:28px;margin-bottom:6px">&#x1F3AF;</div>';
  h+='<div style="font-weight:700;font-size:13px;color:'+(tAct?'var(--grn)':'var(--txt)')+'">Script Training</div>';
  h+='<div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:6px">Practice your exact scripts. Scored on checkpoints, key phrases, and curveball recovery. Unlock harder levels.</div>';
- h+='<div style="margin-top:8px"><span class="badge badge-amb" style="font-size:9px">'+(hasKey?'~$0.02/session':'Needs API Key')+'</span></div>';
+ h+='<div style="margin-top:8px">'+stBadge+'</div>';
  h+='</div>';
 
  h+='</div></div>';
@@ -3465,10 +3685,32 @@ function renderSettings(){
  h+='<div style="margin-top:12px"><a style="font-size:11px;color:var(--pri);cursor:pointer;text-decoration:underline" onclick="localStorage.removeItem(\'dc_onboarding_done_\'+currentAgent.id);showOnboarding()">Re-run setup wizard</a></div>';
  h+='</div>';
 
+ // Subscription section
+ var paid=isUserPaid();
+ var trialDays=getTrialDaysLeft();
+ var planLabel,planColor,planDetail;
+ if(currentAgent&&currentAgent.isAdmin){planLabel='Admin (Full Access)';planColor='var(--red)';planDetail='Admin accounts have unlimited access.'}
+ else if(currentAgent&&currentAgent.paid){planLabel='Pro';planColor='var(--grn)';planDetail='You have full access to all features. Manage your subscription anytime.'}
+ else if(trialDays>0){planLabel='Free Trial';planColor='var(--amb)';planDetail=trialDays+' day'+(trialDays!==1?'s':'')+' remaining of full Pro access.'}
+ else {planLabel='Free';planColor='var(--muted)';planDetail='You\'re on the free plan. Upgrade to unlock Claude AI, Script Training, voice mode, and more.'}
+
+ h+='<div class="card"><h3>&#x1F4B3; Subscription</h3>';
+ h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+ h+='<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Current Plan</div>';
+ h+='<div style="font-size:18px;font-weight:700;color:'+planColor+'">'+planLabel+'</div></div>';
+ if(!paid&&!currentAgent.isAdmin){
+  h+='<button class="btn btn-pri btn-sm" onclick="showUpgradeModal()">Upgrade to Pro</button>';
+ } else if(currentAgent.paid){
+  h+='<a href="'+STRIPE_PORTAL_URL+'" target="_blank" class="btn btn-outline btn-sm">Manage Subscription</a>';
+ }
+ h+='</div>';
+ h+='<div style="font-size:12px;color:var(--muted)">'+planDetail+'</div>';
+ h+='</div>';
+
  // Logout
  h+='<div class="card"><h3>Account</h3>';
  h+='<div style="display:flex;justify-content:space-between;align-items:center">';
- h+='<span style="font-size:13px">Signed in as <b>'+(currentAgent?currentAgent.name:'')+'</b></span>';
+ h+='<span style="font-size:13px">Signed in as <b>'+(currentAgent?currentAgent.name:'')+'</b>'+(currentAgent&&currentAgent.email?' ('+currentAgent.email+')':'')+'</span>';
  h+='<button class="btn btn-sm btn-red" onclick="doLogout()">Sign Out</button>';
  h+='</div></div>';
 
@@ -3723,6 +3965,16 @@ var HELP_TOPICS=[
   +'<b>The agents who practice daily outsell the ones who don\'t. Build the streak.</b>'}
 ];
 
+function openFeedback(){
+ var name=currentAgent?currentAgent.name:'(not signed in)';
+ var email=currentAgent?currentAgent.email||'(no email)':'';
+ var subject=encodeURIComponent('DuetCoach Feedback');
+ var body=encodeURIComponent(
+  'Hi Steve,\n\n[Type your feedback, bug report, or feature request here]\n\n\n---\nUser: '+name+'\nEmail: '+email+'\nDate: '+new Date().toLocaleString()+'\nApp version: 1.2.0'
+ );
+ window.open('mailto:steve.maxim@gmail.com?subject='+subject+'&body='+body,'_blank');
+}
+
 function openHelp(){
  $1('#helpOverlay').classList.add('show');
  renderHelpTopics();
@@ -3927,6 +4179,213 @@ function saveObApiKey(){
   showToast('API key saved!');
   renderOnboardingStep();
  }
+}
+
+// ── Admin Dashboard ──
+async function renderAdmin(){
+ if(!currentAgent||!currentAgent.isAdmin){
+  $1('#p5').innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--muted)">Admin access required.</div>';
+  return;
+ }
+
+ var h='<h2 style="font-size:18px;color:var(--red);margin-bottom:14px">&#x1F511; Admin Dashboard</h2>';
+ h+='<div style="font-size:11px;color:var(--muted);margin-bottom:16px">Manage users, subscriptions, and PIN reset requests.</div>';
+
+ // Stats summary
+ h+='<div class="stat-grid"><div class="stat-card"><div class="num" id="adminTotalUsers">-</div><div class="lbl">Total Users</div></div>';
+ h+='<div class="stat-card grn"><div class="num" id="adminPaidUsers">-</div><div class="lbl">Paid Subscribers</div></div>';
+ h+='<div class="stat-card amb"><div class="num" id="adminActiveUsers">-</div><div class="lbl">Active This Week</div></div>';
+ h+='<div class="stat-card red"><div class="num" id="adminPendingResets">-</div><div class="lbl">Pending PIN Resets</div></div></div>';
+
+ // PIN reset requests
+ h+='<div class="card"><h3>&#x1F511; Pending PIN Reset Requests</h3>';
+ h+='<div id="adminPinResets"><div style="color:var(--muted);font-size:12px">Loading...</div></div></div>';
+
+ // User list
+ h+='<div class="card"><h3>&#x1F465; All Users</h3>';
+ h+='<div style="display:flex;gap:6px;margin-bottom:10px"><input id="adminSearch" placeholder="Search by name..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" oninput="filterAdminUsers()"></div>';
+ h+='<div id="adminUserList" style="max-height:600px;overflow-y:auto"><div style="color:var(--muted);font-size:12px">Loading...</div></div></div>';
+
+ // Export
+ h+='<div class="card"><h3>&#x1F4E5; Export</h3>';
+ h+='<button class="btn btn-sm btn-outline" onclick="adminExportUsers()">Download User List (CSV)</button></div>';
+
+ $1('#p5').innerHTML=h;
+
+ // Load data
+ await adminLoadData();
+}
+
+var adminUsersCache=[];
+async function adminLoadData(){
+ try{
+  // Use shallow to get all agent IDs
+  var allRes=await fetch(FIREBASE_URL+'.json?shallow=true');
+  var all=await allRes.json();
+  if(!all){
+   $1('#adminUserList').innerHTML='<div style="color:var(--muted);font-size:12px">No users yet.</div>';
+   return;
+  }
+  var agentIds=Object.keys(all).filter(function(k){return k!=='_pin_resets'});
+  var users=[];
+  var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+  var weeklyActiveCount=0;
+  var paidCount=0;
+
+  for(var i=0;i<agentIds.length;i++){
+   var aid=agentIds[i];
+   try{
+    var profile=await fetch(FIREBASE_URL+'/'+aid+'/profile.json').then(function(r){return r.json()});
+    var streakData=await fetch(FIREBASE_URL+'/'+aid+'/streak.json').then(function(r){return r.json()});
+    var sessionsData=await fetch(FIREBASE_URL+'/'+aid+'/sessions.json').then(function(r){return r.json()});
+    if(!profile||!profile.name) continue;
+    var sessCount=sessionsData?sessionsData.length:0;
+    var lastSession=sessionsData&&sessionsData[0]?sessionsData[0].date:null;
+    var isWeeklyActive=lastSession&&new Date(lastSession)>=weekAgo;
+    if(isWeeklyActive) weeklyActiveCount++;
+    if(profile.paid) paidCount++;
+    users.push({
+     id:aid,
+     name:profile.name,
+     email:profile.email||'(no email)',
+     paid:!!profile.paid,
+     trialStart:profile.trialStart||profile.created,
+     created:profile.created,
+     lastSession:lastSession,
+     sessionCount:sessCount,
+     currentStreak:streakData?streakData.current||0:0,
+     longestStreak:streakData?streakData.longest||0:0
+    });
+   }catch(e){}
+  }
+
+  adminUsersCache=users.sort(function(a,b){return new Date(b.created||0)-new Date(a.created||0)});
+
+  // Update stats
+  $1('#adminTotalUsers').textContent=users.length;
+  $1('#adminPaidUsers').textContent=paidCount;
+  $1('#adminActiveUsers').textContent=weeklyActiveCount;
+
+  // Load PIN reset requests
+  var resetsRes=await fetch(FIREBASE_URL+'/_pin_resets.json');
+  var resets=await resetsRes.json();
+  var pending=[];
+  if(resets){
+   Object.keys(resets).forEach(function(k){
+    if(resets[k].status==='pending') pending.push(Object.assign({},resets[k],{key:k}));
+   });
+  }
+  $1('#adminPendingResets').textContent=pending.length;
+  renderAdminResets(pending);
+
+  // Render user list
+  renderAdminUsers(adminUsersCache);
+ }catch(e){
+  $1('#adminUserList').innerHTML='<div style="color:var(--red);font-size:12px">Error loading: '+e.message+'</div>';
+ }
+}
+
+function renderAdminResets(resets){
+ if(!resets||resets.length===0){
+  $1('#adminPinResets').innerHTML='<div style="color:var(--muted);font-size:12px">No pending requests.</div>';
+  return;
+ }
+ var h='';
+ resets.forEach(function(r){
+  h+='<div style="background:var(--rtint);border-radius:var(--radius);padding:10px;margin-bottom:6px">';
+  h+='<div style="font-weight:700;font-size:13px">'+r.name+'</div>';
+  h+='<div style="font-size:11px;color:var(--muted)">'+r.email+' &middot; '+fmtDate(r.requested)+'</div>';
+  h+='<div style="margin-top:6px;display:flex;gap:6px">';
+  h+='<button class="btn btn-sm btn-grn" onclick="adminResetPin(\''+r.agentId+'\',\''+r.key+'\',\''+r.email+'\')">Reset to Temp PIN</button>';
+  h+='<button class="btn btn-sm btn-outline" onclick="adminDismissReset(\''+r.key+'\')">Dismiss</button>';
+  h+='</div></div>';
+ });
+ $1('#adminPinResets').innerHTML=h;
+}
+
+function renderAdminUsers(users){
+ if(!users||users.length===0){
+  $1('#adminUserList').innerHTML='<div style="color:var(--muted);font-size:12px">No users.</div>';
+  return;
+ }
+ var h='<div style="overflow-x:auto"><table style="width:100%;font-size:11px"><thead><tr>';
+ h+='<th style="text-align:left;padding:6px">Name</th><th style="text-align:left;padding:6px">Email</th>';
+ h+='<th style="text-align:center;padding:6px">Plan</th><th style="text-align:right;padding:6px">Sessions</th>';
+ h+='<th style="text-align:right;padding:6px">Streak</th><th style="text-align:left;padding:6px">Last Active</th>';
+ h+='<th style="text-align:center;padding:6px">Actions</th></tr></thead><tbody>';
+ users.forEach(function(u){
+  var planBadge=u.paid?'<span class="badge badge-grn">PRO</span>':'<span class="badge badge-amb">FREE</span>';
+  h+='<tr style="border-top:1px solid var(--border)">';
+  h+='<td style="padding:6px"><b>'+u.name+'</b></td>';
+  h+='<td style="padding:6px;color:var(--muted)">'+u.email+'</td>';
+  h+='<td style="padding:6px;text-align:center">'+planBadge+'</td>';
+  h+='<td style="padding:6px;text-align:right">'+u.sessionCount+'</td>';
+  h+='<td style="padding:6px;text-align:right">'+u.currentStreak+'</td>';
+  h+='<td style="padding:6px;color:var(--muted)">'+(u.lastSession?fmtDate(u.lastSession):'never')+'</td>';
+  h+='<td style="padding:6px;text-align:center;white-space:nowrap">';
+  h+='<button class="btn btn-sm '+(u.paid?'btn-outline':'btn-grn')+'" style="font-size:10px;padding:3px 7px" onclick="adminTogglePaid(\''+u.id+'\','+(!u.paid)+')">'+(u.paid?'Revoke':'Grant')+' Pro</button> ';
+  h+='<button class="btn btn-sm btn-red" style="font-size:10px;padding:3px 7px" onclick="adminDeleteUser(\''+u.id+'\',\''+u.name+'\')">Delete</button>';
+  h+='</td></tr>';
+ });
+ h+='</tbody></table></div>';
+ $1('#adminUserList').innerHTML=h;
+}
+
+function filterAdminUsers(){
+ var q=($1('#adminSearch').value||'').toLowerCase();
+ var filtered=adminUsersCache.filter(function(u){
+  return u.name.toLowerCase().indexOf(q)>=0||u.email.toLowerCase().indexOf(q)>=0;
+ });
+ renderAdminUsers(filtered);
+}
+
+async function adminResetPin(agentId,resetKey,email){
+ var tempPin=Math.floor(1000+Math.random()*9000).toString();
+ var pinHash=await sha256(tempPin);
+ // Update profile
+ await fetch(FIREBASE_URL+'/'+agentId+'/profile/pin.json',{method:'PUT',body:JSON.stringify(pinHash)});
+ // Mark request resolved
+ await fetch(FIREBASE_URL+'/_pin_resets/'+resetKey+'/status.json',{method:'PUT',body:JSON.stringify('resolved')});
+ // Open mailto with temp PIN
+ var subject=encodeURIComponent('Your DuetCoach PIN has been reset');
+ var body=encodeURIComponent('Your temporary PIN is: '+tempPin+'\n\nUse this to sign in. You can change it from Settings after logging in.\n\n— Steve');
+ window.open('mailto:'+email+'?subject='+subject+'&body='+body,'_blank');
+ showToast('PIN reset to '+tempPin+' — email opened');
+ adminLoadData();
+}
+
+async function adminDismissReset(resetKey){
+ await fetch(FIREBASE_URL+'/_pin_resets/'+resetKey+'/status.json',{method:'PUT',body:JSON.stringify('dismissed')});
+ showToast('Request dismissed');
+ adminLoadData();
+}
+
+async function adminTogglePaid(agentId,newPaid){
+ await fetch(FIREBASE_URL+'/'+agentId+'/profile/paid.json',{method:'PUT',body:JSON.stringify(newPaid)});
+ if(newPaid) await fetch(FIREBASE_URL+'/'+agentId+'/profile/paidAt.json',{method:'PUT',body:JSON.stringify(new Date().toISOString())});
+ showToast(newPaid?'Pro access granted':'Pro access revoked');
+ adminLoadData();
+}
+
+async function adminDeleteUser(agentId,name){
+ if(!confirm('Delete account for '+name+'? This removes ALL their data permanently.')) return;
+ if(!confirm('Are you SURE? This cannot be undone.')) return;
+ await fetch(FIREBASE_URL+'/'+agentId+'.json',{method:'DELETE'});
+ showToast('Account deleted');
+ adminLoadData();
+}
+
+function adminExportUsers(){
+ var csv='Name,Email,Plan,Sessions,Current Streak,Longest Streak,Last Active,Created\n';
+ adminUsersCache.forEach(function(u){
+  csv+='"'+u.name+'","'+u.email+'","'+(u.paid?'Pro':'Free')+'",'+u.sessionCount+','+u.currentStreak+','+u.longestStreak+','+(u.lastSession||'')+','+(u.created||'')+'\n';
+ });
+ var blob=new Blob([csv],{type:'text/csv'});
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='duetcoach_users_'+new Date().toISOString().substring(0,10)+'.csv';
+ a.click();
+ showToast('User list exported!');
 }
 
 // ── Init ──
