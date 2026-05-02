@@ -484,7 +484,7 @@ async function doForgotPin(){
   var profile=await fetch(FIREBASE_URL+'/'+agentId+'/profile.json').then(function(r){return r.json()});
   if(!profile||!profile.name){errEl.textContent='No account found with that name. Check spelling or create a new account.';errEl.style.display='block';return}
 
-  // Save PIN reset request to Firebase
+  // Save PIN reset request to Firebase (admin sees this in dashboard)
   var resetRequest={
    agentId:agentId,
    name:name,
@@ -496,18 +496,13 @@ async function doForgotPin(){
   var requestKey='req_'+Date.now();
   await fetch(FIREBASE_URL+'/_pin_resets/'+requestKey+'.json',{method:'PUT',body:JSON.stringify(resetRequest)});
 
-  // Open mailto so user emails Steve directly as backup
-  var subject=encodeURIComponent('DuetCoach PIN Reset Request');
-  var body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nAgent ID: '+agentId+'\n\nPlease reset my PIN.');
-  window.open('mailto:steve.maxim@gmail.com?subject='+subject+'&body='+body,'_blank');
-
   errEl.style.color='var(--grn)';
-  errEl.textContent='Request submitted! You\'ll receive a temporary PIN within 24 hours.';
+  errEl.innerHTML='<b>Request submitted!</b><br>Steve will email you a temporary PIN within 24 hours. Check your email at <b>'+email+'</b>.';
   errEl.style.display='block';
   setTimeout(function(){
    toggleLoginMode();
    errEl.style.color='';
-  },4000);
+  },5000);
  }catch(e){
   errEl.textContent='Error submitting request. Please email steve.maxim@gmail.com directly.';
   errEl.style.display='block';
@@ -4452,11 +4447,24 @@ async function adminResetPin(agentId,resetKey,email){
  await fetch(FIREBASE_URL+'/'+agentId+'/profile/pin.json',{method:'PUT',body:JSON.stringify(pinHash)});
  // Mark request resolved
  await fetch(FIREBASE_URL+'/_pin_resets/'+resetKey+'/status.json',{method:'PUT',body:JSON.stringify('resolved')});
- // Open mailto with temp PIN
+ // Show modal with Gmail compose link (works without email client)
  var subject=encodeURIComponent('Your DuetCoach PIN has been reset');
- var body=encodeURIComponent('Your temporary PIN is: '+tempPin+'\n\nUse this to sign in. You can change it from Settings after logging in.\n\n— Steve');
- window.open('mailto:'+email+'?subject='+subject+'&body='+body,'_blank');
- showToast('PIN reset to '+tempPin+' — email opened');
+ var body=encodeURIComponent('Your temporary PIN is: '+tempPin+'\n\nUse this to sign in at https://duetbooksapp.github.io/duetcoach/app.html\n\nYou can change your PIN from Settings after logging in.\n\n— Steve');
+ var gmailUrl='https://mail.google.com/mail/?view=cm&to='+encodeURIComponent(email)+'&su='+subject+'&body='+body;
+
+ var h='<h2 style="font-size:18px;color:var(--pri);margin-bottom:10px">PIN Reset Successful</h2>';
+ h+='<div style="background:var(--gtint);padding:14px;border-radius:8px;margin-bottom:14px;text-align:center">';
+ h+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Temporary PIN for '+escapeHtml(email)+'</div>';
+ h+='<div style="font-size:36px;font-weight:800;color:var(--pri);font-variant-numeric:tabular-nums;letter-spacing:6px;margin-top:4px">'+tempPin+'</div>';
+ h+='</div>';
+ h+='<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Send this PIN to the user. Click the button below to compose an email in Gmail with the PIN pre-filled.</div>';
+ h+='<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
+ h+='<a href="'+gmailUrl+'" target="_blank" class="btn btn-pri">&#x1F4E7; Open in Gmail</a>';
+ h+='<button class="btn btn-outline" onclick="navigator.clipboard.writeText(\''+tempPin+'\');showToast(\'PIN copied!\')">Copy PIN</button>';
+ h+='<button class="btn btn-outline" onclick="closeScoreModal()">Done</button>';
+ h+='</div>';
+ $1('#scoreModalContent').innerHTML=h;
+ $1('#scoreModal').classList.add('show');
  adminLoadData();
 }
 
