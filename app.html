@@ -3967,12 +3967,56 @@ var HELP_TOPICS=[
 
 function openFeedback(){
  var name=currentAgent?currentAgent.name:'(not signed in)';
- var email=currentAgent?currentAgent.email||'(no email)':'';
- var subject=encodeURIComponent('DuetCoach Feedback');
- var body=encodeURIComponent(
-  'Hi Steve,\n\n[Type your feedback, bug report, or feature request here]\n\n\n---\nUser: '+name+'\nEmail: '+email+'\nDate: '+new Date().toLocaleString()+'\nApp version: 1.2.0'
- );
- window.open('mailto:steve.maxim@gmail.com?subject='+subject+'&body='+body,'_blank');
+ var email=currentAgent?currentAgent.email||'':'';
+ var h='<h2 style="font-size:20px;color:var(--pri);margin-bottom:6px">&#x1F4AC; Send Feedback</h2>';
+ h+='<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Bug? Feature request? Compliment? Steve will see your message directly.</div>';
+ h+='<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">Type</div>';
+ h+='<select id="fbType" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;margin-bottom:12px">';
+ h+='<option value="bug">&#x1F41B; Bug Report</option>';
+ h+='<option value="feature">&#x2728; Feature Request</option>';
+ h+='<option value="question">&#x2753; Question</option>';
+ h+='<option value="compliment">&#x1F44D; Compliment / General</option>';
+ h+='</select>';
+ h+='<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">Your Message</div>';
+ h+='<textarea id="fbMessage" placeholder="What\'s on your mind?" style="width:100%;min-height:140px;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>';
+ h+='<div style="font-size:10px;color:var(--muted);margin-top:8px">Sending as <b>'+name+'</b>'+(email?' ('+email+')':'')+'</div>';
+ h+='<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">';
+ h+='<button class="btn btn-outline" onclick="closeScoreModal()">Cancel</button>';
+ h+='<button class="btn btn-pri" onclick="submitFeedback()">Send Feedback</button>';
+ h+='</div>';
+ h+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center">Or email <a href="https://mail.google.com/mail/?view=cm&to=steve.maxim@gmail.com&su=DuetCoach%20Feedback" target="_blank" style="color:var(--pri)">steve.maxim@gmail.com</a> directly</div>';
+ $1('#scoreModalContent').innerHTML=h;
+ $1('#scoreModal').classList.add('show');
+ setTimeout(function(){var ta=$1('#fbMessage');if(ta) ta.focus()},100);
+}
+
+async function submitFeedback(){
+ var type=($1('#fbType')||{}).value||'general';
+ var message=(($1('#fbMessage')||{}).value||'').trim();
+ if(!message){
+  showToast('Please type a message before sending');
+  return;
+ }
+ var feedback={
+  type:type,
+  message:message,
+  agentId:currentAgent?currentAgent.id:'anonymous',
+  name:currentAgent?currentAgent.name:'',
+  email:currentAgent?currentAgent.email||'':'',
+  paid:currentAgent?!!currentAgent.paid:false,
+  timestamp:new Date().toISOString(),
+  status:'unread',
+  appVersion:'1.2.0',
+  userAgent:navigator.userAgent
+ };
+ var key='fb_'+Date.now();
+ try{
+  await fetch(FIREBASE_URL+'/_feedback/'+key+'.json',{method:'PUT',body:JSON.stringify(feedback)});
+  closeScoreModal();
+  showToast('&#x2728; Feedback sent! Thanks — Steve will review it.',4500);
+ }catch(e){
+  showToast('Couldn\'t send. Please try again or email steve.maxim@gmail.com',5000);
+ }
 }
 
 function openHelp(){
@@ -4201,6 +4245,10 @@ async function renderAdmin(){
  h+='<div class="card"><h3>&#x1F511; Pending PIN Reset Requests</h3>';
  h+='<div id="adminPinResets"><div style="color:var(--muted);font-size:12px">Loading...</div></div></div>';
 
+ // Feedback inbox
+ h+='<div class="card"><h3>&#x1F4AC; Feedback Inbox</h3>';
+ h+='<div id="adminFeedback"><div style="color:var(--muted);font-size:12px">Loading...</div></div></div>';
+
  // User list
  h+='<div class="card"><h3>&#x1F465; All Users</h3>';
  h+='<div style="display:flex;gap:6px;margin-bottom:10px"><input id="adminSearch" placeholder="Search by name..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" oninput="filterAdminUsers()"></div>';
@@ -4278,6 +4326,20 @@ async function adminLoadData(){
   $1('#adminPendingResets').textContent=pending.length;
   renderAdminResets(pending);
 
+  // Load feedback inbox
+  try{
+   var fbRes=await fetch(FIREBASE_URL+'/_feedback.json');
+   var fbData=await fbRes.json();
+   var feedbackArr=[];
+   if(fbData){
+    Object.keys(fbData).forEach(function(k){feedbackArr.push(Object.assign({},fbData[k],{key:k}))});
+    feedbackArr.sort(function(a,b){return new Date(b.timestamp||0)-new Date(a.timestamp||0)});
+   }
+   renderAdminFeedback(feedbackArr);
+  }catch(e){
+   $1('#adminFeedback').innerHTML='<div style="color:var(--muted);font-size:12px">No feedback yet.</div>';
+  }
+
   // Render user list
   renderAdminUsers(adminUsersCache);
  }catch(e){
@@ -4301,6 +4363,50 @@ function renderAdminResets(resets){
   h+='</div></div>';
  });
  $1('#adminPinResets').innerHTML=h;
+}
+
+function renderAdminFeedback(feedback){
+ if(!feedback||feedback.length===0){
+  $1('#adminFeedback').innerHTML='<div style="color:var(--muted);font-size:12px">No feedback submitted yet.</div>';
+  return;
+ }
+ var typeIcons={bug:'&#x1F41B;',feature:'&#x2728;',question:'&#x2753;',compliment:'&#x1F44D;',general:'&#x1F4AC;'};
+ var unreadCount=feedback.filter(function(f){return f.status==='unread'}).length;
+ var h='';
+ if(unreadCount>0) h+='<div style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:8px">'+unreadCount+' unread</div>';
+ feedback.slice(0,30).forEach(function(f){
+  var bg=f.status==='unread'?'background:var(--rtint);border-left:3px solid var(--red)':'background:var(--bg);border-left:3px solid var(--border)';
+  h+='<div style="'+bg+';padding:10px 12px;border-radius:6px;margin-bottom:8px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  h+='<div style="font-size:12px;font-weight:700">'+(typeIcons[f.type]||'')+' '+(f.name||'Anonymous')+(f.paid?' <span class="badge badge-grn" style="font-size:9px">PRO</span>':'')+'</div>';
+  h+='<div style="font-size:10px;color:var(--muted)">'+fmtDate(f.timestamp)+'</div>';
+  h+='</div>';
+  h+='<div style="font-size:12px;color:var(--txt);line-height:1.5;white-space:pre-wrap;margin-bottom:6px">'+escapeHtml(f.message||'')+'</div>';
+  if(f.email){
+   h+='<div style="font-size:10px;color:var(--muted)"><a href="https://mail.google.com/mail/?view=cm&to='+encodeURIComponent(f.email)+'&su=Re%3A%20DuetCoach%20Feedback" target="_blank" style="color:var(--pri)">Reply to '+f.email+'</a></div>';
+  }
+  h+='<div style="margin-top:6px">';
+  if(f.status==='unread') h+='<button class="btn btn-sm btn-outline" style="font-size:10px;padding:3px 8px" onclick="adminMarkFeedbackRead(\''+f.key+'\')">Mark Read</button> ';
+  h+='<button class="btn btn-sm btn-red" style="font-size:10px;padding:3px 8px" onclick="adminDeleteFeedback(\''+f.key+'\')">Delete</button>';
+  h+='</div></div>';
+ });
+ if(feedback.length>30) h+='<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">Showing 30 most recent of '+feedback.length+'</div>';
+ $1('#adminFeedback').innerHTML=h;
+}
+
+function escapeHtml(s){
+ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function adminMarkFeedbackRead(key){
+ await fetch(FIREBASE_URL+'/_feedback/'+key+'/status.json',{method:'PUT',body:JSON.stringify('read')});
+ adminLoadData();
+}
+
+async function adminDeleteFeedback(key){
+ if(!confirm('Delete this feedback?')) return;
+ await fetch(FIREBASE_URL+'/_feedback/'+key+'.json',{method:'DELETE'});
+ adminLoadData();
 }
 
 function renderAdminUsers(users){
