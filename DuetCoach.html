@@ -1963,7 +1963,12 @@ function startSession(personaId){
  document.body.classList.add('in-session');
  activeSession.transcript.push({role:'client',text:firstMsg,phase:0});
  if(mode==='api'||mode==='script'){
-  activeSession.apiMessages=[{role:'assistant',content:firstMsg}];
+  // Don't seed with assistant message — Claude API requires first message to be 'user'.
+  // Margaret's greeting is shown in transcript but not sent to API; Steve's first
+  // message becomes the actual conversation starter. System prompt tells Claude
+  // about Margaret's opener and tells it to continue the conversation naturally.
+  activeSession.apiMessages=[];
+  activeSession.openingGreeting=firstMsg; // pass to system prompt for context
  }
  renderPractice();
  setTimeout(scrollChatBottom,100);
@@ -2151,13 +2156,15 @@ function handleAPIResponse(agentText){
  scrollChatBottom();
 
  var p=activeSession.persona;
+ var greetingContext=activeSession.openingGreeting?'\n\nYOUR OPENING (already said to the agent): "'+activeSession.openingGreeting+'"\n\nThe agent\'s next message is their response to that opening. Continue the conversation naturally from where you left off.\n':'';
  var systemPrompt='You are playing the role of '+p.name+', a '+p.age+'-year-old '+p.personality+' client in a sales roleplay.\n\n'
   +'BACKGROUND: '+p.situation+'\n\n'
   +'PRIMARY OBJECTION (raise naturally when the topic comes up): '+p.primaryObjection+'\n'
   +'HIDDEN CONCERN: '+p.hiddenObjection+'\n'
   +'YOU OPEN UP WHEN: '+p.openTriggers+'\n'
-  +'YOU RESIST WHEN: '+p.resistTriggers+'\n\n'
-  +'RULES:\n'
+  +'YOU RESIST WHEN: '+p.resistTriggers+'\n'
+  +greetingContext
+  +'\nRULES:\n'
   +'- Stay in character at all times. You are the CLIENT, not the agent.\n'
   +'- Respond naturally in 2-4 sentences. Be conversational, not robotic.\n'
   +'- If the agent follows Sales Framework well (asks good questions, shows empathy, addresses your concerns), gradually become more receptive.\n'
@@ -2330,13 +2337,15 @@ function handleScriptResponse(agentText){
   scenarioText='SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n';
  }
 
+ var greetingContext2=activeSession.openingGreeting?'\n\nYOUR OPENING (already said to the agent): "'+activeSession.openingGreeting+'"\n\nThe agent\'s next message is their response to that opening. Continue naturally from there.\n':'';
  var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client who came into an AAA branch.\n\n'
   +'BACKGROUND: '+p.situation+'\n\n'
   +scenarioText
   +'YOUR PERSONALITY: '+p.personality+'. '+(p.personality==='skeptical'?'You push back on claims and want proof.':p.personality==='analytical'?'You want specific numbers and logic.':p.personality==='emotional'?'You respond to stories and feelings about family/security.':'You are generally receptive but need to be convinced.')+'\n\n'
   +'PRIMARY OBJECTION (raise naturally when relevant): '+p.primaryObjection+'\n'
-  +'HIDDEN CONCERN: '+p.hiddenObjection+'\n\n'
-  +'RULES:\n'
+  +'HIDDEN CONCERN: '+p.hiddenObjection+'\n'
+  +greetingContext2
+  +'\nRULES:\n'
   +'- Stay in character. You are the CLIENT sitting in the branch.\n'
   +'- Respond in 2-4 sentences. Be conversational and natural.\n'
   +'- If the agent follows a good consultative process (asks questions, listens, builds on your answers), become more receptive.\n'
