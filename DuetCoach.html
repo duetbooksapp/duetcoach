@@ -3359,7 +3359,11 @@ function renderHistory(){
    h+='<button class="btn btn-sm btn-pri" style="margin-top:4px" onclick="event.stopPropagation();saveHistoryNote('+idx+')">Save Note</button>';
   }
   h+='</div>';
-  h+='<button class="btn btn-sm btn-red" style="margin-top:8px" onclick="event.stopPropagation();deleteSession('+idx+')">Delete Session</button>';
+  h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<button class="btn btn-sm btn-pri" onclick="event.stopPropagation();exportTranscript('+idx+',\'md\')">&#x2B07; Export .md</button>';
+  h+='<button class="btn btn-sm btn-amb" onclick="event.stopPropagation();exportTranscript('+idx+',\'copy\')">&#x1F4CB; Copy</button>';
+  h+='<button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteSession('+idx+')">Delete Session</button>';
+  h+='</div>';
   h+='</div></div>';
  });
 
@@ -3370,6 +3374,84 @@ var histFilter='all';
 function toggleSessionDetail(idx){
  var el=$1('#sd_'+idx);
  if(el) el.classList.toggle('show');
+}
+
+function buildTranscriptMarkdown(s){
+ var d=new Date(s.date);
+ var iso=d.toISOString().substring(0,10);
+ var you='You';
+ var client=(s.personaName||'Client').split(' ')[0];
+ var L=[];
+ // YAML frontmatter — drops cleanly into Obsidian
+ L.push('---');
+ L.push('title: "Duet Coach — '+(s.personaName||'Session')+' '+iso+'"');
+ L.push('date: '+iso);
+ L.push('source: Duet Coach');
+ L.push('persona: "'+(s.personaName||'')+'"');
+ L.push('category: '+(s.category||''));
+ L.push('difficulty: '+(s.difficulty||''));
+ L.push('mode: '+(s.mode||''));
+ L.push('score: '+(s.total||0)+'/100');
+ L.push('tags: [duet-coach, sales-roleplay]');
+ L.push('---');
+ L.push('');
+ L.push('# Duet Coach — '+(s.personaName||'Session'));
+ L.push('');
+ L.push('- **Date:** '+fmtDate(s.date));
+ L.push('- **Duration:** '+fmtTime(s.duration||0));
+ L.push('- **Difficulty:** '+(s.difficulty||'—')+'  ·  **Mode:** '+(s.mode||'—'));
+ L.push('- **Score:** '+(s.total||0)+'/100');
+ if(s.scores){
+  L.push('  - Phase Completion: '+(s.scores.phase||0)+'/20');
+  L.push('  - Question Quality: '+(s.scores.question||0)+'/20');
+  L.push('  - Objection Handling: '+(s.scores.objection||0)+'/20');
+  L.push('  - Empathy: '+(s.scores.empathy||0)+'/20');
+  L.push('  - Close Technique: '+(s.scores.close||0)+'/20');
+ }
+ L.push('');
+ if(s.feedback){ L.push('> **Coach:** '+s.feedback); L.push(''); }
+ L.push('## Transcript');
+ L.push('');
+ (s.transcript||[]).forEach(function(m){
+  L.push('**'+(m.role==='client'?client:you)+':** '+m.text);
+  L.push('');
+ });
+ if(s.notes){ L.push('## My Notes'); L.push(''); L.push(s.notes); L.push(''); }
+ return L.join('\n');
+}
+
+function exportTranscript(idx,fmt){
+ var s=sessions[idx];
+ if(!s){showToast('Session not found');return}
+ if(!s.transcript||!s.transcript.length){showToast('No transcript for this session');return}
+ var md=buildTranscriptMarkdown(s);
+ if(fmt==='copy'){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+   navigator.clipboard.writeText(md).then(function(){showToast('Transcript copied!')}).catch(function(){fallbackCopy(md)});
+  } else { fallbackCopy(md); }
+  return;
+ }
+ // download .md
+ var iso=new Date(s.date).toISOString().substring(0,10);
+ var name='DuetCoach_'+iso+'_'+((s.personaName||'session').split(' ')[0])+'.md';
+ var blob=new Blob([md],{type:'text/markdown'});
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download=name;
+ a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+ showToast('Transcript exported!');
+}
+
+function fallbackCopy(text){
+ try{
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  showToast('Transcript copied!');
+ }catch(e){showToast('Copy failed — try Export .md')}
 }
 
 function saveHistoryNote(idx){
