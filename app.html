@@ -648,6 +648,48 @@ function doLogout(){
  $1('#loginScreen').style.display='flex';
 }
 
+async function changePin(){
+ var oldPin=(($1('#cp_old')||{}).value||'').trim();
+ var newPin=(($1('#cp_new')||{}).value||'').trim();
+ var newPin2=(($1('#cp_new2')||{}).value||'').trim();
+ var status=$1('#cpStatus');
+ if(!status) return;
+
+ function setStatus(msg,isError){
+  status.textContent=msg;
+  status.style.color=isError?'var(--red)':'var(--grn)';
+ }
+
+ if(!currentAgent||!currentAgent.id){setStatus('Not signed in',true);return}
+ if(!oldPin){setStatus('Enter your current PIN',true);return}
+ if(!newPin||newPin.length<4){setStatus('New PIN must be at least 4 digits',true);return}
+ if(newPin.length>6){setStatus('New PIN must be 4-6 digits',true);return}
+ if(newPin!==newPin2){setStatus('New PINs do not match',true);return}
+ if(oldPin===newPin){setStatus('New PIN must be different from current PIN',true);return}
+
+ try{
+  // Verify old PIN matches what's in Firebase
+  var profile=await fetch(FIREBASE_URL+'/'+currentAgent.id+'/profile.json').then(function(r){return r.json()});
+  if(!profile){setStatus('Could not load profile',true);return}
+  var oldHash=await sha256(oldPin);
+  if(oldHash!==profile.pin){setStatus('Current PIN is incorrect',true);return}
+
+  // Set new PIN
+  var newHash=await sha256(newPin);
+  await fetch(FIREBASE_URL+'/'+currentAgent.id+'/profile/pin.json',{method:'PUT',body:JSON.stringify(newHash)});
+  await fetch(FIREBASE_URL+'/'+currentAgent.id+'/profile/pinChangedAt.json',{method:'PUT',body:JSON.stringify(new Date().toISOString())});
+
+  // Clear fields
+  $1('#cp_old').value='';
+  $1('#cp_new').value='';
+  $1('#cp_new2').value='';
+  setStatus('PIN updated successfully!',false);
+  showToast('PIN changed. Use it next time you sign in.',4000);
+ }catch(e){
+  setStatus('Error updating PIN: '+e.message,true);
+ }
+}
+
 // ── Utilities ──
 function $1(s){return document.querySelector(s)}
 function $$(s){return document.querySelectorAll(s)}
@@ -1056,7 +1098,8 @@ var IUL_CURVEBALLS=[
  {type:'objection',trigger:'What if I need the money before retirement? Am I locked in?',recovery:['access','loan','tax-free','any time','no penalty','liquidity','that\'s the beauty','your money']},
  {type:'objection',trigger:'I don\'t trust insurance companies. They always find ways to not pay.',recovery:['understand','regulated','state','contract','guaranteed','written','legal','obligation','AM Best','rated']},
  {type:'objection',trigger:'Let me think about it and do some more research.',recovery:['absolutely','research','but','age','health','locked in','today','rate','changes','qualify','information','take this']},
- {type:'objection',trigger:'Can I just start small and add more later?',recovery:['absolutely','flexible','premiums','start','increase','later','important','get started','insurability','young','healthy']}
+ {type:'objection',trigger:'Can I just start small and add more later?',recovery:['absolutely','flexible','premiums','start','increase','later','important','get started','insurability','young','healthy']},
+ {type:'objection',trigger:'I already have a death benefit and nobody I really need to leave it to. I will just put my money in the market and roll with 8 to 10 percent.',recovery:['who would the death benefit be for','then an iul may not fit you','no insurance drag','annuity','myga','tax-deferred','right product','reposition','honest','suitability']}
 ];
 
 // Curveball triggers — injected randomly during script mode
@@ -1148,6 +1191,13 @@ var PERSONAS=[
   openTriggers:'When you show the 0% floor and lifetime income guarantee',
   resistTriggers:'Contradicting his financial advisor directly',
   successClose:'IUL with Lifetime Income Rider — guaranteed tax-free monthly income in retirement'},
+
+ {id:'mercer',name:'Glenn Mercer',age:56,avatar:'&#x1F468;',category:'iul',difficulty:'hard',
+  personality:'skeptical',situation:'Financially savvy, about 10 years from retirement. Has a 401K (his and his wife) plus a term life policy — and NO real death-benefit need (nobody he needs to leave money to). Confident DIY investor: talks fluently about market returns, fees, surrender charges, and borrowing, and figures he can put money in the market and roll with 8-10 percent. Will dismantle an IUL pitch with fee math if you illustrate before qualifying the need.',
+  primaryObjection:'why-not-index-funds',hiddenObjection:'An IUL genuinely may not fit him — a fixed annuity / MYGA would serve his tax-deferred-growth goal better, with no insurance drag.',
+  openTriggers:'When you QUALIFY THE NEED first (who would the death benefit be for?) BEFORE illustrating, and honestly reposition to an annuity if the IUL does not fit',
+  resistTriggers:'Sharing an illustration before discovery; conceding his objections; or pushing an IUL that does not fit his situation',
+  successClose:'You qualify the need early, recognize the IUL is a poor fit, and either reposition to a MYGA / fixed annuity for tax-deferred growth OR honestly advise that an IUL is not right for him — the win is SUITABILITY, not forcing the IUL'},
 
  // Life Conversion (Renewable Term → Fixed/UL)
  {id:'martinez',name:'Tony Martinez',age:40,avatar:'&#x1F468;',category:'conversion',difficulty:'easy',
@@ -3704,9 +3754,20 @@ function renderSettings(){
 
  // Logout
  h+='<div class="card"><h3>Account</h3>';
- h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+ h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
  h+='<span style="font-size:13px">Signed in as <b>'+(currentAgent?currentAgent.name:'')+'</b>'+(currentAgent&&currentAgent.email?' ('+currentAgent.email+')':'')+'</span>';
  h+='<button class="btn btn-sm btn-red" onclick="doLogout()">Sign Out</button>';
+ h+='</div>';
+ // Change PIN section
+ h+='<div style="border-top:1px solid var(--border);padding-top:14px">';
+ h+='<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#x1F510; Change PIN</div>';
+ h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">';
+ h+='<input type="password" id="cp_old" placeholder="Current PIN" maxlength="6" inputmode="numeric" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit">';
+ h+='<input type="password" id="cp_new" placeholder="New PIN" maxlength="6" inputmode="numeric" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit">';
+ h+='<input type="password" id="cp_new2" placeholder="Confirm New PIN" maxlength="6" inputmode="numeric" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit">';
+ h+='</div>';
+ h+='<button class="btn btn-sm btn-pri" onclick="changePin()">Update PIN</button>';
+ h+='<div id="cpStatus" style="margin-top:8px;font-size:12px"></div>';
  h+='</div></div>';
 
  // About
