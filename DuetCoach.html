@@ -3193,7 +3193,12 @@ var DAILY_FOCUS={
  persona:"margaret",
  phrase:"Before we lock it in — what is it about getting this straight to Sarah, without the probate mess, that makes this feel like the right move for you? … Perfect. Next step’s the quick application; nothing’s binding till you fund it. Are you and Sarah both around Thursday so we set it up together?",
  forbidden:"Accepting “let’s do it” without a committing question AND a dated next step.",
- pass:"Did they say WHY it’s right for them, and did you set the actual next appointment? Yes = F4 ✅"
+ pass:"Did they say WHY it’s right for them, and did you set the actual next appointment? Yes = F4 ✅",
+ lines:[
+  {ref:"Quantify the cost · framework §5", say:"How long does $150K last at 1–2% if you’re dipping into principal… and then what? → Are you willing to settle for that, if you didn’t have to?"},
+  {ref:"Make her say why · black-book", say:"Knowing Sarah never goes through what you went through with Harold’s estate — what would that do for you, personally?"},
+  {ref:"Commit + book · framework §7", say:"Before we make it official — what is it about this that makes it feel right for you? … Then: are you and Sarah free Thursday to set it up?"}
+ ]
 };
 
 function renderChatView(){
@@ -3244,6 +3249,12 @@ function renderChatView(){
   h+='<div style="margin-top:7px;color:var(--txt);line-height:1.55">';
   if(!match) h+='<div style="color:var(--muted);font-style:italic;margin-bottom:5px">Focus persona is Margaret Chen &mdash; drill this question pattern on whoever you’re with.</div>';
   h+='<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin:3px 0;font-style:italic">&ldquo;'+df.phrase+'&rdquo;</div>';
+  if(df.lines && df.lines.length){
+   h+='<div style="margin-top:8px;font-weight:700;color:var(--pri)">Your money-lines this rep:</div>';
+   df.lines.forEach(function(l){
+    h+='<div style="margin:4px 0;padding-left:8px;border-left:2px solid var(--pri)"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">'+l.ref+'</div><div style="font-style:italic">&ldquo;'+l.say+'&rdquo;</div></div>';
+   });
+  }
   h+='<div style="margin-top:6px"><b style="color:var(--red)">&#9940; Don’t:</b> '+df.forbidden+'</div>';
   h+='<div style="margin-top:2px"><b style="color:var(--dgrn)">&#10004; Pass:</b> '+df.pass+'</div>';
   h+='</div></details>';
