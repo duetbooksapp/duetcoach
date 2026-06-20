@@ -2862,7 +2862,7 @@ var NEPQ_DEBRIEF_PROMPT=[
 '',
 'Return ONLY this JSON (no prose outside it):',
 '{"verdict":"one-line headline of how the rep went","throughline":{"F1":"pass|partial|fail","F2":"pass|partial|fail","F4":"pass|partial|fail"},"compliance":[{"flag":"the risky phrase he said","why":"why it is a risk","fix":"the compliant reframe"}],"rewrites":[{"ref":"e.g. Consequence . framework S5","moment":"the exact thing he said","say":"the better NEPQ line, tuned to this client"}],"moneylines":["2-4 short lines to use on the next rep"]}',
-'Give 2-4 rewrites. If there are no compliance issues, return an empty compliance array.'
+'Give 3-5 DETAILED rewrites covering every through-line gap. Each rewrite MUST include the exact question to ask (verbatim, not a paraphrase) plus one line on why it works. If there are no compliance issues, return an empty compliance array.'
 ].join('\n');
 
 function processPractice(idx){
@@ -2878,12 +2878,14 @@ function processPractice(idx){
  fetch('https://api.anthropic.com/v1/messages',{
   method:'POST',
   headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-  body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1600,messages:[{role:'user',content:NEPQ_DEBRIEF_PROMPT+'\n\n'+scoreLine+'\n\nTRANSCRIPT:\n'+transcript}]})
+  body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2200,messages:[{role:'user',content:NEPQ_DEBRIEF_PROMPT+'\n\n'+scoreLine+'\n\nTRANSCRIPT:\n'+transcript}]})
  }).then(function(r){return r.json()}).then(function(data){
   var txt=(data.content&&data.content[0]&&data.content[0].text)||'';
   var m=txt.match(/\{[\s\S]*\}/);
   var r=null; if(m){try{r=JSON.parse(m[0])}catch(e){}}
   if(!r){box.innerHTML='<div style="margin-top:8px;padding:10px;color:var(--red);font-size:12px">Could not read the debrief &mdash; tap Process again.</div>';return}
+  s.nepqDebrief=r; try{saveSessions()}catch(e){}
+  try{localStorage.setItem('duetLastCoaching',JSON.stringify({persona:s.personaName,money:r.moneylines||[],when:s.date}))}catch(e){}
   box.innerHTML=renderNepqDebrief(r);
  }).catch(function(){box.innerHTML='<div style="margin-top:8px;padding:10px;color:var(--red);font-size:12px">Network error &mdash; check your API key / connection.</div>'});
 }
@@ -3316,10 +3318,12 @@ function renderChatView(){
  h+='<div class="timer" id="sessionTimer">'+fmtTime(sessionSeconds)+'</div>';
  h+='</div></div>';
 
- // Daily Focus cue — Brain <-> Coach loop (Phase 1). Collapsible; shows today's drill + the exact phrase.
+ // Chat frame — open the wrapper FIRST so the cue pins as a non-scrolling header above the chat.
+ h+='<div class="chat-wrapper">';
+ // Daily Focus cue — pinned coaching that stays put while the conversation scrolls.
  if(typeof DAILY_FOCUS!=='undefined' && DAILY_FOCUS){
   var df=DAILY_FOCUS, match=(p.id===df.persona);
-  h+='<details class="focus-cue" open style="margin:8px 0 0;border:1px solid var(--border);border-left:3px solid var(--pri);border-radius:var(--radius);background:var(--ptint);padding:8px 11px;font-size:12px">';
+  h+='<details class="focus-cue" open style="margin:8px 0 6px;flex:none;max-height:40vh;overflow:auto;border:1px solid var(--border);border-left:3px solid var(--pri);border-radius:var(--radius);background:var(--ptint);padding:8px 11px;font-size:12px">';
   h+='<summary style="cursor:pointer;font-weight:700;color:var(--pri);list-style:none">&#x1F3AF; Today’s focus &mdash; '+df.code+' &middot; '+df.habit+'</summary>';
   h+='<div style="margin-top:7px;color:var(--txt);line-height:1.55">';
   if(!match) h+='<div style="color:var(--muted);font-style:italic;margin-bottom:5px">Focus persona is Margaret Chen &mdash; drill this question pattern on whoever you’re with.</div>';
@@ -3330,13 +3334,17 @@ function renderChatView(){
     h+='<div style="margin:4px 0;padding-left:8px;border-left:2px solid var(--pri)"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">'+l.ref+'</div><div style="font-style:italic">&ldquo;'+l.say+'&rdquo;</div></div>';
    });
   }
+  try{var _lc=JSON.parse(localStorage.getItem('duetLastCoaching')||'null')}catch(e){var _lc=null}
+  if(_lc && _lc.money && _lc.money.length){
+   h+='<div style="margin-top:9px;padding-top:7px;border-top:1px dashed var(--border)"><div style="font-weight:700;color:var(--dgrn)">From your last rep'+(_lc.persona?' ('+_lc.persona+')':'')+' &mdash; apply these:</div>';
+   _lc.money.forEach(function(l){h+='<div style="margin:3px 0;font-style:italic">&bull; '+nepqEsc(l)+'</div>'});
+   h+='</div>';
+  }
   h+='<div style="margin-top:6px"><b style="color:var(--red)">&#9940; Don’t:</b> '+df.forbidden+'</div>';
   h+='<div style="margin-top:2px"><b style="color:var(--dgrn)">&#10004; Pass:</b> '+df.pass+'</div>';
   h+='</div></details>';
  }
 
- // Chat container
- h+='<div class="chat-wrapper">';
  h+='<div class="chat-container" id="chatContainer">';
  activeSession.transcript.forEach(function(m){
   if(m.role==='client'){
@@ -3480,7 +3488,7 @@ function renderHistory(){
   h+='<button class="btn btn-sm btn-amb" onclick="event.stopPropagation();exportTranscript('+sIdx+',\'copy\')">&#x1F4CB; Copy</button>';
   h+='<button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteSession('+sIdx+')">Delete Session</button>';
   h+='</div>';
-  h+='<div id="nepq_'+sIdx+'"></div>';
+  h+='<div id="nepq_'+sIdx+'">'+(s.nepqDebrief?renderNepqDebrief(s.nepqDebrief):'')+'</div>';
   h+='</div></div>';
  });
 
