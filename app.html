@@ -2175,14 +2175,21 @@ function handleAPIResponse(agentText){
    'anthropic-dangerous-direct-browser-access':'true'
   },
   body:JSON.stringify({
-   model:'claude-sonnet-4-20250514',
+   model:'claude-sonnet-4-6',
    max_tokens:300,
    system:systemPrompt,
    messages:activeSession.apiMessages
   })
  }).then(function(r){return r.json()}).then(function(data){
   activeSession.typing=false;
-  var reply=(data.content&&data.content[0]&&data.content[0].text)||'...';
+  var reply=(data.content&&data.content[0]&&data.content[0].text)||null;
+  if(!reply){
+   // API returned something unexpected — surface the actual error so user can debug
+   var errMsg=(data.error&&(data.error.message||data.error.type))||JSON.stringify(data).substring(0,200);
+   console.error('Claude API error response:',data);
+   reply='[API Error: '+errMsg+']';
+   showToast('Claude API error: '+errMsg.substring(0,80),8000);
+  }
   var isComplete=reply.indexOf('[SESSION_COMPLETE]')>=0;
   reply=reply.replace('[SESSION_COMPLETE]','').trim();
   activeSession.apiMessages.push({role:'assistant',content:reply});
@@ -2348,14 +2355,21 @@ function handleScriptResponse(agentText){
    'anthropic-dangerous-direct-browser-access':'true'
   },
   body:JSON.stringify({
-   model:'claude-sonnet-4-20250514',
+   model:'claude-sonnet-4-6',
    max_tokens:300,
    system:systemPrompt,
    messages:activeSession.apiMessages
   })
  }).then(function(r){return r.json()}).then(function(data){
   activeSession.typing=false;
-  var reply=(data.content&&data.content[0]&&data.content[0].text)||'...';
+  var reply=(data.content&&data.content[0]&&data.content[0].text)||null;
+  if(!reply){
+   // API returned something unexpected — surface the actual error so user can debug
+   var errMsg=(data.error&&(data.error.message||data.error.type))||JSON.stringify(data).substring(0,200);
+   console.error('Claude API error response:',data);
+   reply='[API Error: '+errMsg+']';
+   showToast('Claude API error: '+errMsg.substring(0,80),8000);
+  }
   var isComplete=reply.indexOf('[SESSION_COMPLETE]')>=0;
   reply=reply.replace('[SESSION_COMPLETE]','').trim();
   activeSession.apiMessages.push({role:'assistant',content:reply});
@@ -2785,7 +2799,7 @@ function scoreSessionAPI(){
    'anthropic-dangerous-direct-browser-access':'true'
   },
   body:JSON.stringify({
-   model:'claude-sonnet-4-20250514',
+   model:'claude-sonnet-4-6',
    max_tokens:800,
    messages:[{role:'user',content:'You are a brutally honest sales coach scoring a practice roleplay. Be tough but fair. Most agents score 40-60. Only exceptional performance scores above 75.\n\nSCORING RUBRIC (0-20 each):\n\n1. PHASE COMPLETION:\n0-5: Jumped straight to pitching without asking about their situation\n6-10: Asked some situation questions but skipped problem awareness or consequence\n11-15: Hit most phases but rushed or skipped one\n16-20: Clear, deliberate progression through all 5 phases in correct order\nIMPORTANT: If the agent pitched the product before exploring the client\'s pain, cap this at 8.\n\n2. QUESTION QUALITY:\n0-5: Mostly made statements, told the client what to think\n6-10: Asked questions but they were leading or closed-ended (yes/no)\n11-15: Good open-ended questions but some were off-target or didn\'t build on answers\n16-20: Consistently asked open-ended, client-focused questions that built on previous answers\nIMPORTANT: Count the actual open-ended questions (how, what, tell me, walk me through). Less than 3 = cap at 8.\n\n3. OBJECTION HANDLING:\n0: Client never raised an objection, so this is NOT APPLICABLE — score 10 (neutral)\n1-5: Client raised an objection and agent ignored it or dismissed it\n6-10: Acknowledged the objection but gave a generic response\n11-15: Acknowledged, reframed, and addressed with specific reasoning\n16-20: Turned the objection into a reason to move forward\nIMPORTANT: If no objection was raised during the conversation, score exactly 10.\n\n4. EMPATHY & RAPPORT:\n0-5: Sounded robotic or like a sales script, no warmth\n6-10: Some acknowledgment but felt performative, not genuine\n11-15: Used reflective statements ("I hear you", "that makes sense") and paused to let client speak\n16-20: Client visibly opened up because of empathy — tone shifted from guarded to trusting\nIMPORTANT: Saying "I understand" once is worth 2 points, not 10. Look for consistent empathetic behavior throughout.\n\n5. CLOSE TECHNIQUE:\n0: Never attempted to close or suggest next steps\n1-5: Vague close ("let me know", "think about it") or closed too early\n6-10: Asked for the close but too aggressive or not tied to client\'s specific situation\n11-15: Good assumptive close tied to their timeline or situation\n16-20: Got the client to defend why they want to proceed ("why do you feel it is?") and transitioned to application\nIMPORTANT: If the conversation ended without any close attempt, score 0.\n\nCALIBRATION: A new agent\'s first session should score 30-50. A competent agent scores 55-70. Only a polished professional scores above 80. Do NOT be generous.\n\nReturn ONLY valid JSON:\n{"phase":N,"question":N,"objection":N,"empathy":N,"close":N,"feedback":"2-3 sentences of specific, actionable coaching advice. Name the exact moment where they went wrong."}\n\nTRANSCRIPT:\n'+transcript}]
   })
@@ -3839,7 +3853,7 @@ function testApiKey(){
  fetch('https://api.anthropic.com/v1/messages',{
   method:'POST',
   headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-  body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'Hi'}]})
+  body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:10,messages:[{role:'user',content:'Hi'}]})
  }).then(function(r){
   var dot=$1('#apiStatusDot');
   if(r.ok){
