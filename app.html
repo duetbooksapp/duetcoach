@@ -3184,6 +3184,18 @@ function renderScenarioPicker(){
  return h;
 }
 
+// === DAILY FOCUS — Brain <-> Coach loop (Phase 1) ===
+// Synced by hand from 02_WIKI/DUET/duetcoach-progress.md. Change these fields to set today's drill;
+// the cue card below shows them at the top of every roleplay so the phrase is in front of you here.
+var DAILY_FOCUS={
+ code:"F2",
+ habit:"Consequence as a QUESTION, not a monologue",
+ persona:"margaret",
+ phrase:"That’s the thing I’d want to dig into — if nothing changes, and you did live another 25 years, and the money ran thin in your 80s… how does that sit with you? Are you willing to risk that, if you didn’t have to?",
+ forbidden:"Jumping to the annuity or illustration before they have SAID the cost of doing nothing.",
+ pass:"Did they put the fear in their own words before you presented? Yes = F2 ✅"
+};
+
 function renderChatView(){
  var p=activeSession.persona;
  var h='';
@@ -3223,6 +3235,19 @@ function renderChatView(){
  }
  h+='<div class="timer" id="sessionTimer">'+fmtTime(sessionSeconds)+'</div>';
  h+='</div></div>';
+
+ // Daily Focus cue — Brain <-> Coach loop (Phase 1). Collapsible; shows today's drill + the exact phrase.
+ if(typeof DAILY_FOCUS!=='undefined' && DAILY_FOCUS){
+  var df=DAILY_FOCUS, match=(p.id===df.persona);
+  h+='<details class="focus-cue" open style="margin:8px 0 0;border:1px solid var(--border);border-left:3px solid var(--pri);border-radius:var(--radius);background:var(--ptint);padding:8px 11px;font-size:12px">';
+  h+='<summary style="cursor:pointer;font-weight:700;color:var(--pri);list-style:none">&#x1F3AF; Today’s focus &mdash; '+df.code+' &middot; '+df.habit+'</summary>';
+  h+='<div style="margin-top:7px;color:var(--txt);line-height:1.55">';
+  if(!match) h+='<div style="color:var(--muted);font-style:italic;margin-bottom:5px">Focus persona is Margaret Chen &mdash; drill this question pattern on whoever you’re with.</div>';
+  h+='<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin:3px 0;font-style:italic">&ldquo;'+df.phrase+'&rdquo;</div>';
+  h+='<div style="margin-top:6px"><b style="color:var(--red)">&#9940; Don’t:</b> '+df.forbidden+'</div>';
+  h+='<div style="margin-top:2px"><b style="color:var(--dgrn)">&#10004; Pass:</b> '+df.pass+'</div>';
+  h+='</div></details>';
+ }
 
  // Chat container
  h+='<div class="chat-wrapper">';
@@ -3359,9 +3384,10 @@ function renderHistory(){
    h+='<button class="btn btn-sm btn-pri" style="margin-top:4px" onclick="event.stopPropagation();saveHistoryNote('+idx+')">Save Note</button>';
   }
   h+='</div>';
+  var sIdx=sessions.indexOf(s);
   h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
-  h+='<button class="btn btn-sm btn-pri" onclick="event.stopPropagation();exportTranscript('+idx+',\'md\')">&#x2B07; Export .md</button>';
-  h+='<button class="btn btn-sm btn-amb" onclick="event.stopPropagation();exportTranscript('+idx+',\'copy\')">&#x1F4CB; Copy</button>';
+  h+='<button class="btn btn-sm btn-pri" onclick="event.stopPropagation();exportTranscript('+sIdx+',\'md\')">&#x2B07; Export .md</button>';
+  h+='<button class="btn btn-sm btn-amb" onclick="event.stopPropagation();exportTranscript('+sIdx+',\'copy\')">&#x1F4CB; Copy</button>';
   h+='<button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteSession('+idx+')">Delete Session</button>';
   h+='</div>';
   h+='</div></div>';
@@ -3397,7 +3423,8 @@ function buildTranscriptMarkdown(s){
  L.push('');
  L.push('# Duet Coach — '+(s.personaName||'Session'));
  L.push('');
- L.push('- **Date:** '+fmtDate(s.date));
+ L.push('- **Persona:** [['+(s.personaName||'Session')+']]');
+ L.push('- **Date:** [['+iso+']] ('+fmtDate(s.date)+')');
  L.push('- **Duration:** '+fmtTime(s.duration||0));
  L.push('- **Difficulty:** '+(s.difficulty||'—')+'  ·  **Mode:** '+(s.mode||'—'));
  L.push('- **Score:** '+(s.total||0)+'/100');
@@ -3433,7 +3460,8 @@ function exportTranscript(idx,fmt){
  }
  // download .md
  var iso=new Date(s.date).toISOString().substring(0,10);
- var name='DuetCoach_'+iso+'_'+((s.personaName||'session').split(' ')[0])+'.md';
+ var safe=(s.personaName||'session').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ var name='DuetCoach_'+iso+'_'+safe+'_'+(s.total||0)+'-100.md';
  var blob=new Blob([md],{type:'text/markdown'});
  var a=document.createElement('a');
  a.href=URL.createObjectURL(blob);
