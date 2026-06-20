@@ -3645,6 +3645,70 @@ function deleteSession(idx){
 }
 
 // ── Stats Tab ──
+// === Coaching Profile — the brain's 36-call Keep/Fix + your trajectory, pumped into DuetCoach ===
+// Synced from the second brain's habit ledger (steve-maxim-habits.md). Edit to refresh.
+var COACHING_PROFILE={
+ note:'From your 36 prior calls + your DuetCoach reps — pumped in from your knowledge base.',
+ progress:{
+  reps:'46 → 56 → 64',
+  throughline:'F1 ✅ discover · F2 ✅ consequence · F4 🟡 close',
+  status:'One deliberate close from your first clean 3/3.',
+  note:'Updates as you run Process My Practice on new reps.'
+ },
+ keep:[
+  {t:'Honesty as a close',d:'You debunk hype with real numbers and show your own commission — savvy buyers trust you because of it. Your #1 differentiator.'},
+  {t:'Honest reposition',d:'When a product doesn’t fit, you say so and pivot to the right one. Wins the relationship AND the next sale.'},
+  {t:'Get the decider on the call',d:'Deals close when the spouse/decider is on the line — you now book couples.'},
+  {t:'Product command + fee transparency',d:'You proactively run the policy-charge report and know the mechanics cold.'},
+  {t:'Warm rapport / empathy',d:'Empathy scored 13–17 on almost every prior call — genuinely strong (just don’t go transactional and skip the emotional bid).'},
+  {t:'Expert referral that protects the client',d:'Bringing in a CPA/attorney who protects the client is the specialist 3-way done right.'}
+ ],
+ fix:[
+  {t:'Discover before you illustrate',d:'Run the engagement stage before showing product. “I don’t know” is a discovery cue, not an illustrator cue.',trend:'improving'},
+  {t:'Consequence as a QUESTION, not a monologue',d:'Ask what happens if nothing changes; let them feel the cost. Your #1 lifetime lever.',trend:'landing'},
+  {t:'Lead with ONE recommendation',d:'Not a tour of scenarios — one structure tied to their #1 goal, three pillars, each with a feedback check.',trend:'persistent'},
+  {t:'Book the date',d:'End Call 1 with a dated next step — that booking IS your close.',trend:'improving'},
+  {t:'Drop anecdotal kids’-returns selling',d:'Sell the illustrated / guaranteed rate and the floor, not “what my kids got.”',trend:'persistent'},
+  {t:'Reposition, don’t argue',d:'When they’re right, agree and reframe — don’t chase a return number you can’t win.',trend:'persistent'},
+  {t:'No tax / legal / Medicaid over-reach',d:'Refer tax, Medicaid and legal to a CPA or elder-law attorney — never state it as fact (E&O risk).',trend:'watch'},
+  {t:'Application integrity (Call 2)',d:'Every income / health / net-worth field must be documentable. Highest-stakes habit.',trend:'persistent'},
+  {t:'Professionalism / call control',d:'Stay professional under suspicion; rein in a rambling call, then book.',trend:'watch'}
+ ]
+};
+
+function coachTrendBadge(t){
+ var map={landing:['var(--grn)','▲ landing'],improving:['var(--grn)','▲ improving'],persistent:['var(--amb)','▬ persistent'],watch:['var(--red)','● watch'],regressing:['var(--red)','▼ regressing']};
+ var x=map[t]||['var(--muted)',t||''];
+ return '<span style="font-size:9px;font-weight:700;color:'+x[0]+'">'+x[1]+'</span>';
+}
+
+function renderCoachingDashboard(){
+ var P=COACHING_PROFILE;
+ var h='<div class="card" style="border-left:3px solid var(--dgrn)">';
+ h+='<h3>&#x1F9E0; Your Coaching Profile</h3>';
+ h+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+P.note+'</div>';
+ if(P.progress){
+  h+='<div style="background:var(--gtint);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:12px">';
+  h+='<div style="font-weight:700;color:var(--dgrn);margin-bottom:3px">Your trajectory</div>';
+  h+='<div style="font-size:14px;font-weight:700">'+P.progress.reps+'</div>';
+  h+='<div style="font-size:12px;margin:2px 0">'+P.progress.throughline+'</div>';
+  h+='<div style="font-size:12px;color:var(--txt)">'+P.progress.status+'</div>';
+  h+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+P.progress.note+'</div>';
+  h+='</div>';
+ }
+ h+='<div style="font-weight:700;color:var(--grn);margin:4px 0 5px">&#10004; What you do well</div>';
+ P.keep.forEach(function(k){
+  h+='<div style="margin:5px 0;padding-left:9px;border-left:2px solid var(--grn)"><div style="font-size:12px;font-weight:600">'+k.t+'</div><div style="font-size:11px;color:var(--muted)">'+k.d+'</div></div>';
+ });
+ h+='<div style="font-weight:700;color:var(--amb);margin:12px 0 5px">&#9881; What to improve <span style="font-size:10px;color:var(--muted);font-weight:400">(ranked by closing leverage)</span></div>';
+ P.fix.forEach(function(f,i){
+  h+='<div style="margin:5px 0;padding-left:9px;border-left:2px solid var(--amb)"><div style="font-size:12px;font-weight:600">'+(i+1)+'. '+f.t+' '+coachTrendBadge(f.trend)+'</div><div style="font-size:11px;color:var(--muted)">'+f.d+'</div></div>';
+ });
+ h+='</div>';
+ return h;
+}
+
+
 function renderStats(){
  var h='';
 
@@ -3669,6 +3733,7 @@ function renderStats(){
  h+='<div class="stat-card amb"><div class="num">'+streak.current+'</div><div class="lbl">Day Streak</div><div class="sub">Best: '+streak.longest+'</div></div>';
  h+='<div class="stat-card"><div class="num">'+bestSession.total+'</div><div class="lbl">Best Score</div><div class="sub">'+bestSession.personaName+'</div></div>';
  h+='</div>';
+ h+=renderCoachingDashboard();
 
  // Bar chart - last 14 sessions
  var recent=sessions.slice(0,14).reverse();
