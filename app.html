@@ -2839,6 +2839,81 @@ function scoreSessionAPI(){
  });
 }
 
+// === Process My Practice — instant NEPQ debrief (reuses the Anthropic API plumbing) ===
+var NEPQ_DEBRIEF_PROMPT=[
+'You are Steve\'s NEPQ sales coach (Jeremy Miner method + his AAA two-call close). Grade this CD->annuity / life / IUL practice roleplay against the NEPQ framework and return ONLY valid JSON. Be specific; tie every fix to the exact moment AND the NEPQ section.',
+'',
+'THE THROUGH-LINE (grade each pass | partial | fail):',
+'F1 = Discovery before presenting: ran situation -> problem -> consequence BEFORE showing any product/illustration. fail if he pitched before she named a problem.',
+'F2 = Consequence as a QUESTION not a monologue: he ASKED what happens if nothing changes ("if rates drop and you are in your 80s and this is dwindling, what happens then?" / "are you willing to settle for that if you didn\'t have to?") and let her feel the cost. fail if he narrated the cost instead of asking.',
+'F4 = Deliberate close: HE asked a committing question ("what is it about this that makes it feel right for you?") AND moved straight to the application/paperwork. partial if she self-closed or he re-explained the structure instead of starting the app. fail if no close.',
+'',
+'NEPQ QUESTION BANK — cite these refs in rewrites:',
+'- "Consequence . framework S5": "what happens if nothing changes...?" then "are you willing to settle for that if you didn\'t have to?"',
+'- "Clarify/Expand/Probe . framework S2": after an emotional answer, stay one more turn — "what do you mean by that?", "what does that look like day to day?", "how has that affected you?"',
+'- "Solution Awareness . framework S4": logical+emotional pair — "besides that, how do you see this helping most?" then "what would that do for you personally?"',
+'- "Future-pace . black-book": "knowing [beneficiary] wouldn\'t have to [X], what would that do for you personally?"',
+'- "Committing . framework S7": "do you feel this could be the answer for you? ... why, though?"',
+'- "Two-call close . aaa-discovery-playbook": committing question -> straight to the application -> book the date.',
+'',
+'COMPLIANCE — flag any asset-protection / Medicaid / tax / legal claim stated as fact (e.g. "an annuity protects this from the nursing home", "they couldn\'t backtrack on that money", "you don\'t pay taxes on it"). FL annuities are NOT automatically Medicaid-exempt; annuity growth is tax-DEFERRED not tax-free. The compliant move: state ONLY the beneficiary / probate-avoidance fact and REFER Medicaid/tax/legal to an elder-law attorney or CPA.',
+'',
+'KEEP-list (note when present): honesty as a close, honest reposition, getting the decider on the call, liquidity-first structure.',
+'',
+'Return ONLY this JSON (no prose outside it):',
+'{"verdict":"one-line headline of how the rep went","throughline":{"F1":"pass|partial|fail","F2":"pass|partial|fail","F4":"pass|partial|fail"},"compliance":[{"flag":"the risky phrase he said","why":"why it is a risk","fix":"the compliant reframe"}],"rewrites":[{"ref":"e.g. Consequence . framework S5","moment":"the exact thing he said","say":"the better NEPQ line, tuned to this client"}],"moneylines":["2-4 short lines to use on the next rep"]}',
+'Give 2-4 rewrites. If there are no compliance issues, return an empty compliance array.'
+].join('\n');
+
+function processPractice(idx){
+ var s=sessions[idx];
+ if(!s){return}
+ if(!getApiKey()){showToast('Add your Anthropic API key in Settings first');return}
+ var box=document.getElementById('nepq_'+idx);
+ if(!box){return}
+ box.innerHTML='<div style="margin-top:8px;padding:10px;font-size:12px;color:var(--muted)">&#x1F9E0; Processing your rep against the NEPQ framework&hellip;</div>';
+ var transcript=(s.transcript||[]).map(function(m){return (m.role==='client'?'CLIENT':'AGENT')+': '+m.text}).join('\n');
+ var sc=s.scores||{};
+ var scoreLine='DuetCoach scored this '+(s.total||0)+'/100 (Phase '+(sc.phase||0)+', Question '+(sc.question||0)+', Objection '+(sc.objection||0)+', Empathy '+(sc.empathy||0)+', Close '+(sc.close||0)+'). Persona: '+(s.personaName||'client')+'.';
+ fetch('https://api.anthropic.com/v1/messages',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+  body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1600,messages:[{role:'user',content:NEPQ_DEBRIEF_PROMPT+'\n\n'+scoreLine+'\n\nTRANSCRIPT:\n'+transcript}]})
+ }).then(function(r){return r.json()}).then(function(data){
+  var txt=(data.content&&data.content[0]&&data.content[0].text)||'';
+  var m=txt.match(/\{[\s\S]*\}/);
+  var r=null; if(m){try{r=JSON.parse(m[0])}catch(e){}}
+  if(!r){box.innerHTML='<div style="margin-top:8px;padding:10px;color:var(--red);font-size:12px">Could not read the debrief &mdash; tap Process again.</div>';return}
+  box.innerHTML=renderNepqDebrief(r);
+ }).catch(function(){box.innerHTML='<div style="margin-top:8px;padding:10px;color:var(--red);font-size:12px">Network error &mdash; check your API key / connection.</div>'});
+}
+
+function nepqEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function nepqChip(v){var s=String(v||'').toLowerCase();var pass=s.indexOf('pass')>=0,part=s.indexOf('partial')>=0;var c=pass?'var(--grn)':(part?'var(--amb)':'var(--red)');var ic=pass?'&#10004;':(part?'&#9679;':'&#10006;');return '<span style="display:inline-block;padding:1px 7px;border-radius:10px;background:'+c+';color:#fff;font-size:10px;font-weight:700">'+ic+'</span>'}
+function renderNepqDebrief(r){
+ var tl=r.throughline||{};
+ var h='<div style="margin-top:8px;border:1px solid var(--border);border-left:3px solid var(--dgrn);border-radius:var(--radius);background:var(--gtint);padding:10px 12px;font-size:12px;line-height:1.5">';
+ h+='<div style="font-weight:700;color:var(--dgrn);margin-bottom:6px">&#x1F9E0; NEPQ Debrief</div>';
+ if(r.verdict){h+='<div style="margin-bottom:8px">'+nepqEsc(r.verdict)+'</div>'}
+ h+='<div style="margin-bottom:8px">Through-line: '+nepqChip(tl.F1)+' F1 discover &nbsp; '+nepqChip(tl.F2)+' F2 consequence &nbsp; '+nepqChip(tl.F4)+' F4 close</div>';
+ if(r.compliance&&r.compliance.length){
+  h+='<div style="margin:6px 0;padding:7px 9px;border:1px solid var(--red);border-radius:6px;background:var(--rtint)"><b style="color:var(--red)">&#9888; Compliance</b>';
+  r.compliance.forEach(function(c){h+='<div style="margin-top:3px"><i>&ldquo;'+nepqEsc(c.flag)+'&rdquo;</i> &mdash; '+nepqEsc(c.why)+'<br><b>Fix:</b> '+nepqEsc(c.fix)+'</div>'});
+  h+='</div>';
+ }
+ if(r.rewrites&&r.rewrites.length){
+  h+='<div style="font-weight:700;margin:8px 0 3px">Rewrites</div>';
+  r.rewrites.forEach(function(x){h+='<div style="margin:4px 0;padding-left:8px;border-left:2px solid var(--pri)"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">'+nepqEsc(x.ref)+'</div>'+(x.moment?'<div style="color:var(--muted)">You: &ldquo;'+nepqEsc(x.moment)+'&rdquo;</div>':'')+'<div style="font-style:italic">&rarr; &ldquo;'+nepqEsc(x.say)+'&rdquo;</div></div>'});
+ }
+ if(r.moneylines&&r.moneylines.length){
+  h+='<div style="font-weight:700;margin:8px 0 3px">Money-lines for your next rep</div>';
+  r.moneylines.forEach(function(l){h+='<div style="margin:2px 0">&bull; <i>'+nepqEsc(l)+'</i></div>'});
+ }
+ h+='</div>';
+ return h;
+}
+
+
 function showScoreModal(scores,feedback){
  var total=scores.phase+scores.question+scores.objection+scores.empathy+scores.close;
  var p=activeSession.persona;
@@ -3400,10 +3475,12 @@ function renderHistory(){
   }
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<button class="btn btn-sm" style="background:var(--dgrn);color:#fff" onclick="event.stopPropagation();processPractice('+sIdx+')">&#x1F9E0; Process My Practice</button>';
   h+='<button class="btn btn-sm btn-pri" onclick="event.stopPropagation();exportTranscript('+sIdx+',\'md\')">&#x2B07; Export .md</button>';
   h+='<button class="btn btn-sm btn-amb" onclick="event.stopPropagation();exportTranscript('+sIdx+',\'copy\')">&#x1F4CB; Copy</button>';
   h+='<button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteSession('+sIdx+')">Delete Session</button>';
   h+='</div>';
+  h+='<div id="nepq_'+sIdx+'"></div>';
   h+='</div></div>';
  });
 
