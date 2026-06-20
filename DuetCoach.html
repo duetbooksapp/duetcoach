@@ -3655,6 +3655,11 @@ var COACHING_PROFILE={
   status:'One deliberate close from your first clean 3/3.',
   note:'Updates as you run Process My Practice on new reps.'
  },
+ roadmap:[
+  {stage:'NOW',t:'Make the through-line reflex — F1 discover · F2 consequence · F4 close',d:'10 straight 3/3 reps graduates it. You’re one close away.'},
+  {stage:'NEXT',t:'Polish the presentation — F3 (one recommendation) · F6 (reposition, don’t argue)',d:'Once the through-line is automatic.'},
+  {stage:'ALWAYS',t:'Compliance guardrails — F5 · F7 · F8 · F9',d:'Never violate these, even while drilling the rest — they protect the trust that closes you.'}
+ ],
  keep:[
   {t:'Honesty as a close',d:'You debunk hype with real numbers and show your own commission — savvy buyers trust you because of it. Your #1 differentiator.'},
   {t:'Honest reposition',d:'When a product doesn’t fit, you say so and pivot to the right one. Wins the relationship AND the next sale.'},
@@ -3689,6 +3694,14 @@ function renderCoachingDashboard(){
  if(P.progress){
   h+='<div style="background:var(--gtint);border:1px solid var(--border);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px">';
   h+='<b style="color:var(--dgrn)">Trajectory:</b> '+P.progress.reps+' &nbsp;&middot;&nbsp; '+P.progress.throughline+' &nbsp;&middot;&nbsp; '+P.progress.status;
+  h+='</div>';
+ }
+ if(P.roadmap){
+  h+='<div style="margin-bottom:12px">';
+  h+='<div style="font-weight:700;color:var(--pri);margin:0 0 5px">&#x1F5FA;&#xFE0F; Your roadmap</div>';
+  P.roadmap.forEach(function(r){
+   h+='<div style="display:flex;gap:8px;margin:3px 0;font-size:11px"><span style="flex:none;font-weight:700;color:var(--pri);min-width:52px">'+r.stage+'</span><span><b>'+r.t+'</b> &mdash; <span style="color:var(--muted)">'+r.d+'</span></span></div>';
+  });
   h+='</div>';
  }
  h+='<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">';
