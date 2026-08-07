@@ -1846,8 +1846,12 @@ function startSessionRecording(){
 
 function routeAudioToRecorder(audioElement){
  // Route ElevenLabs audio through the mixer so it gets recorded
- if(!audioContext||!mixedDest||!isRecording) return;
+ // Note: don't gate on isRecording — the mic's getUserMedia is async, so the
+ // client's FIRST line can arrive before the recorder flips isRecording=true.
+ // Connecting to mixedDest early is harmless; the recorder picks it up.
+ if(!audioContext||!mixedDest) return;
  try{
+  if(audioContext.state==='suspended') audioContext.resume();
   var source=audioContext.createMediaElementSource(audioElement);
   source.connect(mixedDest);
   source.connect(audioContext.destination); // also play through speakers
@@ -1919,6 +1923,7 @@ function speakText(text,personaId){
   if(currentAudio){try{currentAudio.pause()}catch(e){}}
   currentAudio=new Audio(url);
   currentAudio.volume=1.0;
+  routeAudioToRecorder(currentAudio); // mix client voice into the session recording
   return currentAudio.play().catch(function(e){
    // Mobile autoplay blocked — show a toast so user knows
    console.error('Audio play blocked:',e);
