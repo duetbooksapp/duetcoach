@@ -772,7 +772,7 @@ var EMPATHY_WORDS=['i understand','i hear you','that makes sense','i appreciate'
 var CLOSE_WORDS=['next step','set up','move forward','get started','application ready','smooth transition','would you like to','schedule','lock in','before it','maturity date','portion','full amount'];
 
 // ── Script Availability — which categories have scripts built ──
-var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, kidsiul:true, iul:true, banking:false};
+var SCRIPT_AVAILABLE={annuity:true, life:true, conversion:true, ltc:true, kidsiul:true, iul:true, banking:false, ozpros:true};
 
 // ── CD-to-Annuity Script Framework (27 Checkpoints) ──
 var SCRIPT_STAGES=[
@@ -1102,6 +1102,61 @@ var IUL_CURVEBALLS=[
  {type:'objection',trigger:'I already have a death benefit and nobody I really need to leave it to. I will just put my money in the market and roll with 8 to 10 percent.',recovery:['who would the death benefit be for','then an iul may not fit you','no insurance drag','annuity','myga','tax-deferred','right product','reposition','honest','suitability']}
 ];
 
+// ── OZPros 11-Step Blueprint Script Framework (24 Checkpoints) ──
+// Built from the OZPros 11-Step Paid Consults Script (Inbound). Goal: qualify → book the $995 Blueprint Session with Ashley.
+var OZPROS_SCRIPT_STAGES=[
+ {name:'The Frame',color:'#3498db',checkpoints:[
+  {id:1,desc:'Confirm the call + thank for being on time',keywords:['note in my calendar','quick call','thanks for being on time','being on time','scheduled','is that right']},
+  {id:2,desc:'Time-box: 10 minutes + permission',keywords:['10 minutes','ten minutes','another call','keep to time','is that ok','is that okay']},
+  {id:3,desc:'IF/HOW frame — this call decides IF we can help',keywords:['if we can help','my job today','really simple','point you in the right direction','how we can help','let you know politely']},
+  {id:4,desc:'Ask: why now, and why us?',keywords:['why now','why us','what\'s prompted','prompted you to','what made you reach out']}
+ ]},
+ {name:'Discovery & GAP',color:'#e67e22',checkpoints:[
+  {id:5,desc:'Discovery: their OZ interest + what they know',keywords:['your interest in opportunity zones','what do you know','want to learn','tell me about your interest','tax strategy']},
+  {id:6,desc:'Qualify the gain event (what happened, when)',keywords:['capital gain','what was the event','when did it close','180','sold','created the gain','walk me through what happened']},
+  {id:7,desc:'Qualify size: tax liability / who\'s involved',keywords:['tax liability','250','anyone involved','bringing on investors','your own gains','fund','net worth','agi']},
+  {id:8,desc:'The GAP: ask the number — tax bill vs. target',keywords:['estimated tax bill','where you are right now','where do you want to be','next year','quick sense of where']},
+  {id:9,desc:'Echo the math back + pause (gap-widening)',keywords:['so we\'re talking','is that right','costing you','a year','a month','not to be there','work to do']},
+  {id:10,desc:'The hook: 40% savings / tax-free loan',keywords:['40%','forty percent','tax-free loan','5 years','10-30','30% reduction','instead of paying that tax bill']},
+  {id:11,desc:'Ask: what\'s missing or broken?',keywords:['missing','broken','tax strategy right now','what do you think is']}
+ ]},
+ {name:'Position & Priority',color:'#1abc9c',checkpoints:[
+  {id:12,desc:'Positioning statement (what OZPros does)',keywords:['here\'s what we do','high net worth','navigate','complexities','legislation','successfully execute','real estate professionals']},
+  {id:13,desc:'Need question: what could you use our help with?',keywords:['use our help','help with right now','based on that','what do you believe']},
+  {id:14,desc:'Priority test: sooner/later + the 1–10',keywords:['sooner thing','later thing','1 to 10','scale from','how much of a priority','priority for you']},
+  {id:15,desc:'Say the 12/31/2026 deadline OUT LOUD',keywords:['december 31','12/31','end of 2026','time may be running out','deadline','significance of']},
+  {id:16,desc:'Recap THREE challenges from your notes',keywords:['three biggest','3 biggest','let me check i\'ve got this right','challenges','bottlenecks','from what you said','is that right']}
+ ]},
+ {name:'Blueprint Close',color:'var(--grn)',checkpoints:[
+  {id:17,desc:'Callback to frame + qualify them into it',keywords:['i said at the start','believe you qualify','you qualify for','blueprint session']},
+  {id:18,desc:'Scarcity: not for everyone, few per week',keywords:['not for everyone','few of these','each week','individuals who are serious','only offer']},
+  {id:19,desc:'What it is: private 30-min working session',keywords:['30-minute','thirty minute','working session','review','current strategy','systems','without drawing attention']},
+  {id:20,desc:'Three outcomes + refund guarantee',keywords:['three outcomes','not a fit','part ways','refund','not satisfied','sound reasonable']},
+  {id:21,desc:'Value-stack: $995 applies to future services',keywords:['applies to','future services','credited toward','goes toward','apply that']},
+  {id:22,desc:'Commitment ask + pre-session form',keywords:['high demand','locked','heads up','simple form','before your session','serious and ready']},
+  {id:23,desc:'$995 ask: any reason we couldn\'t book today?',keywords:['995','one-time investment','any reason','booked today','credit card','visa','which one would you prefer']},
+  {id:24,desc:'Handoff: notes + Ashley + coordinator',keywords:['ashley','page full of notes','pick up where we left off','coordinator','be on the lookout','connect you via email']}
+ ]}
+];
+
+var OZPROS_CURVEBALLS=[
+ // Tangents (from real calls)
+ {type:'tangent',trigger:'Honestly, it\'s just so many acronyms — QOF, QOZB, QOZ — my head starts spinning a little bit.',recovery:['exactly what we do','navigate','complexit','distill','plain english','all we do','blueprint','that\'s why']},
+ {type:'tangent',trigger:'Can you just email me some information first so I can review it on my own time?',recovery:['generic','specific to your','your situation','your gain','working session','blueprint','tailored','that\'s exactly what the']},
+ {type:'tangent',trigger:'I saw something on YouTube saying opportunity zones are basically over. Is this even still a thing?',recovery:['december 31','2026','deadline','exactly why','running out','window','new legislation','2.0']},
+ {type:'tangent',trigger:'I\'ve been looking at a 1031 exchange too — isn\'t this basically the same thing?',recovery:['1031','different','any gain','not just real estate','stocks','crypto','business','10 years','tax-free','basis']},
+ // Emotional
+ {type:'emotional',trigger:'How do I know this isn\'t one of those tax schemes the IRS cracks down on? I don\'t want an audit.',recovery:['fair','legislation','congress','tax code','law','compliant','attorneys','since 2016','without drawing attention']},
+ {type:'emotional',trigger:'My CPA has never once mentioned opportunity zones. If this was so good, wouldn\'t he have told me?',recovery:['cpas','specialize','all we do','work with your cpa','alongside','niche','navigate','most cpas']},
+ {type:'emotional',trigger:'I have to be honest — $995 feels steep when other firms do free consultations.',recovery:['refund','applies to','future services','working session','not a sales call','serious','free consults','pitch','risk']},
+ // Objections (incl. the real Ed Heissler calendar stall + the disqualifier test)
+ {type:'objection',trigger:'Here\'s my problem — I\'m going to be on the road for the next few weeks. I\'m kind of buzzing around a lot.',recovery:['payment and the date','two separate','lock the seat','coordinator','work around','travel','not committing to a date','fair']},
+ {type:'objection',trigger:'Let me talk to my CPA first and I\'ll circle back with you.',recovery:['bring','together','invite','what specifically','while you','december 31','window','180','before']},
+ {type:'objection',trigger:'Just send me the payment link and I\'ll take care of it later today or tomorrow.',recovery:['while we\'re on','right now','two minutes','card','lock','call you tomorrow','what time','get it done now']},
+ {type:'objection',trigger:'What exactly am I getting for the $995? Walk me through it.',recovery:['30-minute','working session','blueprint','current strategy','systems','refund','applies to','future services']},
+ {type:'objection',trigger:'Well, the big money this year was my bonus and commissions — biggest income year I\'ve ever had. That\'s what I want to shelter.',recovery:['ordinary income','capital gain','doesn\'t qualify','not a fit','honest','point you','right direction','if that changes']}
+];
+
 // Curveball triggers — injected randomly during script mode
 var CURVEBALLS=[
  // Tangents
@@ -1309,7 +1364,32 @@ var PERSONAS=[
   primaryObjection:'online-rates',hiddenObjection:'Actually nervous about FDIC limits across multiple accounts',
   openTriggers:'When you discuss FDIC coverage strategies for amounts over $250K',
   resistTriggers:'Wasting his time with small talk or features he doesn\'t care about',
-  successClose:'Splits across CD + money market to maximize FDIC coverage'}
+  successClose:'Splits across CD + money market to maximize FDIC coverage'},
+ // OZ Pros — Blueprint Call (inbound paid-consult, $995 Blueprint Session)
+ {id:'hutchins',name:'Mark & Linda Hutchins',age:58,avatar:'&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F466;',category:'ozpros',difficulty:'easy',
+  personality:'agreeable',situation:'Just sold their manufacturing business for $4M — roughly $2.4M capital gain, closed 6 weeks ago. Their CPA quoted a $600K tax bill and it stung. They don\'t need the cash short-term, are comfortable with real estate, and could let it work 10+ years. Filled out the OZPros form after Googling "how to avoid capital gains tax on business sale."',
+  primaryObjection:'cpa-first',hiddenObjection:'The $600K number feels like losing a chunk of Mark\'s life\'s work — he\'s more emotional about it than he lets on',
+  openTriggers:'When you echo their $600K number back and quantify what deferral + the 10-year tax-free hold means',
+  resistTriggers:'Jargon and acronyms without plain-English translation; feeling rushed past the story of the business',
+  successClose:'Books the Blueprint Session and pays the $995 on the call, with the CPA invited to join'},
+ {id:'harmon',name:'Evan Harmon',age:54,avatar:'&#x1F468;&#x200D;&#x1F4BC;',category:'ozpros',difficulty:'medium',
+  personality:'analytical',situation:'Multifamily developer and former registered investment advisor with projects in flight — some already sit in zones but were never structured as OZ deals. Missed OZ 1.0, and the new tax bill pulled him back for 2.0. Raising from outside investors sitting on gains, so this is fund/QOF formation. Knows the financial benefits cold ("I\'ve done the 5- and 10-year comparators") — his real pain is the alphabet soup: QOF, QOZB, compliance. Travels constantly.',
+  primaryObjection:'calendar-stall',hiddenObjection:'He\'s "the expert" to his investors — hates admitting he can\'t navigate the regs himself, which is exactly why he needs help',
+  openTriggers:'When you skip the OZ-101 lecture, pivot to execution and structure, and separate the payment from the date with concrete scheduling',
+  resistTriggers:'Being taught opportunity zone basics he already knows; dead air or uncertainty around scheduling',
+  successClose:'Locks the seat with the $995 today, with Ashley\'s coordinator to nail the date around his travel'},
+ {id:'voss',name:'Renata Voss',age:49,avatar:'&#x1F469;&#x200D;&#x1F4BB;',category:'ozpros',difficulty:'hard',
+  personality:'skeptical',situation:'Sold $1.8M of concentrated tech stock and crypto about 3 months ago — roughly $900K in gains. DIY researcher: podcasts, IRS forms, Reddit. Thinks she can self-file Form 8996 and set up her own QOF through an online service. Thinks a $995 "consultation" should be free like every other firm offers.',
+  primaryObjection:'free-consult',hiddenObjection:'Her 180-day window closes in about 9 weeks and she\'s quietly terrified she\'ll botch the self-filing and blow the whole deferral',
+  openTriggers:'When you contrast a working session with a sales pitch, stack the refund + $995-applies-to-future-services, and put the 180-day math on the table',
+  resistTriggers:'Salesy pressure, vague claims without specifics, dodging her technical questions',
+  successClose:'Pays the $995 after the value-stack and deadline math — books the Blueprint before her window closes'},
+ {id:'boyle',name:'Garrett Boyle',age:44,avatar:'&#x1F468;',category:'ozpros',difficulty:'hard',
+  personality:'agreeable',situation:'Commercial insurance broker who just had a monster year — about $700K in W-2 commissions and bonus, his biggest income year ever. Heard about opportunity zones at a conference and is EXCITED to shelter it. Problem: it\'s all ordinary income. No capital gain anywhere — the one non-negotiable is missing. He does not know this and will happily pay $995 today.',
+  primaryObjection:'no-capital-gain',hiddenObjection:'He\'s eager to buy — the test is whether YOU disqualify him honestly instead of taking the easy $995 on a bad fit',
+  openTriggers:'When you dig into WHERE the money came from before pitching — he respects straight answers and honesty',
+  resistTriggers:'If you pitch the Blueprint before qualifying the gain, he books it — and the session scores you down for a bad-fit close',
+  successClose:'Accepts that OZ only works on capital gains, appreciates the honesty, and agrees to reconnect if he realizes a gain (he has appreciated stock he could harvest)'}
 ];
 
 // ── Objection Response Library ──
@@ -1332,7 +1412,12 @@ var OBJECTIONS={
  'self-insure':{label:'I\'ll just save the money myself',idealResponse:'Let\'s do the math. At $629/month, it takes you over 26 years to save $200,000. If you need care in 5 years, you\'d have about $38,000 saved. A nursing home costs $8,000-$10,000 a month. You\'d burn through your savings in 4-5 months. The policy gives you $200,000 in protection from day one.',keywords:['math','save','years','$200,000','nursing home','costs','burn','day one','compare','decades']},
  'never-need-it':{label:'I\'ll never need long-term care',idealResponse:'I hope you\'re right. But the statistics say 70% of people over 65 will need some form of long-term care. And here\'s the thing — even if you never use the LTC benefit, the $200,000 death benefit still goes to your family tax-free. Either way, the money goes somewhere useful. It\'s not wasted.',keywords:['70%','statistics','hope','but','death benefit','family','tax-free','either way','not wasted','still']},
  'cancel-everything':{label:'Just cancel it all',idealResponse:'I get the frustration with the rate hike. But think about this — you got this policy because of your family. Your mortgage, your wife, your kid. If you cancel and something happens, what does your family do tomorrow? The answer isn\'t to drop coverage — it\'s to fix the structure so you\'re not getting gouged every 5 years.',keywords:['family','mortgage','wife','kid','cancel','drop','coverage','fix','structure','gouged','something happens']},
- 'higher-rate':{label:'Want the highest rate',idealResponse:'I respect that — rate matters. Let me show you our current CD rates by term. But I also want to mention: if you\'re looking 3-5 years out, a fixed annuity may actually net you more after taxes, since CD interest is taxed annually while annuity growth is deferred.',keywords:['rates','current','term','3-5 years','annuity','net more','after taxes','deferred','taxed annually']}
+ 'higher-rate':{label:'Want the highest rate',idealResponse:'I respect that — rate matters. Let me show you our current CD rates by term. But I also want to mention: if you\'re looking 3-5 years out, a fixed annuity may actually net you more after taxes, since CD interest is taxed annually while annuity growth is deferred.',keywords:['rates','current','term','3-5 years','annuity','net more','after taxes','deferred','taxed annually']},
+ 'cpa-first':{label:'Need to run it by my CPA',idealResponse:'Smart — and we work alongside CPAs every day; most don\'t specialize in opportunity zones because it\'s all we do. Here\'s the thing though: your 180-day window and the December 31, 2026 deadline don\'t wait for a meeting. Let\'s lock your Blueprint Session now and invite your CPA to join it — that way you get the specialist answer and their sign-off in the same 30 minutes.',keywords:['work alongside','cpas','specialize','all we do','invite','join','180','december 31','window','doesn\'t wait','together']},
+ 'calendar-stall':{label:'Traveling / calendar uncertain',idealResponse:'Totally get it — and here\'s the good news: the payment and the date are two separate things. Let\'s lock the seat now so you\'re not fighting for it in three weeks, and Ashley\'s coordinator will work around your travel. You\'re not committing to a date today, just to the seat. Fair?',keywords:['payment and the date','two separate','lock the seat','coordinator','work around','travel','not committing to a date','fair','seat']},
+ 'free-consult':{label:'Other firms do free consultations',idealResponse:'They do — and a free consultation is a sales pitch with your name on it. The Blueprint is a private 30-minute working session on YOUR gain and YOUR window — you leave with the actual structure. If you\'re not satisfied, ask for a refund and we\'ll refund you. And the $995 applies to any future services. So the real risk isn\'t the $995 — it\'s the window closing while you collect free pitches.',keywords:['free','sales pitch','working session','your gain','refund','applies to','future services','risk','window closing','structure']},
+ 'send-info':{label:'Just send me some information',idealResponse:'I could — but generic info is exactly what got your head spinning with QOFs and QOZBs in the first place. What actually moves you forward is a plan specific to your gain, your timeline, and your 180-day window. That\'s what the Blueprint Session is: 30 minutes, your numbers, your structure. Would Tuesday or Thursday work better?',keywords:['generic','specific to your','your gain','your numbers','head spinning','blueprint','30 minutes','tuesday','thursday','moves you forward']},
+ 'no-capital-gain':{label:'Ordinary income — no capital gain',idealResponse:'I\'m going to be straight with you because I\'d want the same: opportunity zones only work on CAPITAL gains — a business sale, appreciated stock, real estate, crypto. Commission and bonus income is ordinary income, so OZ isn\'t your vehicle, and I\'m not going to take $995 from you for a session that can\'t help. If you realize a gain — say you harvest that appreciated stock — call me that week; the clock starts at 180 days. Meanwhile, let me point you toward strategies actually built for big W-2 years.',keywords:['straight with you','capital gains','ordinary income','commission','bonus','not going to take','can\'t help','harvest','180','point you','honest']}
 };
 
 // ── Conversation Trees (Scripted Mode) ──
@@ -1424,7 +1509,11 @@ function getOpening(p){
   howard:'Yeah, so my buddy Jim sent me in here. He said you helped him with something. Look, I\'m going to be honest — I don\'t think I need long-term care insurance. I\'m healthy, I\'m still working. But Jim insisted, so here I am.',
   jess:'Hi! We booked this appointment because our friend told us about setting up an IUL for her daughter. We have a 4-year-old son, Ethan, and we\'ve been putting $100 a month into a savings account for him but it\'s barely earning anything. We just want to give him a head start.',
   andre:'Hey, so I booked this to learn about IULs for my daughter Maya. She\'s 7. I have a 529 for her right now but honestly, I\'m not sure she\'ll go to college — she already talks about starting her own business. I need something more flexible. But I\'ve read mixed things about IULs online.',
-  kim:'We\'re here because David\'s coworker keeps talking about this IUL thing for kids. I\'ll be honest, my friend at work had a variable universal life policy and got burned, so I\'m skeptical. We have twin daughters, they\'re 2. Convince us why we shouldn\'t just buy index funds in a custodial account.'
+  kim:'We\'re here because David\'s coworker keeps talking about this IUL thing for kids. I\'ll be honest, my friend at work had a variable universal life policy and got burned, so I\'m skeptical. We have twin daughters, they\'re 2. Convince us why we shouldn\'t just buy index funds in a custodial account.',
+  hutchins:'Oh hi, yes — this is Mark. Linda\'s on too. You\'re with the opportunity zone people, right? We filled out that form on your website. We, uh... we just sold our manufacturing business, and our CPA gave us the tax number last week. Six hundred thousand dollars. I about fell out of my chair.',
+  harmon:'Yeah, this is Evan. I\'ve got a hard stop in fifteen, so let\'s move. Quick background: I develop multifamily, I used to be an RIA, and I\'m raising from investors sitting on gains. I sat out opportunity zones the first go-round — the new bill pulled me back in. I know the benefits, I\'ve run the comparators. What I need is structure.',
+  voss:'Hi. Renata. Before you start — I\'ve listened to about thirty hours of podcasts on this, I\'ve read the actual IRS forms, and I know there are online services that\'ll set up a qualified opportunity fund for a few hundred bucks. So I\'m curious what exactly you\'d be doing for me that I can\'t do myself.',
+  boyle:'Hey! Yeah, this is Garrett. Man, I\'m glad you called. So I was at a conference last month and a guy on stage was talking about opportunity zones — saving 30, 40 percent on taxes? I just had my biggest year EVER. Best bonus of my career. I need to shelter that money, like, yesterday. Where do I sign up?'
  };
  return openers[p.id]||'Hi, I\'m here to discuss my financial options.';
 }
@@ -1643,7 +1732,12 @@ var PERSONA_VOICES={
  // Adult IUL
  patel:'XrExE9yKIg1WjnnlVkGX',     // Matilda — professional American female
  nguyen:'TX3LPaxmHKxFdv7VOQHJ',    // Liam — energetic American male
- wright:'pqHfZKP75CvOlQylNhV4'      // Bill — older American male
+ wright:'pqHfZKP75CvOlQylNhV4',     // Bill — older American male
+ // OZ Pros
+ hutchins:'CwhRBWXzGAHq8TQ4Fs17',  // Roger — easy-going American male (Mark)
+ harmon:'cjVigY5qzO86Huf0OWal',    // Eric — smooth, professional American male
+ voss:'XrExE9yKIg1WjnnlVkGX',      // Matilda — professional American female
+ boyle:'bIHbv24MWmeRgasZH58o'      // Will — conversational American male
 };
 
 // ── Paywall System ──
@@ -1926,6 +2020,7 @@ function getScriptForCategory(cat){
  if(cat==='ltc') return {stages:LTC_SCRIPT_STAGES,curveballs:LTC_CURVEBALLS};
  if(cat==='kidsiul') return {stages:KIDSIUL_SCRIPT_STAGES,curveballs:KIDSIUL_CURVEBALLS};
  if(cat==='iul') return {stages:IUL_SCRIPT_STAGES,curveballs:IUL_CURVEBALLS};
+ if(cat==='ozpros') return {stages:OZPROS_SCRIPT_STAGES,curveballs:OZPROS_CURVEBALLS};
  return {stages:SCRIPT_STAGES,curveballs:CURVEBALLS};
 }
 
@@ -1980,6 +2075,8 @@ function startSession(personaId){
  } else if(mode==='script'&&persona.category==='kidsiul'){
   firstMsg=getOpening(persona);
  } else if(mode==='script'&&persona.category==='iul'){
+  firstMsg=getOpening(persona);
+ } else if(mode==='script'&&persona.category==='ozpros'){
   firstMsg=getOpening(persona);
  } else {
   firstMsg=tree[0].clientMsg;
@@ -2357,12 +2454,25 @@ function handleScriptResponse(agentText){
    +'- When asked about consequences of dropping coverage: express concern about family/mortgage\n'
    +'- When presented options: lean toward the fixed term (20-year)\n'
    +'- When asked why: explain you want fixed budget and to protect spouse\n\n';
+ } else if(p.category==='ozpros'){
+  scenarioText='SCENARIO: This is a scheduled PHONE CALL. You submitted a form on the OZPros website about Opportunity Zone tax strategy, and the advisor is calling you for a short qualification call. The advisor\'s goal is to see IF they can help you and, if so, book you into a $995 "Blueprint Session" — a private 30-minute working session with their senior strategist Ashley. You are NOT in a bank branch — this is a phone call about capital gains taxes.\n\n'
+   +'REFERENCE RESPONSES (respond naturally in your own words, but follow this emotional arc):\n'
+   +'- When asked "why now, why us": tell the story of your gain event (or income year) and what prompted the form\n'
+   +'- When asked what you know about opportunity zones: answer per your background — novice or expert\n'
+   +'- When asked about your estimated tax bill: give a real number from your situation, with some emotion attached\n'
+   +'- When the advisor echoes your number back and does the math on the gap: let it land — "when you put it that way..."\n'
+   +'- When asked what\'s missing or broken in your tax strategy: state your real pain (execution, complexity, time, trust)\n'
+   +'- When asked sooner-or-later / 1-to-10 priority: answer honestly per your persona; if pressed on tone mismatch, admit the real number\n'
+   +'- When the Blueprint Session is pitched: raise your PRIMARY OBJECTION before agreeing\n'
+   +'- Only agree to pay the $995 after your objection is genuinely handled (value-stack, refund, deadline math, or seat-vs-date separation)\n'
+   +'- If the advisor pushes for payment the same way twice without adding anything new, get more resistant\n\n'
+   +'IMPORTANT — QUALIFICATION REALISM: Opportunity Zones only work on CAPITAL GAINS. If your situation contains no capital gain (ordinary income only) and the advisor pitches or books the Blueprint anyway, go along with it enthusiastically — booking a bad-fit client is the FAILURE MODE this drill tests. If instead the advisor uncovers the mismatch and disqualifies you honestly, respect it, thank them, and end with [SESSION_COMPLETE].\n\n';
  } else {
   scenarioText='SCENARIO: You walked in wanting to open a CD. The agent is trying to have a consultative conversation to see if a fixed annuity might be better for you. You are open to learning but have real concerns.\n\n';
  }
 
  var greetingContext2=activeSession.openingGreeting?'\n\nYOUR OPENING (already said to the agent): "'+activeSession.openingGreeting+'"\n\nThe agent\'s next message is their response to that opening. Continue naturally from there.\n':'';
- var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client who came into an AAA branch.\n\n'
+ var systemPrompt='You are playing '+p.name+', a '+p.age+'-year-old '+p.personality+' client '+(p.category==='ozpros'?'on a scheduled phone call with an advisor from OZPros, an Opportunity Zone tax-strategy consulting firm':'who came into an AAA branch')+'.\n\n'
   +'BACKGROUND: '+p.situation+'\n\n'
   +scenarioText
   +'YOUR PERSONALITY: '+p.personality+'. '+(p.personality==='skeptical'?'You push back on claims and want proof.':p.personality==='analytical'?'You want specific numbers and logic.':p.personality==='emotional'?'You respond to stories and feelings about family/security.':'You are generally receptive but need to be convinced.')+'\n\n'
@@ -2370,7 +2480,7 @@ function handleScriptResponse(agentText){
   +'HIDDEN CONCERN: '+p.hiddenObjection+'\n'
   +greetingContext2
   +'\nRULES:\n'
-  +'- Stay in character. You are the CLIENT sitting in the branch.\n'
+  +'- Stay in character. You are the CLIENT'+(p.category==='ozpros'?' on the phone':' sitting in the branch')+'.\n'
   +'- Respond in 2-4 sentences. Be conversational and natural.\n'
   +'- If the agent follows a good consultative process (asks questions, listens, builds on your answers), become more receptive.\n'
   +'- If the agent jumps to pitching too early or sounds scripted/robotic, become more guarded.\n'
@@ -2577,6 +2687,27 @@ var SCRIPT_KEY_PHRASES={
   'tax-free','loan','bank','real estate','business','compounding',
   'lifetime','income','rider','guaranteed','monthly','rest of your life','outlive',
   'does that make sense','do you feel','why do you feel','medically approved','first step'
+ ],
+ ozpros:[
+  'thanks for being on time','10 minutes','another call right after','is that ok',
+  'if we can help','how we can help','my job today','point you in the right direction',
+  'why now','why us','prompted you',
+  'your interest in opportunity zones','what do you know','want to learn',
+  'capital gain','when did it close','180','tax liability','bringing on investors',
+  'estimated tax bill','where you are right now','where do you want to be',
+  'so we\'re talking','is that right','costing you','not to be there',
+  '40%','tax-free loan','instead of paying',
+  'missing','broken',
+  'here\'s what we do','high net worth','navigate','complexities','successfully execute',
+  'use our help','sooner thing','later thing','1 to 10','priority',
+  'december 31','time may be running out',
+  'three biggest','challenges','let me check',
+  'blueprint session','you qualify','not for everyone','serious',
+  '30-minute','working session','without drawing attention',
+  'refund','applies to','future services','sound reasonable',
+  'high demand','heads up','simple form',
+  '995','one-time investment','any reason','credit card',
+  'ashley','coordinator','page full of notes','pick up where we left off'
  ]
 };
 
@@ -3212,6 +3343,7 @@ function renderScenarioPicker(){
  h+='<span class="pill'+(filterCat==='ltc'?' active':'')+'" onclick="setFilter(\'cat\',\'ltc\')">Long-Term Care'+(isScript?(SCRIPT_AVAILABLE.ltc?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill'+(filterCat==='kidsiul'?' active':'')+'" onclick="setFilter(\'cat\',\'kidsiul\')">Kids IUL'+(isScript?(SCRIPT_AVAILABLE.kidsiul?' &#x2705;':' &#x1F512;'):'')+'</span>';
  h+='<span class="pill cat-iul'+(filterCat==='iul'?' active':'')+'" onclick="setFilter(\'cat\',\'iul\')">IUL'+(isScript?(SCRIPT_AVAILABLE.iul?' &#x2705;':' &#x1F512;'):'')+'</span>';
+ h+='<span class="pill'+(filterCat==='ozpros'?' active':'')+'" onclick="setFilter(\'cat\',\'ozpros\')">OZ Pros'+(isScript?(SCRIPT_AVAILABLE.ozpros?' &#x2705;':' &#x1F512;'):'')+'</span>';
  if(!isScript){
   h+='<span class="pill cat-banking'+(filterCat==='banking'?' active':'')+'" onclick="setFilter(\'cat\',\'banking\')">Banking / CD</span>';
  }
@@ -3241,8 +3373,8 @@ function renderScenarioPicker(){
 
  h+='<div class="persona-grid">';
  filtered.forEach(function(p){
-  var catColors={annuity:'grn',life:'red',conversion:'pri',ltc:'amb',kidsiul:'grn',iul:'amb',banking:'pri'};
-  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD'};
+  var catColors={annuity:'grn',life:'red',conversion:'pri',ltc:'amb',kidsiul:'grn',iul:'amb',banking:'pri',ozpros:'pri'};
+  var catLabels={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD',ozpros:'OZ Pros'};
   var bestScore=0;
   sessions.forEach(function(s){if(s.persona===p.id&&s.total>bestScore) bestScore=s.total});
 
@@ -3791,9 +3923,9 @@ function renderStats(){
 
  // Category breakdown
  h+='<div class="card"><h3>By Category</h3>';
- var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD'};
- var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',kidsiul:'var(--grn)',iul:'var(--amb)',banking:'var(--pri)'};
- ['annuity','life','conversion','ltc','kidsiul','iul'].forEach(function(cat){
+ var catNames={annuity:'CD-to-Annuity',life:'Life Insurance',conversion:'Life Conversion',ltc:'Long-Term Care',kidsiul:'Kids IUL',iul:'IUL',banking:'Banking/CD',ozpros:'OZ Pros'};
+ var catColors={annuity:'var(--grn)',life:'var(--red)',conversion:'var(--pri)',ltc:'var(--amb)',kidsiul:'var(--grn)',iul:'var(--amb)',banking:'var(--pri)',ozpros:'var(--pri)'};
+ ['annuity','life','conversion','ltc','kidsiul','iul','ozpros'].forEach(function(cat){
   var catSessions=sessions.filter(function(s){return s.category===cat});
   if(catSessions.length===0) return;
   var avg=Math.round(catSessions.reduce(function(s,x){return s+x.total},0)/catSessions.length);
@@ -4252,13 +4384,14 @@ var HELP_TOPICS=[
   +'<br><br><b>Script Training (~$0.02/session):</b> Practice your exact sales scripts with AI clients who throw curveballs. You\'re scored on how closely you follow the script checkpoints, use key phrases, recover from distractions, and maintain proper tone. Unlock harder levels by mastering easier ones.'},
 
  {title:'Choosing a Persona',keywords:'persona character client category difficulty easy medium hard',content:
-  '<b>6 Categories:</b>'
+  '<b>7 Categories:</b>'
   +'<ul><li><b>CD-to-Annuity</b> — client walks in to open a CD, you guide them to a fixed annuity</li>'
   +'<li><b>Life Insurance</b> — final expense / funeral coverage conversations</li>'
   +'<li><b>Life Conversion</b> — converting renewable term to fixed term or universal life</li>'
   +'<li><b>Long-Term Care</b> — Eclipse Protector IUL with LTC agreement</li>'
   +'<li><b>Kids IUL</b> — wealth-building for children</li>'
-  +'<li><b>IUL (Adult)</b> — retirement, infinite banking, or lifetime income rider</li></ul>'
+  +'<li><b>IUL (Adult)</b> — retirement, infinite banking, or lifetime income rider</li>'
+  +'<li><b>OZ Pros</b> — inbound Opportunity Zone consult calls: qualify the capital gain and book the $995 Blueprint Session</li></ul>'
   +'<b>3 difficulty levels per category:</b>'
   +'<ul><li><b>Easy</b> — agreeable client, receptive to your pitch</li>'
   +'<li><b>Medium</b> — analytical client, wants numbers and proof</li>'
