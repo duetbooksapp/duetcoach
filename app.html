@@ -1106,9 +1106,9 @@ var IUL_CURVEBALLS=[
 // Built from the OZPros 11-Step Paid Consults Script (Inbound). Goal: qualify → book the $995 Blueprint Session with Ashley.
 var OZPROS_SCRIPT_STAGES=[
  {name:'The Frame',color:'#3498db',checkpoints:[
-  {id:1,desc:'Confirm the call + thank for being on time',keywords:['note in my calendar','quick call','thanks for being on time','being on time','scheduled','is that right']},
+  {id:1,desc:'Intro: confirm the call (or SMILE new-lead opener)',keywords:['note in my calendar','quick call','thanks for being on time','being on time','scheduled','is that right','calling from ozpros','inquired about','tell me more about what\'s going on']},
   {id:2,desc:'Time-box: 10 minutes + permission',keywords:['10 minutes','ten minutes','another call','keep to time','is that ok','is that okay']},
-  {id:3,desc:'IF/HOW frame — this call decides IF we can help',keywords:['if we can help','my job today','really simple','point you in the right direction','how we can help','let you know politely']},
+  {id:3,desc:'IF/HOW frame — this call decides IF we can help',keywords:['if we can help','my job today','really simple','point you in the right direction','how we can help','let you know politely','book another time']},
   {id:4,desc:'Ask: why now, and why us?',keywords:['why now','why us','what\'s prompted','prompted you to','what made you reach out']}
  ]},
  {name:'Discovery & GAP',color:'#e67e22',checkpoints:[
@@ -1121,19 +1121,19 @@ var OZPROS_SCRIPT_STAGES=[
   {id:11,desc:'Ask: what\'s missing or broken?',keywords:['missing','broken','tax strategy right now','what do you think is']}
  ]},
  {name:'Position & Priority',color:'#1abc9c',checkpoints:[
-  {id:12,desc:'Positioning statement (what OZPros does)',keywords:['here\'s what we do','high net worth','navigate','complexities','legislation','successfully execute','real estate professionals']},
+  {id:12,desc:'Positioning statement (what OZPros does)',keywords:['here\'s what we do','provide some clarity','high net worth','navigate','complexities','legislation','successfully execute','real estate professionals']},
   {id:13,desc:'Need question: what could you use our help with?',keywords:['use our help','help with right now','based on that','what do you believe']},
-  {id:14,desc:'Priority test: sooner/later + the 1–10',keywords:['sooner thing','later thing','1 to 10','scale from','how much of a priority','priority for you']},
+  {id:14,desc:'Priority test: sooner/later + the 1–10 (call out tone mismatch)',keywords:['sooner thing','later thing','1 to 10','scale from','how much of a priority','priority for you','felt like a','is it really']},
   {id:15,desc:'Say the 12/31/2026 deadline OUT LOUD',keywords:['december 31','12/31','end of 2026','time may be running out','deadline','significance of']},
   {id:16,desc:'Recap THREE challenges from your notes',keywords:['three biggest','3 biggest','let me check i\'ve got this right','challenges','bottlenecks','from what you said','is that right']}
  ]},
  {name:'Blueprint Close',color:'var(--grn)',checkpoints:[
   {id:17,desc:'Callback to frame + qualify them into it',keywords:['i said at the start','believe you qualify','you qualify for','blueprint session']},
   {id:18,desc:'Scarcity: not for everyone, few per week',keywords:['not for everyone','few of these','each week','individuals who are serious','only offer']},
-  {id:19,desc:'What it is: private 30-min working session',keywords:['30-minute','thirty minute','working session','review','current strategy','systems','without drawing attention']},
-  {id:20,desc:'Three outcomes + refund guarantee',keywords:['three outcomes','not a fit','part ways','refund','not satisfied','sound reasonable']},
+  {id:19,desc:'What it is: private 30-min working session',keywords:['30-minute','thirty minute','working session','review','current strategy','higher than needed','systems','drawing attention']},
+  {id:20,desc:'Three outcomes + refund guarantee',keywords:['three outcomes','not a fit','part ways','separate ways','refund','not satisfied','sound reasonable']},
   {id:21,desc:'Value-stack: $995 applies to future services',keywords:['applies to','future services','credited toward','goes toward','apply that']},
-  {id:22,desc:'Commitment ask + pre-session form',keywords:['high demand','locked','heads up','simple form','before your session','serious and ready']},
+  {id:22,desc:'Commitment ask + pre-session form',keywords:['high demand','locked','heads up','committed to showing up','simple form','before your session','serious and ready']},
   {id:23,desc:'$995 ask: any reason we couldn\'t book today?',keywords:['995','one-time investment','any reason','booked today','credit card','visa','which one would you prefer']},
   {id:24,desc:'Handoff: notes + Ashley + coordinator',keywords:['ashley','page full of notes','pick up where we left off','coordinator','be on the lookout','connect you via email']}
  ]}
@@ -2718,7 +2718,8 @@ var SCRIPT_KEY_PHRASES={
  ],
  ozpros:[
   'thanks for being on time','10 minutes','another call right after','is that ok',
-  'if we can help','how we can help','my job today','point you in the right direction',
+  'calling from ozpros','inquired about','tell me more about what\'s going on',
+  'if we can help','how we can help','my job today','point you in the right direction','book another time',
   'why now','why us','prompted you',
   'your interest in opportunity zones','what do you know','want to learn',
   'capital gain','when did it close','180','tax liability','bringing on investors',
@@ -2726,14 +2727,14 @@ var SCRIPT_KEY_PHRASES={
   'so we\'re talking','is that right','costing you','not to be there',
   '40%','tax-free loan','instead of paying',
   'missing','broken',
-  'here\'s what we do','high net worth','navigate','complexities','successfully execute',
+  'here\'s what we do','provide some clarity','high net worth','navigate','complexities','successfully execute',
   'use our help','sooner thing','later thing','1 to 10','priority',
   'december 31','time may be running out',
   'three biggest','challenges','let me check',
   'blueprint session','you qualify','not for everyone','serious',
-  '30-minute','working session','without drawing attention',
-  'refund','applies to','future services','sound reasonable',
-  'high demand','heads up','simple form',
+  '30-minute','working session','drawing attention','higher than needed',
+  'refund','separate ways','applies to','future services','sound reasonable',
+  'high demand','heads up','committed to showing up','simple form',
   '995','one-time investment','any reason','credit card',
   'ashley','coordinator','page full of notes','pick up where we left off'
  ]
